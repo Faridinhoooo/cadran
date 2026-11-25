@@ -1,0 +1,4 @@
+{
+  "_about": "Règle unique d'exclusion de marques. Lue par l'import (aucune donnée importée, données existantes supprimées) et par le site (catalogue, recherche, filtres, recommandations, comparateur, fiches par lien direct).",
+  "excluded": ["fairphone", "hmd", "huawei", "tcl", "motorola", "crosscall"]
+}

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Illustration indicative d'un smartphone pliable">
+  <!-- Pliable « livre » ouvert, vu de face. Générique : aucun logo ni objectif photo. -->
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b3b42"/>
+      <stop offset="1" stop-color="#1c1c21"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2a2a31"/>
+      <stop offset="0.6" stop-color="#17171b"/>
+      <stop offset="1" stop-color="#101013"/>
+    </linearGradient>
+    <linearGradient id="crease" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#000" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <rect x="62" y="70" width="276" height="260" rx="22" fill="url(#body)"/>
+    <rect x="68" y="76" width="264" height="248" rx="17" fill="url(#screen)"/>
+    <rect x="186" y="76" width="28" height="248" fill="url(#crease)"/>
+    <line x1="200" y1="70" x2="200" y2="330" stroke="#0d0d10" stroke-width="2"/>
+    <circle cx="280" cy="92" r="4" fill="#0a0a0b"/>
+  </g>
+</svg>

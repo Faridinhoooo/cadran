@@ -1,0 +1,1029 @@
+{
+ "_about": "Liste éditoriale des modèles pour les marques non couvertes par endoflife.date. Format : [nom, gamme, date de sortie mondiale AAAA-MM, facteur de forme]. Toutes les dates sont MONDIALES et la commercialisation en France reste à vérifier (fr_status = a_verifier) sauf mention contraire. Aucun prix ni politique de suivi n'est déduit de cette liste.",
+ "source_name": "Liste éditoriale (annonces constructeurs) — à revérifier",
+ "brands": {
+  "xiaomi": [
+   [
+    "Xiaomi 13",
+    "Xiaomi (série numérotée)",
+    "2023-02",
+    "classique"
+   ],
+   [
+    "Xiaomi 13 Pro",
+    "Xiaomi (série numérotée)",
+    "2023-02",
+    "classique"
+   ],
+   [
+    "Xiaomi 13 Lite",
+    "Xiaomi (série numérotée)",
+    "2023-02",
+    "classique"
+   ],
+   [
+    "Xiaomi 13T",
+    "Xiaomi T",
+    "2023-09",
+    "classique"
+   ],
+   [
+    "Xiaomi 13T Pro",
+    "Xiaomi T",
+    "2023-09",
+    "classique"
+   ],
+   [
+    "Xiaomi 14",
+    "Xiaomi (série numérotée)",
+    "2024-02",
+    "classique"
+   ],
+   [
+    "Xiaomi 14 Ultra",
+    "Xiaomi Ultra",
+    "2024-02",
+    "classique"
+   ],
+   [
+    "Xiaomi 14T",
+    "Xiaomi T",
+    "2024-09",
+    "classique"
+   ],
+   [
+    "Xiaomi 14T Pro",
+    "Xiaomi T",
+    "2024-09",
+    "classique"
+   ],
+   [
+    "Xiaomi 15",
+    "Xiaomi (série numérotée)",
+    "2025-03",
+    "classique"
+   ],
+   [
+    "Xiaomi 15 Ultra",
+    "Xiaomi Ultra",
+    "2025-03",
+    "classique"
+   ],
+   [
+    "Xiaomi 15T",
+    "Xiaomi T",
+    "2025-09",
+    "classique"
+   ],
+   [
+    "Xiaomi 15T Pro",
+    "Xiaomi T",
+    "2025-09",
+    "classique"
+   ]
+  ],
+  "redmi": [
+   [
+    "REDMI 12C",
+    "REDMI C",
+    "2023-03",
+    "classique"
+   ],
+   [
+    "REDMI 12",
+    "REDMI",
+    "2023-06",
+    "classique"
+   ],
+   [
+    "REDMI 13C",
+    "REDMI C",
+    "2023-11",
+    "classique"
+   ],
+   [
+    "REDMI 13",
+    "REDMI",
+    "2024-06",
+    "classique"
+   ],
+   [
+    "REDMI 14C",
+    "REDMI C",
+    "2024-09",
+    "classique"
+   ],
+   [
+    "REDMI 15C",
+    "REDMI C",
+    "2025-08",
+    "classique"
+   ],
+   [
+    "REDMI A2",
+    "REDMI A",
+    "2023-03",
+    "classique"
+   ],
+   [
+    "REDMI A3",
+    "REDMI A",
+    "2024-02",
+    "classique"
+   ],
+   [
+    "REDMI A5",
+    "REDMI A",
+    "2025-04",
+    "classique"
+   ],
+   [
+    "REDMI Note 12",
+    "REDMI Note",
+    "2023-03",
+    "classique"
+   ],
+   [
+    "REDMI Note 12 5G",
+    "REDMI Note",
+    "2023-03",
+    "classique"
+   ],
+   [
+    "REDMI Note 12 Pro 5G",
+    "REDMI Note",
+    "2023-03",
+    "classique"
+   ],
+   [
+    "REDMI Note 12 Pro+ 5G",
+    "REDMI Note",
+    "2023-03",
+    "classique"
+   ],
+   [
+    "REDMI Note 13",
+    "REDMI Note",
+    "2024-01",
+    "classique"
+   ],
+   [
+    "REDMI Note 13 5G",
+    "REDMI Note",
+    "2024-01",
+    "classique"
+   ],
+   [
+    "REDMI Note 13 Pro",
+    "REDMI Note",
+    "2024-01",
+    "classique"
+   ],
+   [
+    "REDMI Note 13 Pro 5G",
+    "REDMI Note",
+    "2024-01",
+    "classique"
+   ],
+   [
+    "REDMI Note 13 Pro+ 5G",
+    "REDMI Note",
+    "2024-01",
+    "classique"
+   ],
+   [
+    "REDMI Note 14",
+    "REDMI Note",
+    "2025-01",
+    "classique"
+   ],
+   [
+    "REDMI Note 14 5G",
+    "REDMI Note",
+    "2025-01",
+    "classique"
+   ],
+   [
+    "REDMI Note 14 Pro",
+    "REDMI Note",
+    "2025-01",
+    "classique"
+   ],
+   [
+    "REDMI Note 14 Pro 5G",
+    "REDMI Note",
+    "2025-01",
+    "classique"
+   ],
+   [
+    "REDMI Note 14 Pro+ 5G",
+    "REDMI Note",
+    "2025-01",
+    "classique"
+   ]
+  ],
+  "poco": [
+   [
+    "POCO C55",
+    "POCO C",
+    "2023-02",
+    "classique"
+   ],
+   [
+    "POCO C65",
+    "POCO C",
+    "2023-11",
+    "classique"
+   ],
+   [
+    "POCO C75",
+    "POCO C",
+    "2024-10",
+    "classique"
+   ],
+   [
+    "POCO M6 Pro",
+    "POCO M",
+    "2024-01",
+    "classique"
+   ],
+   [
+    "POCO X5 5G",
+    "POCO X",
+    "2023-02",
+    "classique"
+   ],
+   [
+    "POCO X5 Pro 5G",
+    "POCO X",
+    "2023-02",
+    "classique"
+   ],
+   [
+    "POCO X6 5G",
+    "POCO X",
+    "2024-01",
+    "classique"
+   ],
+   [
+    "POCO X6 Pro 5G",
+    "POCO X",
+    "2024-01",
+    "classique"
+   ],
+   [
+    "POCO X7",
+    "POCO X",
+    "2025-01",
+    "classique"
+   ],
+   [
+    "POCO X7 Pro",
+    "POCO X",
+    "2025-01",
+    "classique"
+   ],
+   [
+    "POCO F5",
+    "POCO F",
+    "2023-05",
+    "classique"
+   ],
+   [
+    "POCO F5 Pro",
+    "POCO F",
+    "2023-05",
+    "classique"
+   ],
+   [
+    "POCO F6",
+    "POCO F",
+    "2024-05",
+    "classique"
+   ],
+   [
+    "POCO F6 Pro",
+    "POCO F",
+    "2024-05",
+    "classique"
+   ],
+   [
+    "POCO F7 Pro",
+    "POCO F",
+    "2025-03",
+    "classique"
+   ],
+   [
+    "POCO F7 Ultra",
+    "POCO F",
+    "2025-03",
+    "classique"
+   ],
+   [
+    "POCO F7",
+    "POCO F",
+    "2025-06",
+    "classique"
+   ]
+  ],
+  "oppo": [
+   [
+    "OPPO Find N2 Flip",
+    "Find N",
+    "2023-02",
+    "clapet"
+   ],
+   [
+    "OPPO Find N3 Flip",
+    "Find N",
+    "2023-08",
+    "clapet"
+   ],
+   [
+    "OPPO Find N3",
+    "Find N",
+    "2023-10",
+    "pliable"
+   ],
+   [
+    "OPPO Find N5",
+    "Find N",
+    "2025-02",
+    "pliable"
+   ],
+   [
+    "OPPO Find X8",
+    "Find X",
+    "2024-11",
+    "classique"
+   ],
+   [
+    "OPPO Find X8 Pro",
+    "Find X",
+    "2024-11",
+    "classique"
+   ],
+   [
+    "OPPO Find X9",
+    "Find X",
+    "2025-10",
+    "classique"
+   ],
+   [
+    "OPPO Find X9 Pro",
+    "Find X",
+    "2025-10",
+    "classique"
+   ],
+   [
+    "OPPO Reno8 T",
+    "Reno",
+    "2023-02",
+    "classique"
+   ],
+   [
+    "OPPO Reno10",
+    "Reno",
+    "2023-07",
+    "classique"
+   ],
+   [
+    "OPPO Reno10 Pro",
+    "Reno",
+    "2023-07",
+    "classique"
+   ],
+   [
+    "OPPO Reno11 F",
+    "Reno",
+    "2024-02",
+    "classique"
+   ],
+   [
+    "OPPO Reno11",
+    "Reno",
+    "2024-01",
+    "classique"
+   ],
+   [
+    "OPPO Reno12",
+    "Reno",
+    "2024-06",
+    "classique"
+   ],
+   [
+    "OPPO Reno12 Pro",
+    "Reno",
+    "2024-06",
+    "classique"
+   ],
+   [
+    "OPPO Reno12 F",
+    "Reno",
+    "2024-06",
+    "classique"
+   ],
+   [
+    "OPPO Reno13",
+    "Reno",
+    "2025-01",
+    "classique"
+   ],
+   [
+    "OPPO Reno13 Pro",
+    "Reno",
+    "2025-01",
+    "classique"
+   ],
+   [
+    "OPPO Reno13 F",
+    "Reno",
+    "2025-03",
+    "classique"
+   ],
+   [
+    "OPPO Reno14",
+    "Reno",
+    "2025-07",
+    "classique"
+   ],
+   [
+    "OPPO Reno14 Pro",
+    "Reno",
+    "2025-07",
+    "classique"
+   ],
+   [
+    "OPPO Reno14 F",
+    "Reno",
+    "2025-07",
+    "classique"
+   ],
+   [
+    "OPPO A78",
+    "A",
+    "2023-01",
+    "classique"
+   ],
+   [
+    "OPPO A58",
+    "A",
+    "2023-08",
+    "classique"
+   ],
+   [
+    "OPPO A38",
+    "A",
+    "2023-09",
+    "classique"
+   ],
+   [
+    "OPPO A18",
+    "A",
+    "2023-10",
+    "classique"
+   ],
+   [
+    "OPPO A60",
+    "A",
+    "2024-04",
+    "classique"
+   ],
+   [
+    "OPPO A80 5G",
+    "A",
+    "2024-07",
+    "classique"
+   ],
+   [
+    "OPPO A40",
+    "A",
+    "2024-08",
+    "classique"
+   ],
+   [
+    "OPPO A5 Pro",
+    "A",
+    "2025-04",
+    "classique"
+   ]
+  ],
+  "honor": [
+   [
+    "HONOR Magic5 Pro",
+    "Magic",
+    "2023-02",
+    "classique"
+   ],
+   [
+    "HONOR Magic5 Lite",
+    "Magic",
+    "2023-01",
+    "classique"
+   ],
+   [
+    "HONOR Magic6 Pro",
+    "Magic",
+    "2024-02",
+    "classique"
+   ],
+   [
+    "HONOR Magic6 Lite",
+    "Magic",
+    "2024-01",
+    "classique"
+   ],
+   [
+    "HONOR Magic7 Pro",
+    "Magic",
+    "2025-01",
+    "classique"
+   ],
+   [
+    "HONOR Magic7 Lite",
+    "Magic",
+    "2025-01",
+    "classique"
+   ],
+   [
+    "HONOR Magic V2",
+    "Magic V (pliables)",
+    "2024-01",
+    "pliable"
+   ],
+   [
+    "HONOR Magic V3",
+    "Magic V (pliables)",
+    "2024-09",
+    "pliable"
+   ],
+   [
+    "HONOR Magic V5",
+    "Magic V (pliables)",
+    "2025-08",
+    "pliable"
+   ],
+   [
+    "HONOR 90",
+    "Série numérotée",
+    "2023-07",
+    "classique"
+   ],
+   [
+    "HONOR 90 Lite",
+    "Série numérotée",
+    "2023-06",
+    "classique"
+   ],
+   [
+    "HONOR 200",
+    "Série numérotée",
+    "2024-06",
+    "classique"
+   ],
+   [
+    "HONOR 200 Pro",
+    "Série numérotée",
+    "2024-06",
+    "classique"
+   ],
+   [
+    "HONOR 200 Lite",
+    "Série numérotée",
+    "2024-04",
+    "classique"
+   ],
+   [
+    "HONOR 400",
+    "Série numérotée",
+    "2025-05",
+    "classique"
+   ],
+   [
+    "HONOR 400 Pro",
+    "Série numérotée",
+    "2025-05",
+    "classique"
+   ],
+   [
+    "HONOR 400 Lite",
+    "Série numérotée",
+    "2025-04",
+    "classique"
+   ],
+   [
+    "HONOR X6a",
+    "X",
+    "2023-06",
+    "classique"
+   ],
+   [
+    "HONOR X7b",
+    "X",
+    "2023-12",
+    "classique"
+   ],
+   [
+    "HONOR X8b",
+    "X",
+    "2024-01",
+    "classique"
+   ],
+   [
+    "HONOR X9b",
+    "X",
+    "2023-12",
+    "classique"
+   ],
+   [
+    "HONOR X9c",
+    "X",
+    "2024-11",
+    "classique"
+   ]
+  ],
+  "realme": [
+   [
+    "realme C55",
+    "C",
+    "2023-03",
+    "classique"
+   ],
+   [
+    "realme C67",
+    "C",
+    "2023-12",
+    "classique"
+   ],
+   [
+    "realme C75",
+    "C",
+    "2024-11",
+    "classique"
+   ],
+   [
+    "realme 11 Pro+ 5G",
+    "Série numérotée",
+    "2023-06",
+    "classique"
+   ],
+   [
+    "realme 12 Pro+ 5G",
+    "Série numérotée",
+    "2024-02",
+    "classique"
+   ],
+   [
+    "realme 14 Pro+ 5G",
+    "Série numérotée",
+    "2025-01",
+    "classique"
+   ],
+   [
+    "realme GT 6",
+    "GT",
+    "2024-06",
+    "classique"
+   ],
+   [
+    "realme GT 7 Pro",
+    "GT",
+    "2024-11",
+    "classique"
+   ],
+   [
+    "realme GT 7",
+    "GT",
+    "2025-05",
+    "classique"
+   ]
+  ],
+  "vivo": [
+   [
+    "vivo X100 Pro",
+    "X",
+    "2023-12",
+    "classique"
+   ],
+   [
+    "vivo X200 Pro",
+    "X",
+    "2024-11",
+    "classique"
+   ],
+   [
+    "vivo V30",
+    "V",
+    "2024-03",
+    "classique"
+   ],
+   [
+    "vivo V40",
+    "V",
+    "2024-08",
+    "classique"
+   ]
+  ],
+  "nothing": [
+   [
+    "Nothing Phone (2)",
+    "Phone",
+    "2023-07",
+    "classique"
+   ],
+   [
+    "Nothing Phone (2a)",
+    "Phone",
+    "2024-03",
+    "classique"
+   ],
+   [
+    "Nothing Phone (2a) Plus",
+    "Phone",
+    "2024-07",
+    "classique"
+   ],
+   [
+    "Nothing Phone (3a)",
+    "Phone",
+    "2025-03",
+    "classique"
+   ],
+   [
+    "Nothing Phone (3a) Pro",
+    "Phone",
+    "2025-03",
+    "classique"
+   ],
+   [
+    "Nothing Phone (3)",
+    "Phone",
+    "2025-07",
+    "classique"
+   ]
+  ],
+  "cmf": [
+   [
+    "CMF Phone 1",
+    "CMF Phone",
+    "2024-07",
+    "classique"
+   ],
+   [
+    "CMF Phone 2 Pro",
+    "CMF Phone",
+    "2025-04",
+    "classique"
+   ]
+  ],
+  "sony": [
+   [
+    "Sony Xperia 1 V",
+    "Xperia 1",
+    "2023-06",
+    "classique"
+   ],
+   [
+    "Sony Xperia 10 V",
+    "Xperia 10",
+    "2023-06",
+    "classique"
+   ],
+   [
+    "Sony Xperia 1 VI",
+    "Xperia 1",
+    "2024-06",
+    "classique"
+   ],
+   [
+    "Sony Xperia 10 VI",
+    "Xperia 10",
+    "2024-06",
+    "classique"
+   ],
+   [
+    "Sony Xperia 1 VII",
+    "Xperia 1",
+    "2025-06",
+    "classique"
+   ]
+  ],
+  "asus": [
+   [
+    "ASUS Zenfone 10",
+    "Zenfone",
+    "2023-06",
+    "classique"
+   ],
+   [
+    "ASUS Zenfone 11 Ultra",
+    "Zenfone",
+    "2024-03",
+    "classique"
+   ],
+   [
+    "ASUS ROG Phone 7",
+    "ROG Phone",
+    "2023-04",
+    "classique"
+   ],
+   [
+    "ASUS ROG Phone 7 Ultimate",
+    "ROG Phone",
+    "2023-04",
+    "classique"
+   ],
+   [
+    "ASUS ROG Phone 8",
+    "ROG Phone",
+    "2024-01",
+    "classique"
+   ],
+   [
+    "ASUS ROG Phone 8 Pro",
+    "ROG Phone",
+    "2024-01",
+    "classique"
+   ],
+   [
+    "ASUS ROG Phone 9",
+    "ROG Phone",
+    "2024-11",
+    "classique"
+   ],
+   [
+    "ASUS ROG Phone 9 Pro",
+    "ROG Phone",
+    "2024-11",
+    "classique"
+   ]
+  ],
+  "huawei": [
+   [
+    "Huawei P60 Pro",
+    "P / Pura",
+    "2023-05",
+    "classique"
+   ],
+   [
+    "Huawei Mate X3",
+    "Mate X",
+    "2023-05",
+    "pliable"
+   ],
+   [
+    "Huawei Pura 70 Pro",
+    "P / Pura",
+    "2024-05",
+    "classique"
+   ],
+   [
+    "Huawei Pura 70 Ultra",
+    "P / Pura",
+    "2024-05",
+    "classique"
+   ],
+   [
+    "Huawei Mate X6",
+    "Mate X",
+    "2024-12",
+    "pliable"
+   ],
+   [
+    "Huawei nova 12 SE",
+    "nova",
+    "2024-01",
+    "classique"
+   ]
+  ],
+  "hmd": [
+   [
+    "HMD Pulse",
+    "Pulse",
+    "2024-04",
+    "classique"
+   ],
+   [
+    "HMD Pulse+",
+    "Pulse",
+    "2024-04",
+    "classique"
+   ],
+   [
+    "HMD Pulse Pro",
+    "Pulse",
+    "2024-04",
+    "classique"
+   ],
+   [
+    "HMD Skyline",
+    "Skyline",
+    "2024-07",
+    "classique"
+   ],
+   [
+    "HMD Fusion",
+    "Fusion",
+    "2024-09",
+    "classique"
+   ]
+  ],
+  "crosscall": [
+   [
+    "Crosscall Stellar-X5",
+    "Stellar",
+    "2023-03",
+    "durci"
+   ],
+   [
+    "Crosscall Core-Z5",
+    "Core",
+    "2023-03",
+    "durci"
+   ],
+   [
+    "Crosscall Stellar-M6",
+    "Stellar",
+    "2024-04",
+    "durci"
+   ]
+  ],
+  "tcl": [
+   [
+    "TCL 40 SE",
+    "40",
+    "2023-04",
+    "classique"
+   ],
+   [
+    "TCL 40 NXTPAPER",
+    "NXTPAPER",
+    "2023-05",
+    "classique"
+   ],
+   [
+    "TCL 50 SE",
+    "50",
+    "2024-05",
+    "classique"
+   ],
+   [
+    "TCL 50 5G",
+    "50",
+    "2024-06",
+    "classique"
+   ]
+  ],
+  "oneplus": [
+   [
+    "OnePlus Nord CE3 Lite 5G",
+    "Nord CE",
+    "2023-04",
+    "classique"
+   ],
+   [
+    "OnePlus Nord 3 5G",
+    "Nord",
+    "2023-07",
+    "classique"
+   ],
+   [
+    "OnePlus Open",
+    "Open",
+    "2023-10",
+    "pliable"
+   ],
+   [
+    "OnePlus Nord CE4 Lite 5G",
+    "Nord CE",
+    "2024-06",
+    "classique"
+   ],
+   [
+    "OnePlus Nord 4",
+    "Nord",
+    "2024-07",
+    "classique"
+   ],
+   [
+    "OnePlus Nord 5",
+    "Nord",
+    "2025-07",
+    "classique"
+   ],
+   [
+    "OnePlus Nord CE5",
+    "Nord CE",
+    "2025-07",
+    "classique"
+   ]
+  ]
+ },
+ "known_gaps": [
+  "Doro : aucun modèle 2023+ vérifié dans cette version — gamme à importer.",
+  "Xiaomi 17 / Redmi Note 15 / POCO F8 et modèles annoncés après mi-2026 pour Xiaomi, OPPO, HONOR, realme, vivo : non référencés.",
+  "vivo : présence commerciale en France à confirmer (retrait partiel d'Europe en 2024).",
+  "Huawei : modèles sans services Google ; commercialisation française limitée à confirmer.",
+  "Variantes régionales (Chine, Inde, États-Unis) volontairement exclues."
+ ]
+}

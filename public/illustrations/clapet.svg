@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Illustration indicative d'un smartphone à clapet">
+  <!-- Pliable à clapet ouvert, vu de face : pli horizontal. Générique : aucun logo ni objectif photo. -->
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b3b42"/>
+      <stop offset="1" stop-color="#1c1c21"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#2a2a31"/>
+      <stop offset="0.55" stop-color="#17171b"/>
+      <stop offset="1" stop-color="#101013"/>
+    </linearGradient>
+    <linearGradient id="crease" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#000" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#000" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <rect x="132" y="32" width="136" height="336" rx="24" fill="url(#body)"/>
+    <rect x="138" y="38" width="124" height="324" rx="19" fill="url(#screen)"/>
+    <rect x="138" y="186" width="124" height="28" fill="url(#crease)"/>
+    <line x1="132" y1="200" x2="268" y2="200" stroke="#0d0d10" stroke-width="2"/>
+    <rect x="188" y="48" width="24" height="6" rx="3" fill="#0a0a0b"/>
+  </g>
+</svg>

@@ -1,0 +1,269 @@
+{
+  "_definition": "origin_country = pays de fondation de la marque. headquarters = siège actuel (champ distinct). Le pays d'assemblage n'est jamais déduit de la marque : il n'est affiché que s'il existe une source propre au modèle.",
+  "brands": [
+    {
+      "id": "apple",
+      "name": "Apple",
+      "origin_country": "États-Unis",
+      "owner_group": "Apple Inc.",
+      "headquarters": "Cupertino, États-Unis",
+      "source_url": "https://fr.wikipedia.org/wiki/Apple",
+      "aliases": [
+        "iphone",
+        "aple"
+      ]
+    },
+    {
+      "id": "samsung",
+      "name": "Samsung",
+      "origin_country": "Corée du Sud",
+      "owner_group": "Samsung Electronics",
+      "headquarters": "Suwon, Corée du Sud",
+      "source_url": "https://fr.wikipedia.org/wiki/Samsung_Electronics",
+      "aliases": [
+        "galaxy",
+        "samsumg",
+        "samsun"
+      ]
+    },
+    {
+      "id": "google",
+      "name": "Google",
+      "origin_country": "États-Unis",
+      "owner_group": "Google LLC (Alphabet)",
+      "headquarters": "Mountain View, États-Unis",
+      "source_url": "https://fr.wikipedia.org/wiki/Google",
+      "aliases": [
+        "pixel",
+        "gogle"
+      ]
+    },
+    {
+      "id": "xiaomi",
+      "name": "Xiaomi",
+      "origin_country": "Chine",
+      "owner_group": "Xiaomi Corporation",
+      "headquarters": "Pékin, Chine",
+      "source_url": "https://fr.wikipedia.org/wiki/Xiaomi",
+      "aliases": [
+        "xiaomy",
+        "xiomi",
+        "xaomi",
+        "mi"
+      ]
+    },
+    {
+      "id": "redmi",
+      "name": "REDMI",
+      "parent_id": "xiaomi",
+      "origin_country": "Chine",
+      "origin_note": "Sous-marque de Xiaomi",
+      "owner_group": "Xiaomi Corporation",
+      "headquarters": "Pékin, Chine",
+      "source_url": "https://fr.wikipedia.org/wiki/Redmi",
+      "aliases": [
+        "redmy",
+        "readmi"
+      ]
+    },
+    {
+      "id": "poco",
+      "name": "POCO",
+      "parent_id": "xiaomi",
+      "origin_country": "Chine",
+      "origin_note": "Sous-marque de Xiaomi",
+      "owner_group": "Xiaomi Corporation",
+      "headquarters": "Pékin, Chine",
+      "source_url": "https://en.wikipedia.org/wiki/Poco_(brand)",
+      "aliases": [
+        "pocco",
+        "pocophone"
+      ]
+    },
+    {
+      "id": "oppo",
+      "name": "OPPO",
+      "origin_country": "Chine",
+      "owner_group": "Guangdong Oppo Mobile Telecommunications",
+      "headquarters": "Dongguan, Chine",
+      "source_url": "https://fr.wikipedia.org/wiki/Oppo",
+      "aliases": [
+        "opo"
+      ]
+    },
+    {
+      "id": "oneplus",
+      "name": "OnePlus",
+      "origin_country": "Chine",
+      "origin_note": "Fondée à Shenzhen en 2013, aujourd'hui rattachée à OPPO",
+      "owner_group": "OPPO",
+      "headquarters": "Shenzhen, Chine",
+      "source_url": "https://fr.wikipedia.org/wiki/OnePlus",
+      "aliases": [
+        "one plus",
+        "1+",
+        "oneplu",
+        "one+"
+      ]
+    },
+    {
+      "id": "honor",
+      "name": "HONOR",
+      "origin_country": "Chine",
+      "origin_note": "Créée par Huawei en 2013, indépendante depuis 2020",
+      "owner_group": "Honor Device Co.",
+      "headquarters": "Shenzhen, Chine",
+      "source_url": "https://fr.wikipedia.org/wiki/Honor_(marque)",
+      "aliases": [
+        "honnor",
+        "honour"
+      ]
+    },
+    {
+      "id": "motorola",
+      "name": "Motorola",
+      "origin_country": "États-Unis",
+      "origin_note": "Fondée à Chicago en 1928",
+      "owner_group": "Motorola Mobility (groupe Lenovo, Chine)",
+      "headquarters": "Chicago, États-Unis",
+      "source_url": "https://fr.wikipedia.org/wiki/Motorola_Mobility",
+      "aliases": [
+        "moto",
+        "motorolla"
+      ]
+    },
+    {
+      "id": "realme",
+      "name": "realme",
+      "origin_country": "Chine",
+      "owner_group": "realme Chongqing Mobile Telecommunications",
+      "headquarters": "Shenzhen, Chine",
+      "source_url": "https://fr.wikipedia.org/wiki/Realme",
+      "aliases": [
+        "real me",
+        "relme"
+      ]
+    },
+    {
+      "id": "vivo",
+      "name": "vivo",
+      "origin_country": "Chine",
+      "owner_group": "vivo Communication Technology",
+      "headquarters": "Dongguan, Chine",
+      "source_url": "https://fr.wikipedia.org/wiki/Vivo_(entreprise)",
+      "aliases": []
+    },
+    {
+      "id": "nothing",
+      "name": "Nothing",
+      "origin_country": "Royaume-Uni",
+      "owner_group": "Nothing Technology",
+      "headquarters": "Londres, Royaume-Uni",
+      "source_url": "https://fr.wikipedia.org/wiki/Nothing_(entreprise)",
+      "aliases": [
+        "nothing phone"
+      ]
+    },
+    {
+      "id": "cmf",
+      "name": "CMF",
+      "parent_id": "nothing",
+      "origin_country": "Royaume-Uni",
+      "origin_note": "Sous-marque de Nothing",
+      "owner_group": "Nothing Technology",
+      "headquarters": "Londres, Royaume-Uni",
+      "source_url": "https://en.wikipedia.org/wiki/Nothing_(company)",
+      "aliases": [
+        "cmf by nothing"
+      ]
+    },
+    {
+      "id": "sony",
+      "name": "Sony",
+      "origin_country": "Japon",
+      "owner_group": "Sony Group",
+      "headquarters": "Tokyo, Japon",
+      "source_url": "https://fr.wikipedia.org/wiki/Sony",
+      "aliases": [
+        "xperia"
+      ]
+    },
+    {
+      "id": "asus",
+      "name": "ASUS",
+      "origin_country": "Taïwan",
+      "owner_group": "ASUSTeK Computer",
+      "headquarters": "Taipei, Taïwan",
+      "source_url": "https://fr.wikipedia.org/wiki/Asus",
+      "aliases": [
+        "asus rog",
+        "rog",
+        "zenfone"
+      ]
+    },
+    {
+      "id": "huawei",
+      "name": "Huawei",
+      "origin_country": "Chine",
+      "owner_group": "Huawei Technologies",
+      "headquarters": "Shenzhen, Chine",
+      "source_url": "https://fr.wikipedia.org/wiki/Huawei",
+      "aliases": [
+        "huwei",
+        "hawei"
+      ]
+    },
+    {
+      "id": "hmd",
+      "name": "HMD",
+      "origin_country": "Finlande",
+      "owner_group": "HMD Global",
+      "headquarters": "Espoo, Finlande",
+      "source_url": "https://fr.wikipedia.org/wiki/HMD_Global",
+      "aliases": []
+    },
+    {
+      "id": "nokia",
+      "name": "Nokia",
+      "origin_country": "Finlande",
+      "origin_note": "Téléphones Nokia fabriqués sous licence par HMD Global",
+      "owner_group": "HMD Global (licence Nokia)",
+      "headquarters": "Espoo, Finlande",
+      "source_url": "https://fr.wikipedia.org/wiki/HMD_Global",
+      "aliases": [
+        "nokya"
+      ]
+    },
+    {
+      "id": "fairphone",
+      "name": "Fairphone",
+      "origin_country": "Pays-Bas",
+      "owner_group": "Fairphone B.V.",
+      "headquarters": "Amsterdam, Pays-Bas",
+      "source_url": "https://fr.wikipedia.org/wiki/Fairphone",
+      "aliases": [
+        "fair phone"
+      ]
+    },
+    {
+      "id": "crosscall",
+      "name": "Crosscall",
+      "origin_country": "France",
+      "owner_group": "Crosscall SAS",
+      "headquarters": "Aix-en-Provence, France",
+      "source_url": "https://fr.wikipedia.org/wiki/Crosscall",
+      "aliases": [
+        "cross call"
+      ]
+    },
+    {
+      "id": "tcl",
+      "name": "TCL",
+      "origin_country": "Chine",
+      "owner_group": "TCL Technology",
+      "headquarters": "Huizhou, Chine",
+      "source_url": "https://fr.wikipedia.org/wiki/TCL_Technology",
+      "aliases": []
+    }
+  ]
+}

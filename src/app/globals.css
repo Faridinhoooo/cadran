@@ -1,0 +1,189 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #0a0a0b;
+  --panel: #131316;
+  --panel-2: #1b1b20;
+  --line: rgba(255, 255, 255, 0.08);
+  --text: #f5f5f4;
+  --muted: #a8a8ad;
+  --red: #ff3434;
+  --red-deep: #b3121a;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-line: var(--line);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-red: var(--red);
+  --color-red-deep: var(--red-deep);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--ink);
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  background-position: -1px -1px;
+  color: var(--text);
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.display {
+  font-family: var(--font-display), system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.95;
+  font-weight: 800;
+}
+
+/* Coins coupés */
+.cut {
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+}
+.cut-sm {
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 52px;
+  padding: 0 1.5rem;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  transition: background-color 0.15s, color 0.15s, transform 0.15s;
+  cursor: pointer;
+}
+.btn-primary {
+  background: var(--red);
+  color: #0a0a0b;
+}
+.btn-primary:hover {
+  background: #ff5a5a;
+}
+.btn-secondary {
+  background: var(--text);
+  color: var(--ink);
+}
+.btn-secondary:hover {
+  background: #d6d6d3;
+}
+.btn-ghost {
+  background: var(--panel-2);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.btn-ghost:hover {
+  background: #26262d;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+
+/* Focus visible : contour net, ne dépend pas d'une couleur seule (épaisseur + décalage) */
+:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+.btn:focus-visible,
+.choice:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ink), 0 0 0 6px #fff;
+  clip-path: none;
+}
+
+/* Grands boutons de réponse : l'état sélectionné est signalé par une coche, un texte et une bordure */
+.choice {
+  position: relative;
+  display: flex;
+  width: 100%;
+  text-align: left;
+  gap: 1rem;
+  align-items: flex-start;
+  min-height: 64px;
+  padding: 1rem 1.25rem;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  transition: border-color 0.15s, background-color 0.15s;
+  cursor: pointer;
+}
+.choice:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+.choice[aria-pressed="true"],
+.choice[aria-checked="true"] {
+  border-color: var(--red);
+  background: #1d1213;
+}
+.choice .tick {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  font-weight: 900;
+}
+.choice[aria-pressed="true"] .tick,
+.choice[aria-checked="true"] .tick {
+  background: var(--red);
+  border-color: var(--red);
+  color: #0a0a0b;
+}
+
+.halo {
+  background: radial-gradient(closest-side, rgba(255, 52, 52, 0.38), rgba(255, 52, 52, 0.08) 60%, transparent 75%);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+}
+
+.prose-tight p + p {
+  margin-top: 0.6rem;
+}
+
+table.specs th,
+table.specs td {
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  text-align: left;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
