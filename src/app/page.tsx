@@ -2,7 +2,8 @@ import Link from "next/link";
 import { BudgetForm } from "@/components/BudgetForm";
 import { PhoneIllustration } from "@/components/ui";
 import { coverage, lastUpdate } from "@/lib/queries";
-import { dateTimeFr } from "@/lib/format";
+import { dateTimeFr, euros } from "@/lib/format";
+import { GUIDE_BUDGETS } from "@/lib/budget-guide";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,17 @@ export default function Home() {
             <p className="text-muted mt-2">{d}</p>
           </div>
         ))}
+      </section>
+
+      <section aria-labelledby="budgets" className="pb-12">
+        <h2 id="budgets" className="display text-2xl sm:text-3xl">Les meilleurs par budget</h2>
+        <ul className="flex flex-wrap gap-2 mt-4">
+          {GUIDE_BUDGETS.map((b) => (
+            <li key={b}>
+              <Link href={`/meilleurs-smartphones/${b}`} className="btn btn-ghost min-h-[48px] text-sm">À {euros(b)}</Link>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <p className="text-sm text-muted pb-4">

@@ -5,6 +5,7 @@ import { parseAnswers, toParams, withPatch } from "@/lib/answers";
 import { CONDITION_LABELS, OFFER_MAX_AGE_DAYS, PRIORITY_LABELS, recommend, type Answers, type Condition, type Funnel, type Priority, type Recommendation, type VerifyCard } from "@/lib/engine";
 import { brands, candidates, marketFor, merchantSyncs, thumbnails } from "@/lib/queries";
 import { dateTimeFr, euros, sourceLabel, storageLabel } from "@/lib/format";
+import { GUIDE_BUDGETS } from "@/lib/budget-guide";
 import { SecurityLine, Thumb } from "@/components/ui";
 import { keepYearsVerdict } from "@/lib/support";
 
@@ -243,6 +244,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
             </Link>
           </section>
         )}
+        {(() => {
+          const g = [...GUIDE_BUDGETS].reverse().find((b) => b <= answers.budget) ?? GUIDE_BUDGETS[0];
+          return (
+            <p className="text-sm">
+              Envie de voir le meilleur par usage ?{" "}
+              <Link href={`/meilleurs-smartphones/${g}`} className="underline">Notre sélection des meilleurs smartphones à {euros(g)}</Link>
+            </p>
+          );
+        })()}
         <FunnelDetails f={result.funnel} />
         <DataFreshness />
       </div>

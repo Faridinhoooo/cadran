@@ -1029,7 +1029,9 @@ async function main() {
     // Classe de puce recalculée pour toute puce connue (y compris relevée sur une page officielle).
     const tiers = readJson("specs.json").chip_tiers as Record<string, number>;
     for (const r of db.prepare("SELECT model_id, value FROM specs WHERE key='chip' AND kind='annonce'").all() as { model_id: string; value: string }[]) {
-      const t = tiers[JSON.parse(r.value)];
+      // Libellés constructeurs variés : « MediaTek Dimensity 7300-Ultra », « 8 cœurs Dimensity 6100+ ».
+      const chip = String(JSON.parse(r.value)).replace(/^8 cœurs /i, "").replace(/^MediaTek /i, "").trim();
+      const t = tiers[chip];
       if (t) db.prepare(`INSERT INTO specs (model_id, key, value, kind, source_name, source_url, checked_at, level) VALUES (?, 'chip_tier', ?, 'annonce', 'Classement éditorial des puces (indicatif)', NULL, NULL, 'editorial')
         ON CONFLICT(model_id, key, kind) DO UPDATE SET value=excluded.value`).run(r.model_id, JSON.stringify(t));
     }

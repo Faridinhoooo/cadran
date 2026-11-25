@@ -40,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 text-sm text-muted flex flex-wrap gap-x-6 gap-y-2">
             <span>Prix en euros, marché français. Aucune inscription, aucune donnée personnelle collectée.</span>
             <Link href="/couverture" className="underline hover:text-text">Sources, couverture et méthode</Link>
+            <Link href="/meilleurs-smartphones" className="underline hover:text-text">Meilleurs smartphones par budget</Link>
             <Link href="/classement" className="underline hover:text-text">Comment nous classons les offres</Link>
             <Link href="/mentions-legales" className="underline hover:text-text">Mentions légales</Link>
             <Link href="/confidentialite" className="underline hover:text-text">Confidentialité et cookies</Link>
