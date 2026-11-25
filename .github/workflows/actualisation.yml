@@ -1,0 +1,22 @@
+name: Actualisation quotidienne des prix
+
+# Déclenche chaque matin un nouveau déploiement Vercel : le build réimporte prix et fiches
+# (npm run vercel-build) et ne met en ligne que si le contrôle qualité passe.
+on:
+  schedule:
+    - cron: "0 5 * * *" # 06:00 heure de Paris en hiver, 07:00 en été
+  workflow_dispatch:
+
+jobs:
+  redeployer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Appeler le Deploy Hook Vercel
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::warning::Secret VERCEL_DEPLOY_HOOK absent : ajoute-le dans Settings > Secrets and variables > Actions."
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK"

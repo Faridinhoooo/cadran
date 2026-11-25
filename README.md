@@ -42,6 +42,10 @@ npm run refresh:offers
 Un relevé en échec (réseau, page modifiée, zéro offre lue) ne modifie aucune offre : le dernier relevé réussi et sa date
 sont conservés, l'échec est journalisé et signalé sous les résultats.
 
+## Mise en ligne
+
+Voir **[DEPLOIEMENT.md](DEPLOIEMENT.md)** (Vercel : base construite à chaque déploiement, contrôle qualité, actualisation quotidienne).
+
 ## Accès externes et clés privées
 
 Voir **[ACCES.md](ACCES.md)** : ce qui fonctionne sans compte, comment créer les accès gratuits (Open Icecat, Awin)

@@ -41,8 +41,26 @@ export function openDb(file: string = dbPath()): DatabaseSync {
   return db;
 }
 
+/**
+ * Mode lecture seule : sur Vercel, le disque des fonctions est en lecture seule. La base y est construite
+ * pendant le déploiement (npm run vercel-build) puis embarquée telle quelle ; le site ne fait que la lire.
+ */
+export function isReadOnlyRuntime(): boolean {
+  return process.env.VERCEL === "1" || process.env.READONLY_DB === "1";
+}
+
+export function openReadOnly(file: string = dbPath()): DatabaseSync {
+  if (!fs.existsSync(file)) throw new Error(`Base introuvable : ${file}. Lance « npm run import » (ou le build Vercel) pour la créer.`);
+  return new DatabaseSync(file, { readOnly: true });
+}
+
 /** Connexion partagée côté serveur (lecture). */
 export function getDb(): DatabaseSync {
-  if (!cached) cached = openDb();
+  if (!cached) cached = isReadOnlyRuntime() ? openReadOnly() : openDb();
   return cached;
+}
+
+/** Ramène la base à un seul fichier (pas de journal WAL) avant de l'embarquer dans un déploiement. */
+export function finalizeForDeploy(db: DatabaseSync) {
+  db.exec("PRAGMA wal_checkpoint(TRUNCATE); PRAGMA journal_mode = DELETE;");
 }

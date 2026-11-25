@@ -12,7 +12,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { openDb } from "../src/lib/db";
+import { finalizeForDeploy, openDb } from "../src/lib/db";
 import { isExcludedBrand } from "../src/lib/brand-policy";
 import { modelSlug, normalize, slugify } from "../src/lib/text";
 import { fetchIcecat, importIcecat, mapIcecat } from "./icecat";
@@ -984,6 +984,28 @@ async function main() {
   if (want("eol")) await importEol(db);
   if (want("editorial")) importEditorial(db);
   if (want("specs")) importSpecs(db);
+  // Offres d'abord : les fiches officielles Samsung/Xiaomi et Open Icecat partent des pages et codes des offres.
+  if (want("offers")) {
+    await importAppleStore(db);
+    await importAppleRefurb(db);
+    await importSamsung(db);
+    await importXiaomi(db);
+    await importGoogleStore(db);
+    // Flux d'affiliation : actifs seulement si MERCHANT_FEEDS est renseigné dans .env.local.
+    const feeds = configuredFeeds();
+    if (!feeds.length) console.log("[Flux marchands] aucun flux configuré (MERCHANT_FEEDS) — étape ignorée");
+    for (const f of feeds) {
+      await runOfferSource(db, `Flux ${f.name}`, `flux-${f.name}`, async () => {
+        const rows = parseCsv(await downloadFeed(f.url)).map(toFeedRow).filter((r): r is FeedRow => r !== null);
+        const notes = { notes: [] as string[] };
+        const offers = feedToOffers(db, `flux-${f.name}`, rows, notes);
+        console.log(`[Flux ${f.name}] ${notes.notes.join(" ")}`);
+        return offers;
+      });
+    }
+    importManualOffers(db);
+  }
+  if (want("offers") || want("verify")) await verifyOffers(db);
   if (want("official")) {
     for (const [name, fn] of [
       ["Google — suivi officiel Pixel", importGoogleSupport],
@@ -1012,31 +1034,26 @@ async function main() {
         ON CONFLICT(model_id, key, kind) DO UPDATE SET value=excluded.value`).run(r.model_id, JSON.stringify(t));
     }
   }
-  if (want("offers")) {
-    await importAppleStore(db);
-    await importAppleRefurb(db);
-    await importSamsung(db);
-    await importXiaomi(db);
-    await importGoogleStore(db);
-    // Flux d'affiliation : actifs seulement si MERCHANT_FEEDS est renseigné dans .env.local.
-    const feeds = configuredFeeds();
-    if (!feeds.length) console.log("[Flux marchands] aucun flux configuré (MERCHANT_FEEDS) — étape ignorée");
-    for (const f of feeds) {
-      await runOfferSource(db, `Flux ${f.name}`, `flux-${f.name}`, async () => {
-        const rows = parseCsv(await downloadFeed(f.url)).map(toFeedRow).filter((r): r is FeedRow => r !== null);
-        const notes = { notes: [] as string[] };
-        const offers = feedToOffers(db, `flux-${f.name}`, rows, notes);
-        console.log(`[Flux ${f.name}] ${notes.notes.join(" ")}`);
-        return offers;
-      });
-    }
-    importManualOffers(db);
-  }
-  if (want("offers") || want("verify")) await verifyOffers(db);
   if (want("media")) await importMedia(db);
   await reportProblems(db, startedAt);
   const n = (sql: string) => (db.prepare(sql).get() as { n: number }).n;
   console.log(`\nCatalogue : ${n("SELECT COUNT(*) n FROM models WHERE is_test=0")} modèles, ${n("SELECT COUNT(*) n FROM offers WHERE available=1 AND is_test=0")} offres actives, ${n("SELECT COUNT(DISTINCT model_id) n FROM media")} modèles illustrés.`);
+  if (args.includes("--deploy")) {
+    // Contrôle qualité avant mise en ligne : en cas d'échec, le build s'arrête et la version en ligne est conservée.
+    const minOffers = Number(process.env.MIN_ACTIVE_OFFERS ?? 50);
+    const minModels = Number(process.env.MIN_MODELS ?? 200);
+    const cutoff = new Date(Date.now() - 7 * 864e5).toISOString();
+    const offers = (db.prepare("SELECT COUNT(*) n FROM offers WHERE available=1 AND is_test=0 AND checked_at >= ?").get(cutoff) as { n: number }).n;
+    const models = n("SELECT COUNT(*) n FROM models WHERE is_test=0");
+    finalizeForDeploy(db);
+    db.close();
+    if (offers < minOffers || models < minModels) {
+      console.error(`Contrôle qualité refusé : ${offers} offres récentes (minimum ${minOffers}), ${models} modèles (minimum ${minModels}). Déploiement annulé, la version en ligne est conservée.`);
+      process.exit(1);
+    }
+    console.log(`Contrôle qualité validé : ${offers} offres récentes, ${models} modèles.`);
+    return;
+  }
   db.close();
 }
 
