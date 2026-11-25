@@ -203,7 +203,6 @@ export default async function Page({ params, searchParams }: Params) {
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 pb-28">
       <script
         type="application/ld+json"
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(
             productJsonLd(
