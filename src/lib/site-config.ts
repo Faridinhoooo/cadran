@@ -5,7 +5,7 @@ const v = (k: string) => process.env[k]?.trim() || null;
 export function siteConfig() {
   return {
     name: "Cadran",
-    url: v("SITE_URL") ?? "http://localhost:3000",
+    url: siteUrl(),
     editor: {
       name: v("EDITEUR_NOM"), // personne physique ou raison sociale
       status: v("EDITEUR_STATUT"), // ex. « Entrepreneur individuel », « SAS au capital de … »
@@ -25,3 +25,15 @@ export function siteConfig() {
 }
 
 export const MISSING = "À compléter (variable d'environnement manquante)";
+
+/**
+ * Adresse publique du site : SITE_URL si elle est fournie, sinon l'adresse de production que Vercel
+ * expose automatiquement (VERCEL_PROJECT_PRODUCTION_URL), sinon le serveur local.
+ */
+export function siteUrl(): string {
+  const explicit = process.env.SITE_URL?.trim();
+  if (explicit) return explicit.replace(/\/$/, "");
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  if (vercel) return `https://${vercel}`;
+  return "http://localhost:3000";
+}

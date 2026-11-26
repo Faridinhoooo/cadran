@@ -62,3 +62,20 @@ describe("Surveillance des imports", () => {
     db.close();
   });
 });
+
+describe("Adresse publique du site", () => {
+  it("SITE_URL d'abord, puis l'adresse de production Vercel, puis localhost", async () => {
+    const { siteUrl } = await import("../src/lib/site-config");
+    const keep = { s: process.env.SITE_URL, v: process.env.VERCEL_PROJECT_PRODUCTION_URL };
+    delete process.env.SITE_URL;
+    process.env.VERCEL_PROJECT_PRODUCTION_URL = "cadran-three.vercel.app";
+    expect(siteUrl()).toBe("https://cadran-three.vercel.app");
+    process.env.SITE_URL = "https://exemple.fr/";
+    expect(siteUrl()).toBe("https://exemple.fr");
+    delete process.env.SITE_URL;
+    delete process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    expect(siteUrl()).toBe("http://localhost:3000");
+    if (keep.s) process.env.SITE_URL = keep.s;
+    if (keep.v) process.env.VERCEL_PROJECT_PRODUCTION_URL = keep.v;
+  });
+});

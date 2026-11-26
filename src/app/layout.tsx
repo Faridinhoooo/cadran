@@ -3,12 +3,13 @@ import { Archivo, Inter } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { NavLinks } from "@/components/NavLinks";
+import { siteUrl } from "@/lib/site-config";
 
 const display = Archivo({ subsets: ["latin"], weight: ["700", "800", "900"], variable: "--font-display" });
 const body = Inter({ subsets: ["latin"], variable: "--font-body" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.SITE_URL || "http://localhost:3000"),
+  metadataBase: new URL(siteUrl()),
   openGraph: { type: "website", locale: "fr_FR", siteName: "Cadran" },
   twitter: { card: "summary_large_image" },
   applicationName: "Cadran",
