@@ -8,7 +8,7 @@ import { SourceLegend } from "@/components/ui";
 import { MARKET_MIN_OBSERVATIONS, MARKET_WINDOW_DAYS } from "@/lib/market";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Sources, couverture et méthode" };
+export const metadata: Metadata = { title: "Sources, couverture et méthode", description: "D'où viennent les prix, les fiches et les dates de mises à jour affichés sur Cadran, à quelle fréquence ils sont relevés et ce qui n'est pas encore couvert.", alternates: { canonical: "/couverture" } };
 
 const SOURCES = [
   { name: "Xiaomi Store France", what: "Liste des Xiaomi, Redmi et POCO depuis les données structurées de la page « Smartphones », puis prix et stock de chaque capacité depuis le point d'accès qui alimente la page d'achat (utilisé sur autorisation du propriétaire du site Cadran). Frais de livraison non publiés : offres « à vérifier ». Caractéristiques relevées sur les pages « Caractéristiques » officielles.", url: "https://www.mi.com/fr/product-list/phone/", status: "Connectée — frais à vérifier" },

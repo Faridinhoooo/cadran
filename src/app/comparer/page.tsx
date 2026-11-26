@@ -8,7 +8,7 @@ import { Thumb } from "@/components/ui";
 import { DiffTable, type DiffRow } from "@/components/DiffTable";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Comparer" };
+export const metadata: Metadata = { title: "Comparer des smartphones", description: "Compare jusqu'à quatre smartphones côte à côte : prix relevés, écran, puce, photo, autonomie et durée des mises à jour, avec la source de chaque valeur.", alternates: { canonical: "/comparer" } };
 
 const KEYS: [string, string, string][] = [
   ["Écran", "screen_in", "Diagonale"], ["Écran", "screen_tech", "Technologie"], ["Écran", "resolution", "Résolution"], ["Écran", "refresh_hz", "Fréquence"],

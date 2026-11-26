@@ -8,7 +8,7 @@ import { Crumbs, PhotoFrame } from "@/components/ui";
 import { CompareToggle, CompareTray } from "@/components/CompareTray";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Catalogue" };
+export const metadata: Metadata = { title: "Catalogue des smartphones au prix vérifié", description: "Tous les smartphones vendus en France dont le prix actuel a été relevé chez le vendeur : Apple, Samsung, Xiaomi, REDMI, POCO. Filtres par budget, système, format et année.", alternates: { canonical: "/catalogue" } };
 
 const PAGE = 48;
 type SP = Record<string, string | undefined>;

@@ -10,6 +10,9 @@ const body = Inter({ subsets: ["latin"], variable: "--font-body" });
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.SITE_URL || "http://localhost:3000"),
   openGraph: { type: "website", locale: "fr_FR", siteName: "Cadran" },
+  twitter: { card: "summary_large_image" },
+  applicationName: "Cadran",
+  formatDetection: { telephone: false },
   title: { default: "Cadran — le bon smartphone pour ton budget", template: "%s · Cadran" },
   description: "Entre ton budget, réponds à trois questions et découvre quel smartphone acheter, dans quel état et pourquoi.",
 };
@@ -26,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Aller au contenu
         </a>
         <header className="border-b border-line bg-ink/85 backdrop-blur sticky top-0 z-40">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-wrap items-center gap-x-6 gap-y-2 py-3">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 flex items-center gap-x-3 sm:gap-x-6 py-2 sm:py-3">
             <Link href="/" className="display text-2xl tracking-tight" aria-label="Cadran, accueil">
               Cadr<span className="text-red">a</span>n
             </Link>

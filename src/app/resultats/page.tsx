@@ -10,7 +10,7 @@ import { SecurityLine, Thumb } from "@/components/ui";
 import { keepYearsVerdict } from "@/lib/support";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Ton résultat" };
+export const metadata: Metadata = { title: "Ton résultat", robots: { index: false, follow: true } };
 
 const PRIO_SHORT: Record<Priority, string> = {
   photo: "Photos et vidéos", autonomie: "Autonomie", jeux: "Jeux exigeants", une_main: "Utilisation à une main", longevite: "Le garder longtemps", prix: "Dépenser le moins possible",

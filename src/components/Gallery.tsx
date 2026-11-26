@@ -60,7 +60,7 @@ export function Gallery({ name, media, form }: { name: string; media: GalleryMed
 
   return (
     <div>
-      <div className="relative aspect-square bg-[linear-gradient(160deg,#f1f1f3,#dcdce0)] grid place-items-center overflow-hidden cut">
+      <div className="relative aspect-[4/3] sm:aspect-square bg-[linear-gradient(160deg,#f1f1f3,#dcdce0)] grid place-items-center overflow-hidden cut">
         {mode === "3d" && model3d ? (
           createElement("model-viewer", {
             src: model3d.url,
@@ -74,7 +74,7 @@ export function Gallery({ name, media, form }: { name: string; media: GalleryMed
             },
           })
         ) : cur && !broken.has(cur.id) ? (
-          <img src={cur.thumb_url ?? cur.url} alt={`${name} — ${VIEW[cur.view ?? "autre"]?.toLowerCase() ?? "vue"}`} className="w-full h-full object-contain"
+          <img src={cur.thumb_url ?? cur.url} alt={`${name} — ${VIEW[cur.view ?? "autre"]?.toLowerCase() ?? "vue"}`} className="w-full h-full object-contain mix-blend-multiply"
             onError={() => setBroken((b) => new Set(b).add(cur.id))} />
         ) : (
           <>
@@ -86,9 +86,9 @@ export function Gallery({ name, media, form }: { name: string; media: GalleryMed
       </div>
 
       {photos.length > 1 && mode !== "3d" && (
-        <div className="flex gap-2 mt-3 flex-wrap" role="group" aria-label="Vues disponibles">
+        <div className="flex gap-2 mt-3 overflow-x-auto sm:flex-wrap pb-1" role="group" aria-label="Vues disponibles">
           {photos.map((p, i) => (
-            <button key={p.id} type="button" onClick={() => setIdx(i)} aria-pressed={i === idx} className={`w-16 h-16 bg-white/95 border-2 ${i === idx ? "border-red" : "border-transparent"}`}>
+            <button key={p.id} type="button" onClick={() => setIdx(i)} aria-pressed={i === idx} className={`shrink-0 w-16 h-16 bg-white/95 border-2 ${i === idx ? "border-red" : "border-transparent"}`}>
               <img src={p.thumb_url ?? p.url} alt="" className="w-full h-full object-contain" />
               <span className="sr-only">Afficher la vue {VIEW[p.view ?? "autre"]} {i + 1}</span>
             </button>
