@@ -79,3 +79,18 @@ describe("Adresse publique du site", () => {
     if (keep.v) process.env.VERCEL_PROJECT_PRODUCTION_URL = keep.v;
   });
 });
+
+describe("Mentions légales", () => {
+  it("particulier non professionnel par défaut ; hébergeur Vercel renseigné sur Vercel ; contact via EDITEUR_CONTACT", async () => {
+    const { siteConfig } = await import("../src/lib/site-config");
+    const keep = { ...process.env };
+    delete process.env.EDITEUR_NOM; delete process.env.EDITEUR_EMAIL; delete process.env.HEBERGEUR_NOM;
+    process.env.VERCEL = "1"; process.env.EDITEUR_CONTACT = "contact@exemple.fr";
+    const c = siteConfig();
+    expect(c.nonProfessional).toBe(true);
+    expect(c.editor.email).toBe("contact@exemple.fr");
+    expect(c.host.name).toBe("Vercel Inc.");
+    expect(c.host.contact).toBe("https://vercel.com/help");
+    process.env = keep;
+  });
+});
