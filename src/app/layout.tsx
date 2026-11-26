@@ -39,14 +39,31 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main id="contenu" className="flex-1">
           {children}
         </main>
-        <footer className="border-t border-line mt-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 text-sm text-muted flex flex-wrap gap-x-6 gap-y-2">
-            <span>Prix en euros, marché français. Aucune inscription, aucune donnée personnelle collectée.</span>
-            <Link href="/couverture" className="underline hover:text-text">Sources, couverture et méthode</Link>
-            <Link href="/meilleurs-smartphones" className="underline hover:text-text">Meilleurs smartphones par budget</Link>
-            <Link href="/classement" className="underline hover:text-text">Comment nous classons les offres</Link>
-            <Link href="/mentions-legales" className="underline hover:text-text">Mentions légales</Link>
-            <Link href="/confidentialite" className="underline hover:text-text">Confidentialité et cookies</Link>
+        <footer className="border-t border-line mt-20 bg-panel/50">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+            <div>
+              <Link href="/" className="display text-2xl tracking-tight">Cadr<span className="text-red">a</span>n</Link>
+              <p className="text-sm text-muted mt-3 max-w-xs">
+                Le bon smartphone pour ton budget. Prix en euros, marché français. Aucune inscription, aucune donnée personnelle collectée.
+              </p>
+            </div>
+            {[
+              ["Choisir", [["/trouver", "Trouver mon smartphone"], ["/catalogue", "Catalogue"], ["/comparer", "Comparer"]]],
+              ["Guides", [["/meilleurs-smartphones", "Meilleurs par budget"], ["/meilleurs-smartphones/300", "À 300 €"], ["/meilleurs-smartphones/500", "À 500 €"]]],
+              ["Transparence", [["/couverture", "Sources et méthode"], ["/classement", "Comment nous classons"], ["/mentions-legales", "Mentions légales"], ["/confidentialite", "Confidentialité"]]],
+            ].map(([title, links]) => (
+              <nav key={title as string} aria-label={title as string}>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted">{title as string}</p>
+                <ul className="mt-3 space-y-2 text-sm">
+                  {(links as string[][]).map(([href, label]) => (
+                    <li key={href}><Link href={href} className="hover:text-red transition-colors">{label}</Link></li>
+                  ))}
+                </ul>
+              </nav>
+            ))}
+          </div>
+          <div className="border-t border-line">
+            <p className="mx-auto max-w-7xl px-4 sm:px-6 py-4 text-xs text-muted">© {new Date().getFullYear()} Cadran · Les prix peuvent changer chez le vendeur : vérifie toujours le montant final avant de payer.</p>
           </div>
         </footer>
       </body>

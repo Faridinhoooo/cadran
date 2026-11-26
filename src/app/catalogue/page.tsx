@@ -139,7 +139,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
               const sec = deadline(m.security_end, m.security_end_precision, !!m.security_end_confirmed, today);
               const best = [m.minNew !== null ? { l: "Neuf", p: m.minNew } : null, m.minRefurb !== null ? { l: "Reconditionné", p: m.minRefurb } : null].filter(Boolean) as { l: string; p: number }[];
               return (
-                <li key={m.id} className="group relative bg-panel border border-line hover:border-white/35 transition-colors flex flex-col">
+                <li key={m.id} className="card-link group relative bg-panel border border-line flex flex-col">
                   <PhotoFrame media={m.thumb} alt={m.name} form={m.form_factor} className="aspect-[4/3]" />
                   {m.form_factor && m.form_factor !== "classique" && (
                     <span className="absolute top-2 left-2 tag bg-ink/80 text-text">{m.form_factor === "pliable" ? "Pliable" : m.form_factor === "clapet" ? "À clapet" : "Durci"}</span>

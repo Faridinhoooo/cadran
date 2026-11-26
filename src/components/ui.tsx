@@ -143,3 +143,20 @@ export function Crumbs({ items }: { items: { href?: string; label: string }[] })
 export function SourceNote({ children }: { children: React.ReactNode }) {
   return <p className="text-xs text-muted mt-2">{children}</p>;
 }
+
+/** Jauge prix / budget : la part du budget occupée par le prix, et ce qui reste (marge ou frais tolérés). */
+export function BudgetGauge({ price, budget, confirmed }: { price: number; budget: number; confirmed: boolean }) {
+  const pct = Math.max(4, Math.min(100, (price / budget) * 100));
+  const left = Math.max(0, budget - price);
+  return (
+    <div className="mt-3" aria-hidden>
+      <div className="h-1.5 bg-panel-2 overflow-hidden">
+        <div className={`h-full ${confirmed ? "bg-ok" : "bg-warn"}`} style={{ width: `${pct}%` }} />
+      </div>
+      <p className="mt-1.5 flex justify-between text-[11px] text-muted tabular-nums">
+        <span>{Math.round((price / budget) * 100)} % du budget</span>
+        <span>{confirmed ? "marge" : "frais tolérés"} : {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(left)}</span>
+      </p>
+    </div>
+  );
+}

@@ -6,7 +6,7 @@ import { CONDITION_LABELS, OFFER_MAX_AGE_DAYS, PRIORITY_LABELS, recommend, type 
 import { brands, candidates, marketFor, merchantSyncs, thumbnails } from "@/lib/queries";
 import { dateTimeFr, euros, sourceLabel, storageLabel } from "@/lib/format";
 import { GUIDE_BUDGETS } from "@/lib/budget-guide";
-import { SecurityLine, Thumb } from "@/components/ui";
+import { SecurityLine, Thumb, BudgetGauge } from "@/components/ui";
 import { keepYearsVerdict } from "@/lib/support";
 
 export const dynamic = "force-dynamic";
@@ -60,6 +60,7 @@ function PickCard({ p, rank, today, answers }: { p: Recommendation; rank: number
             <div><dt className="text-muted">Marge sous ton budget</dt><dd className="font-extrabold text-2xl tabular-nums text-ok">{euros(p.margin)}</dd></div>
             <div><dt className="text-muted">Prix relevé le</dt><dd>{dateTimeFr(p.offer.checked_at)}</dd></div>
           </dl>
+          <div className="max-w-md"><BudgetGauge price={p.total} budget={answers.budget} confirmed /></div>
           <p className="mt-3"><span className="tag border-ok text-ok">✓ Dans ton budget, frais inclus</span></p>
           <div className="mt-3"><SecurityLine d={p.security} /></div>
           {answers.keepYears && <p className="text-sm mt-1 text-muted">{keepYearsVerdict(answers.keepYears, p.security).text}</p>}
@@ -264,7 +265,7 @@ function VerifyOfferCard({ v }: { v: VerifyCard }) {
   const thumbs = thumbnails();
   const capacity = v.config.storage_gb === 0 ? "Capacité à choisir chez le vendeur (prix de départ affiché)" : storageLabel(v.config.storage_gb);
   return (
-    <li className="bg-panel border border-line flex flex-col">
+    <li className="bg-panel border border-line hover:border-white/30 transition-colors flex flex-col">
       <div className="grid grid-cols-[104px_1fr] gap-4 p-4">
         <Thumb media={thumbs.get(v.model.id) ?? null} alt={v.model.name} form={v.model.form_factor} size={104} />
         <div className="min-w-0">
@@ -286,12 +287,13 @@ function VerifyOfferCard({ v }: { v: VerifyCard }) {
               )}
             </span>
           </p>
+          <BudgetGauge price={v.shownPrice} budget={v.shownPrice + v.headroom} confirmed={false} />
         </div>
       </div>
       <div className="px-4 pb-4 flex flex-col gap-2 text-sm flex-1">
         <p>{v.why}</p>
         {v.toCheck.includes("livraison") && (
-          <p className="text-muted">Cette offre reste dans ton budget si les frais supplémentaires ne dépassent pas {euros(v.headroom)}.</p>
+          <p className="text-muted">Reste dans ton budget si les frais ne dépassent pas {euros(v.headroom)}.</p>
         )}
         {v.toCheck.includes("capacite") && (
           <p className="text-muted">Prix « à partir de » publié sans capacité : vérifie la capacité correspondant à ce prix chez le vendeur.</p>
@@ -301,8 +303,8 @@ function VerifyOfferCard({ v }: { v: VerifyCard }) {
           Source : {sourceLabel((v.offer as { source?: string }).source)} · prix relevé le {dateTimeFr(v.offer.checked_at)}
           {v.offer.variant_check === "ok" ? " · prix et capacité retrouvés sur la page du vendeur" : ""}
         </p>
-        <a href={v.offer.url} target="_blank" rel="noopener noreferrer" className="btn btn-primary mt-auto self-start min-h-[48px] text-sm">
-          Vérifier chez le vendeur<span className="sr-only"> {v.offer.seller}, nouvel onglet</span>
+        <a href={v.offer.url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost mt-auto min-h-[48px] text-sm">
+          Vérifier chez {v.offer.seller} ↗<span className="sr-only"> {v.offer.seller}, nouvel onglet</span>
         </a>
       </div>
     </li>
