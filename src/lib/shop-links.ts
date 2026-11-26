@@ -1,0 +1,26 @@
+// Liens de recherche neutres vers des comparateurs et places de marché publics, pour les modèles dont PickJust
+// n'affiche pas (ou pas encore) de prix. Aucun lien d'affiliation, aucun paramètre de suivi : PickJust ne touche rien.
+
+export interface ShopLink {
+  id: "google" | "idealo" | "backmarket" | "ebay";
+  label: string;
+  hint: string;
+  url: string;
+}
+
+/** Requête de recherche : marque + modèle, sans répéter la marque si le nom la contient déjà. */
+export function searchQuery(brandName: string, modelName: string, storageGb?: number | null): string {
+  const base = modelName.toLowerCase().startsWith(brandName.toLowerCase()) ? modelName : `${brandName} ${modelName}`;
+  const cap = storageGb ? ` ${storageGb >= 1024 ? `${storageGb / 1024} To` : `${storageGb} Go`}` : "";
+  return `${base}${cap}`.replace(/\s+/g, " ").trim();
+}
+
+export function shopLinks(brandName: string, modelName: string, storageGb?: number | null): ShopLink[] {
+  const q = encodeURIComponent(searchQuery(brandName, modelName, storageGb));
+  return [
+    { id: "google", label: "Google Shopping", hint: "Neuf, toutes enseignes", url: `https://www.google.com/search?udm=28&q=${q}` },
+    { id: "idealo", label: "idealo", hint: "Comparateur de prix", url: `https://www.idealo.fr/prechcat.html?q=${q}` },
+    { id: "backmarket", label: "Back Market", hint: "Reconditionné", url: `https://www.backmarket.fr/fr-fr/search?q=${q}` },
+    { id: "ebay", label: "eBay", hint: "Occasion et neuf", url: `https://www.ebay.fr/sch/i.html?_nkw=${q}` },
+  ];
+}

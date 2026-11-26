@@ -94,3 +94,14 @@ describe("Mentions légales", () => {
     process.env = keep;
   });
 });
+
+describe("Liens de recherche neutres", () => {
+  it("requête marque + modèle sans doublon, capacité, aucun paramètre de suivi", async () => {
+    const { searchQuery, shopLinks } = await import("../src/lib/shop-links");
+    expect(searchQuery("Samsung", "Galaxy A17 5G", 128)).toBe("Samsung Galaxy A17 5G 128 Go");
+    expect(searchQuery("REDMI", "REDMI Note 15 Pro")).toBe("REDMI Note 15 Pro");
+    const links = shopLinks("OPPO", "OPPO Find X8 Pro");
+    expect(links.map((l) => l.id)).toEqual(["google", "idealo", "backmarket", "ebay"]);
+    for (const l of links) expect(l.url).not.toMatch(/utm_|aff|tag=|campid/i);
+  });
+});

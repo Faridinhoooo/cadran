@@ -3,6 +3,7 @@ import Link from "next/link";
 import { brandAliases, brands, catalogSummaries, seriesList } from "@/lib/queries";
 import { searchModels } from "@/lib/search";
 import { euros } from "@/lib/format";
+import { shopLinks } from "@/lib/shop-links";
 import { deadline, type Deadline } from "@/lib/support";
 import { Crumbs, PhotoFrame } from "@/components/ui";
 import { CompareToggle, CompareTray } from "@/components/CompareTray";
@@ -170,9 +171,19 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
                           <p className="text-xs text-muted mt-0.5 tabular-nums">
                             {m.priceNote.kind === "depart" ? `Dès ${euros(m.priceNote.price)}, capacité non précisée` : `Dernier prix relevé : ${euros(m.priceNote.price)}`}
                           </p>
+                          <a href={shopLinks(m.brand_name, m.name)[0].url} target="_blank" rel="noopener noreferrer nofollow"
+                            className="relative z-10 text-xs font-semibold underline underline-offset-2 hover:text-red">
+                            Voir les prix ailleurs ↗<span className="sr-only"> (nouvel onglet)</span>
+                          </a>
                         </div>
                       ) : (
-                        <p className="text-sm text-muted font-semibold">Prix non relevé</p>
+                        <div className="text-sm">
+                          <p className="text-muted font-semibold">Prix non relevé ici</p>
+                          <a href={shopLinks(m.brand_name, m.name)[0].url} target="_blank" rel="noopener noreferrer nofollow"
+                            className="relative z-10 text-xs font-semibold underline underline-offset-2 hover:text-red">
+                            Voir les prix sur Google Shopping ↗<span className="sr-only"> (nouvel onglet)</span>
+                          </a>
+                        </div>
                       )}
                     </div>
                     {(() => {

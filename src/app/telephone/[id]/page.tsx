@@ -6,6 +6,7 @@ import { isFresh, offerTotal } from "@/lib/engine";
 import { NR, dateFr, dateTimeFr, euros, releaseLabel, sourceLabel, specText, storageLabel } from "@/lib/format";
 import { securityDeadline, securityHeadline, supportStatus, upgradesDeadline } from "@/lib/support";
 import { Gallery } from "@/components/Gallery";
+import { ShopLinks } from "@/components/ShopLinks";
 import { Crumbs, SecurityLine, SourceBadge, SourceLegend } from "@/components/ui";
 import { CompareToggle, CompareTray } from "@/components/CompareTray";
 import { MARKET_WINDOW_DAYS } from "@/lib/market";
@@ -250,7 +251,7 @@ export default async function Page({ params, searchParams }: Params) {
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted mt-1.5">Coût total livraison comprise{sel ? `, pour ${storageLabel(sel.storage_gb)}` : ""}. <a href="#prix" className="underline">Détail des offres</a></p>
+          <p className="text-xs text-muted mt-1.5">Coût total livraison comprise{sel ? `, pour ${storageLabel(sel.storage_gb)}` : ""}. <a href="#prix" className="underline">Détail des offres</a> · <a href="#ailleurs" className="underline">Comparer ailleurs</a></p>
 
           <dl className="mt-5 grid sm:grid-cols-3 gap-3">
             <div className="bg-panel border border-line p-4">
@@ -308,6 +309,10 @@ export default async function Page({ params, searchParams }: Params) {
               </>
             )}
           </section>
+        </div>
+        <div className="mt-4">
+          <ShopLinks brand={m.brand_name} name={m.name} storageGb={sel?.storage_gb || null}
+            title={offers.some((o) => o.available) ? "Comparer les prix ailleurs" : "Voir les prix chez les vendeurs"} />
         </div>
       </section>
 

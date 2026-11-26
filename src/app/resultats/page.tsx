@@ -3,10 +3,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { parseAnswers, toParams, withPatch } from "@/lib/answers";
 import { CONDITION_LABELS, OFFER_MAX_AGE_DAYS, PRIORITY_LABELS, recommend, type Answers, type Condition, type Funnel, type Priority, type Recommendation, type VerifyCard } from "@/lib/engine";
-import { brands, candidates, marketFor, merchantSyncs, thumbnails } from "@/lib/queries";
+import { brands, candidates, catalogSummaries, marketFor, merchantSyncs, thumbnails } from "@/lib/queries";
 import { dateTimeFr, euros, sourceLabel, storageLabel } from "@/lib/format";
 import { GUIDE_BUDGETS } from "@/lib/budget-guide";
 import { SecurityLine, Thumb, BudgetGauge } from "@/components/ui";
+import { ShopLinks } from "@/components/ShopLinks";
+import { shopLinks } from "@/lib/shop-links";
 import { keepYearsVerdict } from "@/lib/support";
 
 export const dynamic = "force-dynamic";
@@ -92,6 +94,7 @@ function PickCard({ p, rank, today, answers }: { p: Recommendation; rank: number
         </a>
         <Link href={`/telephone/${p.model.id}?go=${p.config.storage_gb}`} className="btn btn-ghost">Fiche complète</Link>
       </div>
+      <div className="mt-4"><ShopLinks compact brand={p.model.brand_name} name={p.model.name} storageGb={p.config.storage_gb} /></div>
     </article>
   );
 }
@@ -254,6 +257,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
             </p>
           );
         })()}
+        <ElsewhereSection answers={answers} />
         <FunnelDetails f={result.funnel} />
         <DataFreshness />
       </div>
@@ -365,5 +369,56 @@ function DataFreshness() {
         ))}
       </p>
     </div>
+  );
+}
+
+/**
+ * Modèles du catalogue qui respectent les critères mais dont le prix n'est pas vérifié ici (rupture, prix « à partir de »,
+ * prix ancien) : leur dernier prix connu passe sous le budget. Ils ne sont pas classés comme des offres ; on renvoie vers
+ * les vendeurs pour vérifier. Plus un lien de recherche générale pour les marques sans aucun prix relevé.
+ */
+function ElsewhereSection({ answers }: { answers: Answers }) {
+  const thumbs = thumbnails();
+  const models = catalogSummaries()
+    .filter((m) => m.minNew === null && m.minRefurb === null && m.priceNote && m.priceNote.price <= answers.budget)
+    .filter((m) => answers.os === "any" || m.os === answers.os)
+    .filter((m) => !answers.includeBrands?.length || answers.includeBrands.includes(m.brand_id))
+    .filter((m) => !answers.excludeBrands?.includes(m.brand_id))
+    .sort((a, b) => (b.priceNote!.price - a.priceNote!.price))
+    .slice(0, 4);
+  const os = answers.os === "ios" ? "iPhone" : answers.os === "android" ? "smartphone Android" : "smartphone";
+  const general = shopLinks("", `${os} moins de ${answers.budget} €`)[0].url;
+  return (
+    <section aria-labelledby="ailleurs-res" className="grid gap-4">
+      <h2 id="ailleurs-res" className="display text-2xl sm:text-3xl">À regarder aussi, <span className="text-red">prix à vérifier ailleurs</span></h2>
+      <p className="text-muted max-w-3xl">
+        Ces modèles correspondent à ton système, mais PickJust n&apos;a pas de prix vérifié aujourd&apos;hui (rupture, prix « à partir de »,
+        prix ancien). Leur dernier prix connu passe sous ton budget : vérifie-le chez les vendeurs.
+      </p>
+      {models.length > 0 && (
+        <ul className="grid md:grid-cols-2 gap-4">
+          {models.map((m) => (
+            <li key={m.id} className="bg-panel border border-line p-4 grid grid-cols-[88px_1fr] gap-4">
+              <Thumb media={thumbs.get(m.id) ?? null} alt={m.name} form={m.form_factor} size={88} />
+              <div className="min-w-0">
+                <h3 className="font-extrabold text-lg leading-tight"><Link href={`/telephone/${m.id}`} className="hover:text-red">{m.name}</Link></h3>
+                <p className="text-sm text-warn font-semibold mt-1">
+                  {m.priceNote!.kind === "rupture" ? `En rupture chez ${m.priceNote!.seller}` : m.priceNote!.kind === "depart" ? "Prix « à partir de » seulement" : "Prix à actualiser"}
+                </p>
+                <p className="text-xs text-muted">Dernier prix relevé : {euros(m.priceNote!.price)}</p>
+                <div className="mt-2"><ShopLinks compact title="Voir les prix" brand={m.brand_name} name={m.name} /></div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="text-sm">
+        D&apos;autres marques (OPPO, vivo, HONOR, OnePlus…) n&apos;ont pas encore de prix sur PickJust :{" "}
+        <a href={general} target="_blank" rel="noopener noreferrer nofollow" className="underline font-semibold hover:text-red">
+          voir les {os === "iPhone" ? "iPhone" : "smartphones"} à moins de {euros(answers.budget)} sur Google Shopping ↗
+        </a>
+        <span className="text-muted"> (lien neutre, sans affiliation).</span>
+      </p>
+    </section>
   );
 }
