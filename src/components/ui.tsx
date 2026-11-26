@@ -33,7 +33,7 @@ export function PhoneIllustration({ className = "" }: { className?: string }) {
         <circle cx="160" cy="350" r="78" stroke="#2b2b31" />
         <path d="M160 272 a78 78 0 1 1 -74 102" stroke="#ff3434" />
       </g>
-      <text x="160" y="360" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="20" fontWeight="700" fill="#f5f5f4">3 questions</text>
+      <text x="160" y="360" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="20" fontWeight="700" fill="#f5f5f4">7 questions</text>
       <rect x="52" y="468" width="216" height="40" fill="#ff3434" style={{ clipPath: "polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)" }} />
       <text x="160" y="494" textAnchor="middle" fontFamily="Archivo, sans-serif" fontSize="15" fontWeight="900" fill="#0a0a0b">TROUVER</text>
     </svg>

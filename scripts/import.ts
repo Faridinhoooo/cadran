@@ -15,6 +15,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { finalizeForDeploy, openDb } from "../src/lib/db";
 import { isExcludedBrand } from "../src/lib/brand-policy";
 import { modelSlug, normalize, slugify } from "../src/lib/text";
+import { chipScore, tierFromScore, type ChipScores } from "../src/lib/chips";
 import { fetchIcecat, importIcecat, mapIcecat } from "./icecat";
 import { ebayConfigured, importEbayUsed } from "./ebay";
 import { publishedModelSql } from "../src/lib/catalog-policy";
@@ -331,7 +332,11 @@ function importSpecs(db: DatabaseSync) {
       upsert.run(id, f, JSON.stringify(v), s.source_name, url);
     });
     const chip = values[fields.indexOf("chip")] as string | null;
-    if (chip && s.chip_tiers[chip]) upsert.run(id, "chip_tier", JSON.stringify(s.chip_tiers[chip]), "Classement éditorial des puces (indicatif)", null);
+    const sc = chip ? chipScore(chip, (readJson("chip-scores.json") as { scores: ChipScores }).scores) : null;
+    if (sc !== null) {
+      upsert.run(id, "chip_score", JSON.stringify(sc), "Indice PickJust de puissance des puces (indicatif)", null);
+      upsert.run(id, "chip_tier", JSON.stringify(tierFromScore(sc)), "Indice PickJust de puissance des puces (indicatif)", null);
+    }
     const ram = values[fields.indexOf("ram_gb")] as number | null;
     for (const gb of (values[fields.indexOf("storage")] as number[]) ?? []) {
       db.prepare("INSERT INTO configs (id, model_id, storage_gb, ram_gb) VALUES (?,?,?,?) ON CONFLICT(id) DO UPDATE SET ram_gb=COALESCE(excluded.ram_gb, ram_gb)").run(`${id}-${gb}`, id, gb, ram);
@@ -1180,13 +1185,16 @@ async function main() {
       }
     }
     // Classe de puce recalculée pour toute puce connue (y compris relevée sur une page officielle).
-    const tiers = readJson("specs.json").chip_tiers as Record<string, number>;
-    for (const r of db.prepare("SELECT model_id, value FROM specs WHERE key='chip' AND kind='annonce'").all() as { model_id: string; value: string }[]) {
-      // Libellés constructeurs variés : « MediaTek Dimensity 7300-Ultra », « 8 cœurs Dimensity 6100+ ».
-      const chip = String(JSON.parse(r.value)).replace(/^8 cœurs /i, "").replace(/^MediaTek /i, "").trim();
-      const t = tiers[chip];
-      if (t) db.prepare(`INSERT INTO specs (model_id, key, value, kind, source_name, source_url, checked_at, level) VALUES (?, 'chip_tier', ?, 'annonce', 'Classement éditorial des puces (indicatif)', NULL, NULL, 'editorial')
-        ON CONFLICT(model_id, key, kind) DO UPDATE SET value=excluded.value`).run(r.model_id, JSON.stringify(t));
+    // Indice PickJust de puissance (0–100) et niveau 1–5 qui en découle, d'après le nom de puce normalisé.
+    const scores = (readJson("chip-scores.json") as { scores: ChipScores }).scores;
+    const put = db.prepare(`INSERT INTO specs (model_id, key, value, kind, source_name, source_url, checked_at, level) VALUES (?, ?, ?, 'annonce', 'Indice PickJust de puissance des puces (indicatif)', NULL, NULL, 'editorial')
+        ON CONFLICT(model_id, key, kind) DO UPDATE SET value=excluded.value, source_name=excluded.source_name`);
+    // Niveau du libellé officiel en priorité (plus précis qu'une saisie éditoriale ancienne).
+    for (const r of db.prepare("SELECT model_id, value FROM specs WHERE key='chip' AND kind='annonce' ORDER BY CASE level WHEN 'officiel' THEN 0 WHEN 'autorise' THEN 1 ELSE 2 END").all() as { model_id: string; value: string }[]) {
+      const sc = chipScore(JSON.parse(r.value), scores);
+      if (sc === null) continue;
+      put.run(r.model_id, "chip_score", JSON.stringify(sc));
+      put.run(r.model_id, "chip_tier", JSON.stringify(tierFromScore(sc)));
     }
   }
   if (want("media")) await importMedia(db);

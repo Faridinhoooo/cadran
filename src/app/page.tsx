@@ -41,7 +41,7 @@ export default function Home() {
             Quel smartphone pour <span className="text-red">ton budget</span>&nbsp;?
           </h1>
           <p className="text-lg text-muted mt-5 max-w-xl">
-            Des prix relevés chez les vendeurs, frais compris, et une recommandation expliquée en trois questions.
+            Des prix relevés chez les vendeurs, frais compris, et 3 téléphones conseillés en 7 questions rapides, avec la raison de chaque choix.
           </p>
           <div className="mt-8">
             <BudgetForm />
@@ -125,8 +125,8 @@ export default function Home() {
           <ol className="grid md:grid-cols-3 gap-4 mt-8">
             {[
               ["01", "Ton budget", "Le plafond inclut la livraison et les frais obligatoires. Une offre à 395 € avec 10 € de frais dépasse un budget de 400 €."],
-              ["02", "Trois questions", "L'état d'achat, ce qui compte le plus pour toi, et iPhone ou Android. Tu peux revenir en arrière sans rien perdre."],
-              ["03", "Un choix expliqué", "Un premier choix, jusqu'à deux alternatives et la raison en clair, à partir d'offres vérifiées et datées."],
+              ["02", "7 questions rapides", "L'état, tes priorités, ton usage, la taille d'écran, le stockage, la durée et le système. Tu peux revenir en arrière sans rien perdre."],
+              ["03", "3 choix expliqués", "Trois téléphones avec leur processeur, leur mémoire, leur stockage et leur batterie, des jauges pour comparer, et pourquoi chacun est fait pour toi."],
             ].map(([n, t, d]) => (
               <li key={n} className="relative bg-panel border border-line p-6 cut overflow-hidden">
                 <p className="display text-red text-4xl">{n}</p>

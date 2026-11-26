@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Answers, Condition, OsChoice, Priority } from "@/lib/engine";
+import type { Answers, Condition, OsChoice, Priority, SizePref, Usage } from "@/lib/engine";
 import { toParams } from "@/lib/answers";
 
-const KEY = "cadran-questionnaire";
+const KEY = "pickjust-questionnaire-v2";
 
 const CONDITIONS: { id: Condition; label: string; help: string }[] = [
   { id: "neuf", label: "Neuf", help: "Jamais utilisé, vendu scellé avec la garantie légale de 2 ans." },
@@ -28,7 +28,27 @@ const OS: { id: OsChoice; label: string; help: string }[] = [
   { id: "any", label: "Les deux me vont", help: "La comparaison reste ouverte." },
 ];
 
-type State = Answers & { step: number };
+const USAGES: { id: Usage; label: string; help: string }[] = [
+  { id: "leger", label: "Léger", help: "Appels, messages, un peu de réseaux sociaux et d'internet. Moins de 3 h d'écran par jour." },
+  { id: "moyen", label: "Moyen", help: "Réseaux sociaux, vidéos, photos et GPS tous les jours. 3 à 5 h d'écran par jour." },
+  { id: "intensif", label: "Intensif", help: "Jeux, longues vidéos, partage de connexion, montage… Plus de 5 h d'écran par jour." },
+];
+
+const SIZES: { id: SizePref | "any"; label: string; help: string }[] = [
+  { id: "compact", label: "Compact", help: "Écran de 6,3″ ou moins : se glisse partout, s'utilise à une main." },
+  { id: "standard", label: "Standard", help: "Écran de 6,3″ à 6,6″ : le bon compromis." },
+  { id: "grand", label: "Grand écran", help: "Écran de 6,7″ ou plus : idéal pour les vidéos et les jeux." },
+  { id: "any", label: "Peu importe", help: "La taille ne compte pas pour moi." },
+];
+
+const STORAGE: { gb: number | null; label: string; help: string }[] = [
+  { gb: null, label: "Peu de choses", help: "Quelques applis et photos, le reste dans le cloud. 64 à 128 Go suffisent." },
+  { gb: 128, label: "Un usage courant", help: "Photos, vidéos et applis du quotidien : 128 Go minimum." },
+  { gb: 256, label: "Beaucoup de photos et vidéos", help: "Gros jeux, vidéos en 4K, beaucoup de musique hors ligne : 256 Go minimum." },
+  { gb: 512, label: "Énormément", help: "Tout garder sur le téléphone, vidéos 4K longues : 512 Go minimum." },
+];
+
+type State = Answers & { step: number; sizeAnswered?: boolean; storageAnswered?: boolean };
 
 function Tick({ on, text }: { on: boolean; text?: string }) {
   return (
@@ -50,6 +70,8 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
     esim: initial.esim ?? false,
     includeBrands: initial.includeBrands ?? [],
     excludeBrands: initial.excludeBrands ?? [],
+    usage: initial.usage ?? null,
+    size: initial.size ?? null,
     step: 0,
   }));
   const heading = useRef<HTMLHeadingElement>(null);
@@ -71,8 +93,7 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
     } catch {}
   }, [s]);
 
-  const needsYears = s.priorities.includes("longevite");
-  const steps = ["etat", "priorites", "os", ...(needsYears ? ["annees"] : [])];
+  const steps = ["etat", "priorites", "usage", "taille", "stockage", "annees", "os"];
   const current = steps[s.step];
   const isLast = s.step === steps.length - 1;
 
@@ -85,6 +106,9 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
     (current === "etat" && s.conditions.length > 0) ||
     (current === "priorites" && s.priorities.length > 0) ||
     (current === "os" && !!s.os) ||
+    (current === "usage" && !!s.usage) ||
+    (current === "taille" && !!s.sizeAnswered) ||
+    (current === "stockage" && !!s.storageAnswered) ||
     (current === "annees" && !!s.keepYears);
 
   function toggleCondition(c: Condition) {
@@ -99,12 +123,12 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
     if (next.includes(p)) next = next.filter((x) => x !== p);
     else if (next.length < 2) next.push(p);
     else next = [next[0], p];
-    set({ priorities: next, keepYears: next.includes("longevite") ? s.keepYears : null });
+    set({ priorities: next });
   }
 
   function submit() {
-    const { step: _step, ...answers } = s;
-    void _step;
+    const { step: _step, sizeAnswered: _a, storageAnswered: _b, ...answers } = s;
+    void _step; void _a; void _b;
     router.push(`/resultats?${toParams(answers as Answers).toString()}`);
   }
 
@@ -118,14 +142,17 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
     etat: "Comment veux-tu l'acheter ?",
     priorites: "Qu'est-ce qui compte le plus pour toi ?",
     os: "Tu veux un iPhone, un Android, ou les deux te vont ?",
-    annees: "Combien d'années veux-tu le garder à partir d'aujourd'hui ?",
+    usage: "Comment utilises-tu ton téléphone au quotidien ?",
+    taille: "Quelle taille d'écran préfères-tu ?",
+    stockage: "Combien de photos, vidéos et applis gardes-tu ?",
+    annees: "Combien de temps veux-tu le garder ?",
   };
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
       <div className="flex flex-wrap items-center gap-3 justify-between mb-6">
         <p className="text-sm font-bold uppercase tracking-wider text-muted">
-          {current === "annees" ? "Une précision" : `Question ${s.step + 1} sur 3`}
+          {`Question ${s.step + 1} sur ${steps.length}`}
         </p>
         <label className="flex items-center gap-2 text-sm">
           <span className="text-muted">Budget maximum</span>
@@ -218,9 +245,65 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
         </div>
       )}
 
+      {current === "usage" && (
+        <>
+          <p className="text-muted mb-6">Ça nous aide à choisir la bonne puissance et la bonne batterie.</p>
+          <div className="grid gap-3" role="radiogroup" aria-label="Intensité d'usage">
+            {USAGES.map((u) => (
+              <button key={u.id} type="button" role="radio" className="choice cut-sm" aria-checked={s.usage === u.id} onClick={() => set({ usage: u.id })}>
+                <Tick on={s.usage === u.id} />
+                <span>
+                  <span className="block text-lg font-bold">{u.label}</span>
+                  <span className="block text-muted text-sm mt-0.5">{u.help}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {current === "taille" && (
+        <div className="grid sm:grid-cols-2 gap-3 mt-6" role="radiogroup" aria-label="Taille d'écran">
+          {SIZES.map((z) => {
+            const on = !!s.sizeAnswered && (z.id === "any" ? !s.size : s.size === z.id);
+            return (
+              <button key={z.id} type="button" role="radio" className="choice cut-sm" aria-checked={on}
+                onClick={() => set({ size: z.id === "any" ? null : z.id, sizeAnswered: true })}>
+                <Tick on={on} />
+                <span>
+                  <span className="block text-lg font-bold">{z.label}</span>
+                  <span className="block text-muted text-sm mt-0.5">{z.help}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {current === "stockage" && (
+        <>
+          <p className="text-muted mb-6">Le stockage ne s&apos;agrandit pas après l&apos;achat sur la plupart des téléphones : mieux vaut prévoir.</p>
+          <div className="grid gap-3" role="radiogroup" aria-label="Stockage">
+            {STORAGE.map((o) => {
+              const on = !!s.storageAnswered && (s.minStorage ?? null) === o.gb;
+              return (
+                <button key={String(o.gb)} type="button" role="radio" className="choice cut-sm" aria-checked={on}
+                  onClick={() => set({ minStorage: o.gb, storageAnswered: true })}>
+                  <Tick on={on} />
+                  <span>
+                    <span className="block text-lg font-bold">{o.label}</span>
+                    <span className="block text-muted text-sm mt-0.5">{o.help}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+
       {current === "annees" && (
         <>
-          <p className="text-muted mb-6">On compare cette durée au suivi de sécurité encore garanti aujourd&apos;hui. Acheter neuf ou reconditionné ne remet pas ce compteur à zéro.</p>
+          <p className="text-muted mb-6">On vérifie que le téléphone recevra encore des mises à jour de sécurité pendant toute cette durée. Acheter neuf ou reconditionné ne remet pas ce compteur à zéro.</p>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-3" role="radiogroup" aria-label="Nombre d'années">
             {[1, 2, 3, 4, 5, 6].map((y) => (
               <button key={y} type="button" role="radio" aria-checked={s.keepYears === y} className="choice cut-sm justify-center items-center" onClick={() => set({ keepYears: y })}>
@@ -235,19 +318,6 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
         <details className="mt-8 bg-panel border border-line">
           <summary className="cursor-pointer px-5 py-4 font-bold min-h-[52px] flex items-center">Affiner mon choix (facultatif)</summary>
           <div className="px-5 pb-5 grid gap-5">
-            <label className="grid gap-1.5">
-              <span className="font-semibold">Stockage minimum</span>
-              <select
-                value={s.minStorage ?? ""}
-                onChange={(e) => set({ minStorage: e.target.value ? Number(e.target.value) : null })}
-                className="bg-panel-2 border border-line px-3 py-3 max-w-xs"
-              >
-                <option value="">Peu importe</option>
-                {[64, 128, 256, 512, 1024].map((g) => (
-                  <option key={g} value={g}>{g >= 1024 ? "1 To" : `${g} Go`} ou plus</option>
-                ))}
-              </select>
-            </label>
             <label className="flex items-center gap-3 min-h-[44px]">
               <input type="checkbox" checked={!!s.esim} onChange={(e) => set({ esim: e.target.checked })} className="w-5 h-5 accent-[var(--red)]" />
               <span className="font-semibold">eSIM indispensable</span>

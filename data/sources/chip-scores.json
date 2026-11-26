@@ -1,0 +1,26 @@
+{
+  "_about": "Indice PickJust de puissance des puces, de 0 à 100 : position relative établie par PickJust d'après la gamme (entrée, milieu, haut de gamme) et la génération annoncées par les fabricants de puces. Indicatif : ce n'est PAS un benchmark mesuré. Le niveau sur 5 (chip_tier) en est déduit pour le classement. Les noms sont normalisés avant recherche (src/lib/chips.ts).",
+  "scores": {
+    "Helio G36": 8, "Helio G37": 9, "Helio P35": 8, "UNISOC T612": 11, "UNISOC T606": 11, "UNISOC T7250": 14, "UNISOC T7225": 13,
+    "Helio G81": 14, "Helio G81-Ultra": 15, "Helio G85": 15, "Helio G88": 16, "Helio G91": 17, "Helio G91-Ultra": 18, "Helio G92 Max": 19,
+    "Helio G99": 23, "Helio G99-Ultra": 24, "Helio G100": 25, "Helio G100-Ultra": 26, "Helio G200": 28, "Helio G200-Ultra": 29,
+    "Snapdragon 680": 17, "Snapdragon 685": 19, "Snapdragon 695": 26, "Snapdragon 732G": 24, "Snapdragon 778G": 44,
+    "Snapdragon 4 Gen 1": 23, "Snapdragon 4 Gen 2": 26, "Snapdragon 4 Gen 3": 27, "Snapdragon 4 Gen 4": 29, "Snapdragon 4 Gen 5": 31,
+    "Snapdragon 6s 4G Gen 1": 21, "Snapdragon 6s 4G Gen 2": 23, "Snapdragon 6s Gen 3": 29, "Snapdragon 6s Gen 4": 33,
+    "Snapdragon 6 Gen 1": 37, "Snapdragon 6 Gen 3": 39, "Snapdragon 6 Gen 4": 43, "Snapdragon 6 Gen 5": 45,
+    "Snapdragon 7 Gen 1": 41, "Snapdragon 7 Gen 1 Accelerated Edition": 42, "Snapdragon 7s Gen 2": 42, "Snapdragon 7s Gen 3": 48, "Snapdragon 7s Gen 4": 52,
+    "Snapdragon 7 Gen 3": 50, "Snapdragon 7 Gen 4": 56, "Snapdragon 7+ Gen 2": 62, "Snapdragon 7+ Gen 3": 70,
+    "Snapdragon 8+ Gen 1": 68, "Snapdragon 8 Gen 2": 72, "Snapdragon 8s Gen 3": 74, "Snapdragon 8s Gen 4": 81, "Snapdragon 8 Gen 3": 82,
+    "Snapdragon 8 Elite": 92, "Snapdragon 8 Elite Gen 5": 98, "Snapdragon 8 Elite Gen 5 V Series": 96, "Snapdragon 8 Elite Gen 6": 100, "Snapdragon 8 Elite Extreme Gen 6": 100,
+    "QCM6490": 30,
+    "Dimensity 700": 21, "Dimensity 6020": 23, "Dimensity 6080": 25, "Dimensity 6100+": 24, "Dimensity 6300": 26, "Dimensity 6360 Max": 27,
+    "Dimensity 7025-Ultra": 34, "Dimensity 7050": 38, "Dimensity 7100 Elite": 40, "Dimensity 7200": 44, "Dimensity 7200 Pro": 45, "Dimensity 7200-Ultra": 45,
+    "Dimensity 7300": 46, "Dimensity 7300-Energy": 46, "Dimensity 7300-Ultra": 47, "Dimensity 7400-Ultra": 49, "Dimensity 1080": 40,
+    "Dimensity 8300-Ultra": 66, "Dimensity 8350": 68, "Dimensity 8400-Ultra": 72, "Dimensity 8450": 73, "Dimensity 8500-Ultra": 76, "Dimensity 8550 Super": 77,
+    "Dimensity 9200": 74, "Dimensity 9300+": 84, "Dimensity 9400e": 82, "Dimensity 9400": 90, "Dimensity 9400+": 92, "Dimensity 9500": 96, "Dimensity 9600M": 92, "Dimensity 9600 Pro": 99,
+    "Exynos 1280": 27, "Exynos 1330": 25, "Exynos 1380": 36, "Exynos 1480": 42, "Exynos 1580": 48,
+    "Exynos 2200": 62, "Exynos 2400e": 72, "Exynos 2400": 80, "Exynos 2500": 84, "Exynos 2600": 94,
+    "Tensor G2": 60, "Tensor G3": 64, "Tensor G4": 68, "Tensor G5": 74, "Tensor G6": 80,
+    "A16 Bionic": 78, "A17 Pro": 86, "A18": 86, "A18 Pro": 90, "A19": 92, "A19 Pro": 96, "A20 Pro": 100
+  }
+}

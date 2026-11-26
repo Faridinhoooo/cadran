@@ -136,7 +136,7 @@ export default async function Page({ params }: Params) {
 
       <section className="mt-12 bg-panel border border-red cut p-6 sm:p-8">
         <h2 className="display text-2xl">Un choix fait pour toi</h2>
-        <p className="text-muted mt-2">Trois questions suffisent pour classer ces offres selon tes priorités et ton système préféré.</p>
+        <p className="text-muted mt-2">Sept questions rapides suffisent pour classer ces offres selon tes priorités et ton système préféré.</p>
         <Link href={`/trouver?budget=${budget}`} className="btn btn-primary mt-4">Trouver mon smartphone à {euros(budget)}</Link>
       </section>
     </div>

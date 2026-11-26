@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { admissibleEntries, availableWithinBudget, recommend, type Answers } from "../src/lib/engine";
+import { admissibleEntries, availableWithinBudget, recommend, topChoices, type Answers } from "../src/lib/engine";
 import { parseAnswers, toParams, withPatch } from "../src/lib/answers";
 import { estimateMarket } from "../src/lib/market";
 import { searchModels } from "../src/lib/search";
@@ -104,7 +104,7 @@ describe("Modifier une priorité", () => {
     expect(r2.picks[0].explanation[0]).toContain("batterie");
   });
   it("les réponses font l'aller-retour par l'URL", () => {
-    const a: Answers = { budget: 450, conditions: ["reconditionne"], priorities: ["longevite", "une_main"], os: "ios", keepYears: 4, minStorage: 256, esim: true, includeBrands: ["apple"], excludeBrands: [] };
+    const a: Answers = { budget: 450, conditions: ["reconditionne"], priorities: ["longevite", "une_main"], os: "ios", keepYears: 4, minStorage: 256, esim: true, includeBrands: ["apple"], excludeBrands: [], usage: "intensif", size: "compact" };
     expect(parseAnswers(Object.fromEntries(toParams(a)))).toEqual(a);
   });
 });
@@ -176,5 +176,25 @@ describe("Exigences inconnues", () => {
   it("priorité prix : l'offre la moins chère qui satisfait le besoin, pas le plafond", () => {
     const r = recommend({ ...base, budget: 1000, priorities: ["prix"] }, [phoneA, phoneB], TODAY);
     expect(r.status === "ok" && r.picks[0].total).toBe(250);
+  });
+});
+
+describe("Profil et 3 choix", () => {
+  const phone = (id: string, price: number, specs: Record<string, unknown>) =>
+    model({ id, name: id, specs, configs: [{ id: `${id}-128`, storage_gb: 128, ram_gb: 8, offers: [offer({ id: `o-${id}`, price })] }] });
+  const petit = phone("petit", 300, { screen_in: 6.1, battery_mah: 4000, chip_tier: 3 });
+  const grand = phone("grand", 300, { screen_in: 6.8, battery_mah: 6000, chip_tier: 4 });
+  const moyen = phone("moyen", 300, { screen_in: 6.5, battery_mah: 5000, chip_tier: 3 });
+  const tous = [petit, grand, moyen];
+  it("la taille d'écran préférée départage des modèles équivalents", () => {
+    const a = { ...base, priorities: ["prix" as const] };
+    expect(topChoices({ ...a, priorities: ["photo"], size: "compact" }, tous, TODAY)[0].model.id).toBe("petit");
+    expect(topChoices({ ...a, priorities: ["photo"], size: "grand" }, tous, TODAY)[0].model.id).toBe("grand");
+  });
+  it("trois modèles différents au plus, chacun avec une phrase d'explication", () => {
+    const c = topChoices({ ...base, priorities: ["autonomie"], usage: "intensif" }, tous, TODAY);
+    expect(c.map((x) => x.model.id)).toEqual(["grand", "moyen", "petit"]);
+    expect(new Set(c.map((x) => x.model.id)).size).toBe(3);
+    for (const x of c) expect(x.why.length).toBeGreaterThan(10);
   });
 });

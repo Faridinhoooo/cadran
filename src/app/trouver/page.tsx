@@ -4,7 +4,7 @@ import { parseAnswers } from "@/lib/answers";
 import { brands } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Trouver mon smartphone en 3 questions", description: "Indique ton budget, l'état souhaité, tes priorités et ton système : PickJust te propose les meilleurs smartphones dans ton budget, frais inclus, et explique pourquoi.", alternates: { canonical: "/trouver" } };
+export const metadata: Metadata = { title: "Trouver mon smartphone en 7 questions", description: "Indique ton budget, l'état souhaité, tes priorités et ton système : PickJust te propose les meilleurs smartphones dans ton budget, frais inclus, et explique pourquoi.", alternates: { canonical: "/trouver" } };
 
 export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;

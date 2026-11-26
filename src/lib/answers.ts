@@ -28,6 +28,8 @@ export function parseAnswers(p: Params): Answers | null {
     esim: one(p.esim) === "1",
     includeBrands: list(p.marques),
     excludeBrands: list(p.sauf),
+    usage: (["leger", "moyen", "intensif"] as const).find((u) => u === one(p.usage)) ?? null,
+    size: (["compact", "standard", "grand"] as const).find((u) => u === one(p.taille)) ?? null,
   };
 }
 
@@ -42,6 +44,8 @@ export function toParams(a: Answers): URLSearchParams {
   if (a.esim) q.set("esim", "1");
   if (a.includeBrands?.length) q.set("marques", a.includeBrands.join(","));
   if (a.excludeBrands?.length) q.set("sauf", a.excludeBrands.join(","));
+  if (a.usage) q.set("usage", a.usage);
+  if (a.size) q.set("taille", a.size);
   return q;
 }
 

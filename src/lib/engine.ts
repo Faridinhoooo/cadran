@@ -38,7 +38,14 @@ export interface Answers {
   esim?: boolean;
   includeBrands?: string[];
   excludeBrands?: string[];
+  /** Intensité d'utilisation au quotidien. */
+  usage?: Usage | null;
+  /** Taille d'écran préférée. */
+  size?: SizePref | null;
 }
+
+export type Usage = "leger" | "moyen" | "intensif";
+export type SizePref = "compact" | "standard" | "grand";
 
 export interface OfferLite {
   id: string;
@@ -210,7 +217,9 @@ export function rawMetric(p: Priority, e: Entry, answers: Answers, today: Date):
       return mah / (inch * inch);
     }
     case "jeux": {
-      const tier = num(s.chip_tier);
+      // Indice 0–100 si connu (plus fin), sinon niveau 1–5.
+      const sc = num(s.chip_score);
+      const tier = sc !== null ? sc / 20 : num(s.chip_tier);
       if (tier === null) return null;
       const hz = num(s.refresh_hz) ?? 60;
       const ram = e.config.ram_gb ?? num(s.ram_gb) ?? 0;
@@ -246,6 +255,37 @@ function normalizeAll(values: (number | null)[]): (number | null)[] {
 
 // ───────────── Classement ─────────────
 
+/**
+ * Adéquation au profil (0 à 1) : taille d'écran, intensité d'usage, durée de conservation. Sert de critère
+ * complémentaire aux priorités ; une donnée inconnue compte pour 0,5 (ni bonus ni pénalité).
+ */
+export function profileFit(e: Entry, answers: Answers, today: Date): { fit: number; parts: Partial<Record<"taille" | "usage" | "duree", number>> } {
+  const s = e.model.specs;
+  const parts: Partial<Record<"taille" | "usage" | "duree", number>> = {};
+  const inch = num(s.screen_in);
+  if (answers.size) {
+    if (inch === null || e.model.form_factor === "pliable") parts.taille = 0.5;
+    else if (answers.size === "compact") parts.taille = clamp01(1 - Math.max(0, inch - 6.3) / 0.5);
+    else if (answers.size === "grand") parts.taille = clamp01(1 - Math.max(0, 6.7 - inch) / 0.5);
+    else parts.taille = clamp01(1 - (inch < 6.3 ? 6.3 - inch : inch > 6.69 ? inch - 6.69 : 0) / 0.4);
+  }
+  if (answers.usage === "intensif") {
+    const sc = num(s.chip_score) ?? (num(s.chip_tier) !== null ? num(s.chip_tier)! * 20 : null);
+    const mah = num(s.battery_mah);
+    const a = sc === null ? 0.5 : sc / 100;
+    const b = mah === null ? 0.5 : clamp01((mah - 4000) / 3000);
+    parts.usage = (a + b) / 2;
+  } else if (answers.usage === "leger") {
+    parts.usage = clamp01(1 - e.total / answers.budget);
+  }
+  if (answers.keepYears && !answers.priorities.includes("longevite")) {
+    const d = securityDeadline(e.model.support, today);
+    parts.duree = d.monthsLeft === null ? 0.5 : clamp01(d.monthsLeft / (answers.keepYears * 12));
+  }
+  const vals = Object.values(parts);
+  return { fit: vals.length ? vals.reduce((x, y) => x + y, 0) / vals.length : 0.5, parts };
+}
+
 export function rank(answers: Answers, entries: Entry[], today: Date) {
   const prios = answers.priorities.slice(0, 2);
   const weights = prios.length === 2 ? [0.65, 0.35] : [1];
@@ -258,6 +298,8 @@ export function rank(answers: Answers, entries: Entry[], today: Date) {
       n[p] = norms[k][i];
       score += weights[k] * (norms[k][i] ?? 0);
     });
+    // Profil (taille, intensité d'usage, durée) : critère complémentaire, moins fort que les priorités.
+    if (answers.size || answers.usage || answers.keepYears) score += 0.35 * profileFit(e, answers, today).fit;
     // Départage léger : à valeur égale, la moins chère passe devant.
     score += 0.02 * (1 - e.total / answers.budget);
     return { e, score, norms: n };
@@ -537,6 +579,32 @@ export function offerFunnel(answers: Answers, models: CandidateModel[], today: D
 }
 
 // ───────────── Point d'entrée ─────────────
+
+export interface Choice {
+  model: CandidateModel;
+  config: ConfigLite;
+  offer: OfferLite;
+  /** Coût total si connu (frais inclus), sinon null : frais à vérifier. */
+  total: number | null;
+  shown: number;
+  why: string;
+}
+
+/**
+ * Les 3 téléphones proposés : trois modèles différents, classés selon les priorités et le profil, parmi les offres
+ * confirmées (frais inclus) et celles dont le prix affiché respecte le budget (frais à vérifier).
+ */
+export function topChoices(answers: Answers, models: CandidateModel[], today: Date, count = 3): Choice[] {
+  const entries = [...admissibleEntries(answers, models, today), ...verifyEntries(answers, models, today)];
+  if (!entries.length) return [];
+  // Une offre confirmée passe devant une offre à vérifier du même modèle.
+  const ranked = rank(answers, [...entries].sort((a, b) => Number(offerTotal(a.offer) === null) - Number(offerTotal(b.offer) === null)), today);
+  return ranked.slice(0, count).map((x, i) => ({
+    model: x.e.model, config: x.e.config, offer: x.e.offer,
+    total: offerTotal(x.e.offer), shown: shownPrice(x.e.offer),
+    why: whyOneLiner(x.e, answers, i, today),
+  }));
+}
 
 export function recommend(answers: Answers, models: CandidateModel[], today: Date): Result {
   const funnel = offerFunnel(answers, models, today);

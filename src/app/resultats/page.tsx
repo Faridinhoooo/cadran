@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { parseAnswers, toParams, withPatch } from "@/lib/answers";
-import { CONDITION_LABELS, OFFER_MAX_AGE_DAYS, PRIORITY_LABELS, recommend, type Answers, type Condition, type Funnel, type Priority, type Recommendation, type VerifyCard } from "@/lib/engine";
+import { CONDITION_LABELS, OFFER_MAX_AGE_DAYS, PRIORITY_LABELS, recommend, topChoices, type Answers, type Condition, type Funnel, type Priority, type Recommendation, type VerifyCard } from "@/lib/engine";
 import { brands, candidates, catalogSummaries, marketFor, merchantSyncs, thumbnails } from "@/lib/queries";
 import { dateTimeFr, euros, sourceLabel, storageLabel } from "@/lib/format";
 import { GUIDE_BUDGETS } from "@/lib/budget-guide";
 import { SecurityLine, Thumb, BudgetGauge } from "@/components/ui";
 import { ShopLinks } from "@/components/ShopLinks";
+import { ChoicesSection } from "@/components/Choices";
+import { scales } from "@/lib/scales";
 import { shopLinks } from "@/lib/shop-links";
 import { keepYearsVerdict } from "@/lib/support";
 
@@ -104,7 +106,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
   const answers = parseAnswers(sp);
   if (!answers) redirect("/trouver");
   const today = new Date();
-  const result = recommend(answers, candidates(), today);
+  const models = candidates();
+  const result = recommend(answers, models, today);
+  const choices = topChoices(answers, models, today);
   const brandNames = new Map(brands().map((b) => [b.id, b.name]));
   const q = (patch: Partial<Answers>) => withPatch(answers, patch);
 
@@ -118,7 +122,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 grid lg:grid-cols-[340px_1fr] gap-8 items-start">
-      <aside aria-label="Tes réponses" className="grid gap-2 lg:sticky lg:top-20">
+      <aside aria-label="Tes réponses" className="grid gap-2 lg:sticky lg:top-20 order-2 lg:order-none">
         <h1 className="display text-3xl mb-2">Ton résultat</h1>
         <form action="/resultats" method="get" className="bg-panel border border-line px-4 py-3 flex flex-wrap items-end gap-2">
           {[...toParams(answers).entries()].filter(([k]) => k !== "budget").map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
@@ -151,11 +155,16 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
           <Opt href={q({ os: "android" })} on={answers.os === "android"}>Android</Opt>
           <Opt href={q({ os: "any" })} on={answers.os === "any"}>Les deux</Opt>
         </EditRow>
-        {answers.priorities.includes("longevite") && (
-          <EditRow label="Le garder" value={answers.keepYears ? `${answers.keepYears} ans` : "Non précisé"}>
-            {[1, 2, 3, 4, 5, 6].map((y) => <Opt key={y} href={q({ keepYears: y })} on={answers.keepYears === y}>{y} an{y > 1 ? "s" : ""}</Opt>)}
-          </EditRow>
-        )}
+        <EditRow label="Usage" value={answers.usage === "leger" ? "Léger" : answers.usage === "moyen" ? "Moyen" : answers.usage === "intensif" ? "Intensif" : "Non précisé"}>
+          {(["leger", "moyen", "intensif"] as const).map((u) => <Opt key={u} href={q({ usage: u })} on={answers.usage === u}>{u === "leger" ? "Léger" : u === "moyen" ? "Moyen" : "Intensif"}</Opt>)}
+        </EditRow>
+        <EditRow label="Taille d'écran" value={answers.size === "compact" ? "Compact" : answers.size === "standard" ? "Standard" : answers.size === "grand" ? "Grand écran" : "Peu importe"}>
+          {([["compact", "Compact"], ["standard", "Standard"], ["grand", "Grand écran"]] as const).map(([z, l]) => <Opt key={z} href={q({ size: z })} on={answers.size === z}>{l}</Opt>)}
+          <Opt href={q({ size: null })} on={!answers.size}>Peu importe</Opt>
+        </EditRow>
+        <EditRow label="Le garder" value={answers.keepYears ? `${answers.keepYears} ans` : "Non précisé"}>
+          {[1, 2, 3, 4, 5, 6].map((y) => <Opt key={y} href={q({ keepYears: y })} on={answers.keepYears === y}>{y} an{y > 1 ? "s" : ""}</Opt>)}
+        </EditRow>
         <EditRow label="Affiner" value={refine.length ? refine.join(" · ") : "Aucun critère"}>
           <span className="w-full text-sm text-muted">Stockage minimum</span>
           {[null, 128, 256, 512].map((g) => <Opt key={String(g)} href={q({ minStorage: g })} on={(answers.minStorage ?? null) === g}>{g ? storageLabel(g) : "Peu importe"}</Opt>)}
@@ -166,9 +175,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
         </EditRow>
       </aside>
 
-      <div className="grid gap-8 min-w-0">
+      <div className="grid gap-8 min-w-0 order-1 lg:order-none">
+        {choices.length > 0 && <ChoicesSection choices={choices} answers={answers} scales={scales()} thumbs={thumbnails()} today={today} />}
         {result.status === "ok" ? (
-          <>
+          <details className="group bg-panel/40 border border-line" open={choices.length === 0}>
+            <summary className="cursor-pointer px-5 py-4 font-bold min-h-[52px] flex items-center justify-between gap-3">
+              <span>Voir le détail et toutes les offres ({result.funnel.confirmee + result.funnel.a_verifier})</span>
+              <span aria-hidden className="text-red group-open:rotate-180 transition-transform">▾</span>
+            </summary>
+            <div className="grid gap-8 p-4 sm:p-5 pt-0">
             <p className="text-muted">
               {result.admissibleModels} modèle{result.admissibleModels > 1 ? "s" : ""} distinct{result.admissibleModels > 1 ? "s" : ""} pour tes critères ·{" "}
               {result.funnel.confirmee} offre{result.funnel.confirmee > 1 ? "s" : ""} frais inclus · {result.funnel.a_verifier} offre
@@ -214,7 +229,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
                 </ul>
               </section>
             )}
-          </>
+            </div>
+          </details>
         ) : result.reason === "donnees" ? (
           <section className="bg-panel border border-warn/60 cut p-6 sm:p-8" aria-labelledby="donnees">
             <h2 id="donnees" className="display text-2xl sm:text-3xl">
