@@ -13,7 +13,7 @@ export interface Phone3DProps {
   lenses: number;
   swatches: Swatch[];
   officialColors: boolean;
-  layout: { island: "none" | "square" | "pill-v" | "pill-h" | "circle" | "bar"; position: "tl" | "tc"; arrange: "column" | "row" | "grid" | "triangle" | "ring" | "column-plus"; front: "punch" | "pill" | "drop"; verified: string | null; lenses?: number };
+  layout: { island: "none" | "square" | "pill-v" | "pill-h" | "circle" | "bar"; position: "tl" | "tc"; arrange: "column" | "row" | "grid" | "triangle" | "ring" | "column-plus"; front: "punch" | "pill" | "drop"; verified: string | null; lenses?: number; dark?: boolean };
 }
 
 /**
@@ -142,10 +142,11 @@ export function Phone3D(p: Phone3DProps) {
         if (L.island === "square") iw = ih = Math.max(iw, ih);
         if (L.island === "circle") iw = ih = Math.min(w * 0.7, Math.max(ext.x, ext.y) + pad * 2.6);
         const margin = w * 0.06;
-        const barW = w - 0.18;
+        // Plateau Apple : bord à bord ; bandeau Pixel (îlot sombre) : en retrait des bords et un peu plus bas.
+        const barW = L.dark ? w * 0.86 : w - 0.18;
         const islandCx = L.island === "bar" || L.position === "tc" ? 0 : -w / 2 + iw / 2 + margin;
-        const islandCy = L.island === "circle" ? h / 2 - ih / 2 - h * 0.05 : h / 2 - ih / 2 - margin * (L.island === "bar" ? 0.5 : 1);
-        const groupCx = L.island === "bar" && L.position === "tl" ? -w / 2 + iw / 2 + margin : islandCx;
+        const islandCy = L.island === "circle" ? h / 2 - ih / 2 - h * 0.05 : L.island === "bar" && L.dark ? h / 2 - ih / 2 - h * 0.07 : h / 2 - ih / 2 - margin * (L.island === "bar" ? 0.5 : 1);
+        const groupCx = L.island === "bar" && L.position === "tl" ? -barW / 2 + iw / 2 + margin * 0.6 : islandCx;
         const islandMat = new THREE.MeshPhysicalMaterial({ color: "#2a2b30", metalness: 0.5, roughness: 0.25, clearcoat: 1 });
         // Plateau « bar » : même teinte que le dos, légèrement contrastée pour rester visible (éclaircie si le dos est sombre).
         const tintBar = (hex: string) => {
@@ -153,12 +154,13 @@ export function Phone3D(p: Phone3DProps) {
           const lum = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
           islandMat.color.copy(lum < 0.15 ? c.lerp(new THREE.Color("#ffffff"), 0.14) : c.multiplyScalar(0.88));
         };
-        if (L.island === "bar") tintBar(p.swatches[0]?.hex ?? "#1d1d20");
+        if (L.island === "bar" && !L.dark) tintBar(p.swatches[0]?.hex ?? "#1d1d20");
+        if (L.dark) islandMat.color.set("#141416");
         if (L.island !== "none") {
           const bw = L.island === "bar" ? barW : iw;
           const geo = L.island === "circle"
             ? new THREE.CylinderGeometry(iw / 2, iw / 2, 0.14, 64)
-            : new RoundedBoxGeometry(bw, ih, 0.14, 4, Math.min(bw, ih) * (L.island.startsWith("pill") ? 0.49 : 0.26));
+            : new RoundedBoxGeometry(bw, ih, 0.14, 4, Math.min(bw, ih) * (L.island.startsWith("pill") || (L.island === "bar" && L.dark) ? 0.49 : 0.26));
           const island = new THREE.Mesh(geo, islandMat);
           if (L.island === "circle") island.rotation.x = Math.PI / 2;
           island.position.set(-islandCx, islandCy, -t / 2 - 0.06);
@@ -179,12 +181,12 @@ export function Phone3D(p: Phone3DProps) {
         }
         const flash = new THREE.Mesh(new THREE.CircleGeometry(lensR * 0.28, 20), new THREE.MeshBasicMaterial({ color: "#f3efe2" }));
         flash.rotation.y = Math.PI;
-        const fx = L.island === "bar" ? w / 2 - w * 0.14 : L.island === "circle" ? islandCx + iw * 0.3 : groupCx + ext.x / 2 + lensR * 1.9;
+        const fx = L.island === "bar" ? barW / 2 - w * 0.1 : L.island === "circle" ? islandCx + iw * 0.3 : groupCx + ext.x / 2 + lensR * 1.9;
         const fy = L.island === "bar" ? islandCy : L.island === "circle" ? islandCy - iw * 0.3 : islandCy + ext.y / 2;
         flash.position.set(-fx, fy, (L.island === "bar" || L.island === "circle" ? -t / 2 - 0.13 : -t / 2) - 0.004);
         phone.add(flash);
         // Teinte : le plateau d'un « bar » suit la couleur du dos.
-        const tintIsland = L.island === "bar";
+        const tintIsland = L.island === "bar" && !L.dark;
 
         // Boutons latéraux.
         const btnMat = bodyMat;

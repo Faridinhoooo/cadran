@@ -11,6 +11,8 @@ export interface CameraLayout {
   verified: string | null;
   /** Nombre d'objectifs de la gamme (si la fiche ne le donne pas). */
   lenses?: number;
+  /** Îlot ou plateau noir (verre), quel que soit le coloris. */
+  dark?: boolean;
 }
 
 type Rule = CameraLayout & { match: string };
@@ -25,6 +27,6 @@ export function cameraLayout(modelId: string): CameraLayout {
   const { rules, default: def } = load();
   const r = rules.find((x) => new RegExp(x.match).test(modelId));
   if (!r) return def;
-  const { island, position, arrange, front, verified, lenses } = r;
-  return { island, position, arrange, front, verified, ...(lenses ? { lenses } : {}) };
+  const { island, position, arrange, front, verified, lenses, dark } = r;
+  return { island, position, arrange, front, verified, ...(lenses ? { lenses } : {}), ...(dark ? { dark } : {}) };
 }

@@ -4,7 +4,8 @@
     "island": "none (objectifs séparés) | square | pill-v (îlot vertical) | pill-h (îlot horizontal) | circle (grand cercle) | bar (plateau sur toute la largeur)",
     "position": "tl (haut gauche vu de dos) | tc (haut centre)",
     "arrange": "column | row | grid | triangle | ring | column-plus (colonne + un objectif à côté)",
-    "front": "punch (poinçon centré) | pill (îlot dynamique) | drop (encoche en goutte)"
+    "front": "punch (poinçon centré) | pill (îlot dynamique) | drop (encoche en goutte)",
+    "dark": "true : îlot ou plateau noir (verre), quel que soit le coloris"
   },
   "rules": [
     {
@@ -120,17 +121,29 @@
       "position": "tl",
       "arrange": "row",
       "front": "punch",
-      "verified": null,
-      "lenses": 2
+      "verified": "https://store.google.com/fr/product/pixel_10a?hl=fr",
+      "lenses": 2,
+      "dark": true
+    },
+    {
+      "match": "^google-pixel-.*fold",
+      "island": "pill-h",
+      "position": "tl",
+      "arrange": "row",
+      "front": "punch",
+      "verified": "https://store.google.com/fr/category/phones?hl=fr",
+      "lenses": 3,
+      "dark": true
     },
     {
       "match": "^google-pixel",
       "island": "bar",
-      "position": "tc",
+      "position": "tl",
       "arrange": "row",
       "front": "punch",
-      "verified": null,
-      "lenses": 3
+      "verified": "https://store.google.com/fr/category/phones?hl=fr",
+      "lenses": 3,
+      "dark": true
     },
     {
       "match": "^xiaomi-1[3-5]-ultra",
@@ -232,12 +245,44 @@
       "verified": null
     },
     {
-      "match": "^realme-(1[1-6]-pro|gt-8)",
+      "match": "^realme-14-pro",
+      "island": "circle",
+      "position": "tc",
+      "arrange": "ring",
+      "front": "punch",
+      "verified": "https://www.realme.com/fr/realme-14-pro-plus-5g"
+    },
+    {
+      "match": "^realme-1[1-2]-pro",
       "island": "circle",
       "position": "tc",
       "arrange": "ring",
       "front": "punch",
       "verified": null
+    },
+    {
+      "match": "^realme-(16|gt-8)",
+      "island": "square",
+      "position": "tl",
+      "arrange": "grid",
+      "front": "punch",
+      "verified": "https://www.realme.com/fr/"
+    },
+    {
+      "match": "^realme-p3-lite",
+      "island": "pill-h",
+      "position": "tl",
+      "arrange": "row",
+      "front": "punch",
+      "verified": "https://www.realme.com/fr/"
+    },
+    {
+      "match": "^asus-rog-phone-(8|9)",
+      "island": "square",
+      "position": "tl",
+      "arrange": "grid",
+      "front": "punch",
+      "verified": "https://rog.asus.com/fr/phones/rog-phone-9-pro/"
     }
   ],
   "default": {
