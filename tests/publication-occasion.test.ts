@@ -65,3 +65,12 @@ describe("Publication : seuls les téléphones avec un prix actuel fiable", () =
     expect(reliableOfferSql(strict, now)).toContain("2026-11-19");
   });
 });
+
+describe("Comptage des téléphones avec un prix fiable", () => {
+  it("pricedModelSql ne dépend pas de la règle d'affichage", async () => {
+    const { pricedModelSql } = await import("../src/lib/catalog-policy");
+    const p: CatalogPolicy = { publishOnlyPriced: false, acceptStartingPrices: false, maxOfferAgeDays: 7 };
+    expect(pricedModelSql(p, new Date("2026-11-26T12:00:00Z"))).toContain("o.capacity_status='confirmee'");
+    expect(publishedModelSql(p)).toBe("1=1");
+  });
+});

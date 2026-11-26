@@ -35,11 +35,11 @@ export function reliableOfferSql(p: CatalogPolicy, now = new Date()): string {
 
 /** Condition SQL « modèle avec au moins une offre fiable » (alias de table : m), quelle que soit la règle d'affichage. */
 export function pricedModelSql(p: CatalogPolicy = catalogPolicy(), now = new Date()): string {
-  return pricedModelSql(p, now);
+  return `m.id IN (SELECT c.model_id FROM offers o JOIN configs c ON c.id=o.config_id WHERE ${reliableOfferSql(p, now)})`;
 }
 
 /** Condition SQL « modèle publié » (alias de table : m). */
 export function publishedModelSql(p: CatalogPolicy = catalogPolicy(), now = new Date()): string {
   if (!p.publishOnlyPriced) return "1=1";
-  return `m.id IN (SELECT c.model_id FROM offers o JOIN configs c ON c.id=o.config_id WHERE ${reliableOfferSql(p, now)})`;
+  return pricedModelSql(p, now);
 }
