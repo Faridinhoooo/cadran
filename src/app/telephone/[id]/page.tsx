@@ -8,6 +8,7 @@ import { securityDeadline, securityHeadline, supportStatus, upgradesDeadline } f
 import { Gallery } from "@/components/Gallery";
 import { ShopLinks } from "@/components/ShopLinks";
 import { swatches } from "@/lib/colors";
+import { cameraLayout } from "@/lib/camera-layout";
 import { Crumbs, SecurityLine, SourceBadge, SourceLegend } from "@/components/ui";
 import { CompareToggle, CompareTray } from "@/components/CompareTray";
 import { MARKET_WINDOW_DAYS } from "@/lib/market";
@@ -164,8 +165,9 @@ export default async function Page({ params, searchParams }: Params) {
   // Maquette 3D : seulement si les trois dimensions sont connues (sinon aucune proportion réelle à montrer).
   const dimH = Number(specs.height_mm), dimW = Number(specs.width_mm), dimT = Number(specs.thickness_mm);
   const sw = swatches(specs.colors);
+  const layout3d = cameraLayout(m.id);
   const mock3d = dimH > 0 && dimW > 0 && dimT > 0
-    ? { name: m.name, heightMm: dimH, widthMm: dimW, thicknessMm: dimT, form: m.form_factor, lenses: typeof specs.cameras === "string" ? (specs.cameras.match(/\d+ ?(?:Mpx|MP)/gi)?.length || 1) : 2, swatches: sw.list, officialColors: sw.official }
+    ? { name: m.name, heightMm: dimH, widthMm: dimW, thicknessMm: dimT, form: m.form_factor, lenses: typeof specs.cameras === "string" ? (specs.cameras.match(/\d+ ?(?:Mpx|MP)/gi)?.length || 1) : (layout3d.lenses ?? 2), swatches: sw.list, officialColors: sw.official, layout: layout3d }
     : null;
   const support = supportFor(id);
   const configs = configsFor(id);

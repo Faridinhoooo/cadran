@@ -13,6 +13,7 @@ export interface Phone3DProps {
   lenses: number;
   swatches: Swatch[];
   officialColors: boolean;
+  layout: { island: "none" | "square" | "pill-v" | "pill-h" | "circle" | "bar"; position: "tl" | "tc"; arrange: "column" | "row" | "grid" | "triangle" | "ring" | "column-plus"; front: "punch" | "pill" | "drop"; verified: string | null; lenses?: number };
 }
 
 /**
@@ -90,35 +91,101 @@ export function Phone3D(p: Phone3DProps) {
         const screen = new THREE.Mesh(screenGeo, new THREE.MeshPhysicalMaterial({ map: screenTex, roughness: 0.08, metalness: 0, clearcoat: 1, emissive: new THREE.Color("#ffffff"), emissiveMap: screenTex, emissiveIntensity: 0.35 }));
         screen.position.z = t / 2 + 0.004;
         phone.add(screen);
-        // Caméra avant (poinçon).
-        const punch = new THREE.Mesh(new THREE.CircleGeometry(Math.min(w, h) * 0.022, 24), new THREE.MeshBasicMaterial({ color: "#000" }));
-        punch.position.set(0, sh / 2 - sh * 0.035, t / 2 + 0.006);
-        phone.add(punch);
+        // Caméra avant : poinçon, îlot dynamique ou encoche en goutte.
+        const frontMat = new THREE.MeshBasicMaterial({ color: "#000" });
+        if (p.layout.front === "pill") {
+          const pw = w * 0.24, ph = w * 0.07;
+          const pill = new THREE.Mesh(new RoundedBoxGeometry(pw, ph, 0.01, 4, ph * 0.49), frontMat);
+          pill.position.set(0, sh / 2 - sh * 0.035, t / 2 + 0.008);
+          phone.add(pill);
+        } else if (p.layout.front === "drop") {
+          const drop = new THREE.Mesh(new THREE.CircleGeometry(w * 0.045, 32, Math.PI, Math.PI), frontMat);
+          drop.position.set(0, sh / 2, t / 2 + 0.008);
+          phone.add(drop);
+        } else {
+          const punch = new THREE.Mesh(new THREE.CircleGeometry(Math.min(w, h) * 0.022, 24), frontMat);
+          punch.position.set(0, sh / 2 - sh * 0.035, t / 2 + 0.006);
+          phone.add(punch);
+        }
 
-        // Bloc photo au dos : îlot arrondi + objectifs (nombre relevé sur la fiche, 1 à 4).
-        const n = Math.max(1, Math.min(4, p.lenses));
-        const lensR = Math.min(w * 0.11, 0.62);
-        const cols = n > 1 ? 2 : 1, rows = Math.ceil(n / cols);
-        const iw = cols * lensR * 2.3 + lensR * 0.6, ih = rows * lensR * 2.3 + lensR * 0.6;
-        const island = new THREE.Mesh(new RoundedBoxGeometry(iw, ih, 0.12, 4, Math.min(iw, ih) * 0.28), new THREE.MeshPhysicalMaterial({ color: "#2a2b30", metalness: 0.5, roughness: 0.25, clearcoat: 1 }));
-        // Vu de dos, le bloc photo est en haut à gauche (donc à droite dans le repère de la face avant).
-        const ix = w / 2 - iw / 2 - w * 0.07, iy = h / 2 - ih / 2 - w * 0.07;
-        island.position.set(ix, iy, -t / 2 - 0.05);
-        phone.add(island);
+        // Bloc photo au dos, selon la disposition de la gamme. Repère « vu de dos » (bx vers la droite vu de dos),
+        // converti en repère de la face avant par x = -bx.
+        const L = p.layout;
+        const n = Math.max(1, Math.min(L.arrange === "column-plus" ? 5 : 4, p.lenses));
+        const lensR = L.island === "circle" ? Math.min(w * 0.095, 0.58) : L.island === "none" ? Math.min(w * 0.095, 0.56) : Math.min(w * 0.105, 0.6);
+        const gap = lensR * 2.35;
+        let offs: [number, number][] = [];
+        const arrange = L.arrange === "triangle" && n < 3 ? "column" : L.arrange;
+        if (arrange === "column") offs = Array.from({ length: n }, (_, i) => [0, ((n - 1) / 2 - i) * gap] as [number, number]);
+        else if (arrange === "row") offs = Array.from({ length: n }, (_, i) => [(i - (n - 1) / 2) * gap, 0] as [number, number]);
+        else if (arrange === "grid") {
+          const rows = Math.ceil(n / 2);
+          offs = n === 1 ? [[0, 0]] : Array.from({ length: n }, (_, i) => [((i % 2) - 0.5) * gap, ((rows - 1) / 2 - Math.floor(i / 2)) * gap] as [number, number]);
+        } else if (arrange === "triangle") {
+          offs = ([[-0.45 * gap, 0.5 * gap], [-0.45 * gap, -0.5 * gap], [0.5 * gap, 0], [0.5 * gap, gap * 0.9]] as [number, number][]).slice(0, n);
+        } else if (arrange === "ring") {
+          const rr = n === 1 ? 0 : gap * (n <= 3 ? 0.62 : 0.72);
+          offs = Array.from({ length: n }, (_, i) => {
+            const a = Math.PI / 2 + (i * 2 * Math.PI) / n;
+            return [Math.cos(a) * rr, Math.sin(a) * rr] as [number, number];
+          });
+        } else {
+          const c = Math.min(n, 3);
+          offs = Array.from({ length: c }, (_, i) => [0, ((c - 1) / 2 - i) * gap] as [number, number]);
+          for (let i = 3; i < n; i++) offs.push([gap * 0.95, ((c - 1) / 2 - (i - 3) - 0.5) * gap]);
+        }
+        const xs = offs.map((o) => o[0]), ys = offs.map((o) => o[1]);
+        const ext = { x: Math.max(...xs) - Math.min(...xs), y: Math.max(...ys) - Math.min(...ys), cx: (Math.max(...xs) + Math.min(...xs)) / 2, cy: (Math.max(...ys) + Math.min(...ys)) / 2 };
+        offs = offs.map(([x, y]) => [x - ext.cx, y - ext.cy] as [number, number]);
+        const pad = lensR * 1.35;
+        let iw = ext.x + pad * 2, ih = ext.y + pad * 2;
+        if (L.island === "square") iw = ih = Math.max(iw, ih);
+        if (L.island === "circle") iw = ih = Math.min(w * 0.7, Math.max(ext.x, ext.y) + pad * 2.6);
+        const margin = w * 0.06;
+        const barW = w - 0.18;
+        const islandCx = L.island === "bar" || L.position === "tc" ? 0 : -w / 2 + iw / 2 + margin;
+        const islandCy = L.island === "circle" ? h / 2 - ih / 2 - h * 0.05 : h / 2 - ih / 2 - margin * (L.island === "bar" ? 0.5 : 1);
+        const groupCx = L.island === "bar" && L.position === "tl" ? -w / 2 + iw / 2 + margin : islandCx;
+        const islandMat = new THREE.MeshPhysicalMaterial({ color: "#2a2b30", metalness: 0.5, roughness: 0.25, clearcoat: 1 });
+        // Plateau « bar » : même teinte que le dos, légèrement contrastée pour rester visible (éclaircie si le dos est sombre).
+        const tintBar = (hex: string) => {
+          const c = new THREE.Color(hex);
+          const lum = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+          islandMat.color.copy(lum < 0.15 ? c.lerp(new THREE.Color("#ffffff"), 0.14) : c.multiplyScalar(0.88));
+        };
+        if (L.island === "bar") tintBar(p.swatches[0]?.hex ?? "#1d1d20");
+        if (L.island !== "none") {
+          const bw = L.island === "bar" ? barW : iw;
+          const geo = L.island === "circle"
+            ? new THREE.CylinderGeometry(iw / 2, iw / 2, 0.14, 64)
+            : new RoundedBoxGeometry(bw, ih, 0.14, 4, Math.min(bw, ih) * (L.island.startsWith("pill") ? 0.49 : 0.26));
+          const island = new THREE.Mesh(geo, islandMat);
+          if (L.island === "circle") island.rotation.x = Math.PI / 2;
+          island.position.set(-islandCx, islandCy, -t / 2 - 0.06);
+          phone.add(island);
+        }
         const lensMat = new THREE.MeshPhysicalMaterial({ color: "#050507", metalness: 0.2, roughness: 0.05, clearcoat: 1 });
         const ringMat = new THREE.MeshPhysicalMaterial({ color: "#9a9ca2", metalness: 1, roughness: 0.25 });
-        for (let i = 0; i < n; i++) {
-          const cx = ix - iw / 2 + lensR * 1.45 + (i % cols) * lensR * 2.3;
-          const cy = iy + ih / 2 - lensR * 1.45 - Math.floor(i / cols) * lensR * 2.3;
+        const zBase = L.island === "none" ? -t / 2 : -t / 2 - 0.13;
+        for (const [ox, oy] of offs) {
+          const bx = groupCx + ox, by = islandCy + oy;
           const ring = new THREE.Mesh(new THREE.CylinderGeometry(lensR, lensR, 0.16, 40), ringMat);
-          ring.rotation.x = Math.PI / 2; ring.position.set(cx, cy, -t / 2 - 0.12);
+          ring.rotation.x = Math.PI / 2;
+          ring.position.set(-bx, by, zBase - 0.08);
           const glass = new THREE.Mesh(new THREE.CircleGeometry(lensR * 0.78, 40), lensMat);
-          glass.rotation.y = Math.PI; glass.position.set(cx, cy, -t / 2 - 0.205);
+          glass.rotation.y = Math.PI;
+          glass.position.set(-bx, by, zBase - 0.165);
           phone.add(ring, glass);
         }
         const flash = new THREE.Mesh(new THREE.CircleGeometry(lensR * 0.28, 20), new THREE.MeshBasicMaterial({ color: "#f3efe2" }));
-        flash.rotation.y = Math.PI; flash.position.set(ix - iw / 2 - lensR * 0.55, iy + ih / 2 - lensR * 0.5, -t / 2 - 0.004);
+        flash.rotation.y = Math.PI;
+        const fx = L.island === "bar" ? w / 2 - w * 0.14 : L.island === "circle" ? islandCx + iw * 0.3 : groupCx + ext.x / 2 + lensR * 1.9;
+        const fy = L.island === "bar" ? islandCy : L.island === "circle" ? islandCy - iw * 0.3 : islandCy + ext.y / 2;
+        flash.position.set(-fx, fy, (L.island === "bar" || L.island === "circle" ? -t / 2 - 0.13 : -t / 2) - 0.004);
         phone.add(flash);
+        // Teinte : le plateau d'un « bar » suit la couleur du dos.
+        const tintIsland = L.island === "bar";
+
         // Boutons latéraux.
         const btnMat = bodyMat;
         for (const [y, len] of [[h * 0.2, h * 0.12], [h * 0.04, h * 0.07]] as const) {
@@ -156,7 +223,7 @@ export function Phone3D(p: Phone3DProps) {
         controls.autoRotateSpeed = 1.6;
         controls.addEventListener("start", () => { controls.autoRotate = false; });
 
-        setColor.current = (hex: string) => { bodyMat.color.set(hex); };
+        setColor.current = (hex: string) => { bodyMat.color.set(hex); if (tintIsland) tintBar(hex); };
         const dist = h * 2.35;
         setView.current = (v) => {
           controls.autoRotate = false;
@@ -187,7 +254,7 @@ export function Phone3D(p: Phone3DProps) {
       }
     })();
     return () => { disposed = true; cleanup(); };
-  }, [p.heightMm, p.widthMm, p.thicknessMm, p.form, p.lenses, swKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [p.heightMm, p.widthMm, p.thicknessMm, p.form, p.lenses, swKey, p.layout.island, p.layout.arrange, p.layout.front, p.layout.position]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const pick = (i: number) => { setColorState(i); setColor.current(p.swatches[i].hex); };
   const dims = `${p.heightMm.toLocaleString("fr-FR")} × ${p.widthMm.toLocaleString("fr-FR")} × ${p.thicknessMm.toLocaleString("fr-FR")} mm`;
@@ -219,8 +286,11 @@ export function Phone3D(p: Phone3DProps) {
         ))}
       </div>
       <p className="text-xs text-muted mt-2">
-        Proportions réelles ({dims}) et nombre d&apos;objectifs d&apos;après la fiche officielle. Forme, bloc photo et teintes
-        sont indicatifs{p.officialColors ? " : les noms de coloris sont ceux du fabricant, la teinte est approchée" : " : coloris officiels non relevés, teintes d'exemple"}.
+        Proportions réelles ({dims}) et nombre d&apos;objectifs d&apos;après la fiche officielle.{" "}
+        {p.layout.verified
+          ? <>Disposition du bloc photo vérifiée sur le <a href={p.layout.verified} target="_blank" rel="noopener noreferrer" className="underline">visuel officiel</a> de la gamme ; détails (capteurs secondaires, motifs) simplifiés.</>
+          : <>Disposition du bloc photo générique (pas encore vérifiée pour cette gamme).</>}{" "}
+        Formes et teintes indicatives{p.officialColors ? " : les noms de coloris sont ceux du fabricant, la teinte est approchée" : " : coloris officiels non relevés, teintes d'exemple"}.
       </p>
     </div>
   );

@@ -1,0 +1,250 @@
+{
+  "_about": "Disposition du bloc photo et de la caméra avant, par gamme, pour la maquette 3D indicative. Première règle dont le motif correspond à l'identifiant du modèle. « verified » : page officielle dont le visuel a été regardé pour cette règle (26/11/2026) ; null = disposition déduite de la gamme, affichée comme générique. Le NOMBRE d'objectifs vient toujours de la fiche officielle du modèle. « lenses » : nombre d'objectifs de la gamme, utilisé seulement si la fiche du modèle ne le précise pas.",
+  "legend": {
+    "island": "none (objectifs séparés) | square | pill-v (îlot vertical) | pill-h (îlot horizontal) | circle (grand cercle) | bar (plateau sur toute la largeur)",
+    "position": "tl (haut gauche vu de dos) | tc (haut centre)",
+    "arrange": "column | row | grid | triangle | ring | column-plus (colonne + un objectif à côté)",
+    "front": "punch (poinçon centré) | pill (îlot dynamique) | drop (encoche en goutte)"
+  },
+  "rules": [
+    {
+      "match": "^apple-iphone-1[78]-pro",
+      "island": "bar",
+      "position": "tl",
+      "arrange": "triangle",
+      "front": "pill",
+      "verified": "https://www.apple.com/fr/iphone/",
+      "lenses": 3
+    },
+    {
+      "match": "^apple-iphone-1[56]-pro",
+      "island": "square",
+      "position": "tl",
+      "arrange": "triangle",
+      "front": "pill",
+      "verified": null,
+      "lenses": 3
+    },
+    {
+      "match": "^apple-iphone-17-air",
+      "island": "bar",
+      "position": "tl",
+      "arrange": "row",
+      "front": "pill",
+      "verified": "https://www.apple.com/fr/iphone/",
+      "lenses": 1
+    },
+    {
+      "match": "^apple-iphone-1[67]e$",
+      "island": "none",
+      "position": "tl",
+      "arrange": "column",
+      "front": "pill",
+      "verified": "https://www.apple.com/fr/iphone/",
+      "lenses": 1
+    },
+    {
+      "match": "^apple-iphone-duo",
+      "island": "pill-h",
+      "position": "tl",
+      "arrange": "row",
+      "front": "punch",
+      "verified": "https://www.apple.com/fr/iphone/",
+      "lenses": 2
+    },
+    {
+      "match": "^apple-iphone-1[5-8]",
+      "island": "pill-v",
+      "position": "tl",
+      "arrange": "column",
+      "front": "pill",
+      "verified": "https://www.apple.com/fr/iphone/",
+      "lenses": 2
+    },
+    {
+      "match": "^samsung-galaxy-s\\d+-ultra",
+      "island": "none",
+      "position": "tl",
+      "arrange": "column-plus",
+      "front": "punch",
+      "verified": "https://www.samsung.com/fr/smartphones/all-smartphones/",
+      "lenses": 4
+    },
+    {
+      "match": "^samsung-galaxy-s",
+      "island": "none",
+      "position": "tl",
+      "arrange": "column",
+      "front": "punch",
+      "verified": "https://www.samsung.com/fr/smartphones/all-smartphones/",
+      "lenses": 3
+    },
+    {
+      "match": "^samsung-galaxy-a[01]\\d",
+      "island": "pill-v",
+      "position": "tl",
+      "arrange": "column",
+      "front": "drop",
+      "verified": "https://www.samsung.com/fr/smartphones/all-smartphones/"
+    },
+    {
+      "match": "^samsung-galaxy-a",
+      "island": "pill-v",
+      "position": "tl",
+      "arrange": "column",
+      "front": "punch",
+      "verified": "https://www.samsung.com/fr/smartphones/all-smartphones/",
+      "lenses": 3
+    },
+    {
+      "match": "^samsung-galaxy-z-fold",
+      "island": "pill-v",
+      "position": "tl",
+      "arrange": "column",
+      "front": "punch",
+      "verified": "https://www.samsung.com/fr/smartphones/all-smartphones/",
+      "lenses": 3
+    },
+    {
+      "match": "^samsung-galaxy-z-flip",
+      "island": "none",
+      "position": "tl",
+      "arrange": "row",
+      "front": "punch",
+      "verified": "https://www.samsung.com/fr/smartphones/all-smartphones/",
+      "lenses": 2
+    },
+    {
+      "match": "^google-pixel-\\d+a",
+      "island": "pill-h",
+      "position": "tl",
+      "arrange": "row",
+      "front": "punch",
+      "verified": null,
+      "lenses": 2
+    },
+    {
+      "match": "^google-pixel",
+      "island": "bar",
+      "position": "tc",
+      "arrange": "row",
+      "front": "punch",
+      "verified": null,
+      "lenses": 3
+    },
+    {
+      "match": "^xiaomi-1[3-5]-ultra",
+      "island": "circle",
+      "position": "tc",
+      "arrange": "ring",
+      "front": "punch",
+      "verified": null
+    },
+    {
+      "match": "^xiaomi-18-pro",
+      "island": "pill-v",
+      "position": "tl",
+      "arrange": "column",
+      "front": "punch",
+      "verified": "https://www.mi.com/fr/product-list/phone/"
+    },
+    {
+      "match": "^redmi-(1[2-7]c|a[0-9])",
+      "island": "square",
+      "position": "tl",
+      "arrange": "grid",
+      "front": "drop",
+      "verified": "https://www.mi.com/fr/product-list/phone/"
+    },
+    {
+      "match": "^(xiaomi|redmi|poco)-",
+      "island": "square",
+      "position": "tl",
+      "arrange": "grid",
+      "front": "punch",
+      "verified": "https://www.mi.com/fr/product-list/phone/"
+    },
+    {
+      "match": "^oppo-find-x8",
+      "island": "circle",
+      "position": "tc",
+      "arrange": "ring",
+      "front": "punch",
+      "verified": "https://www.oppo.com/fr/smartphones/",
+      "lenses": 4
+    },
+    {
+      "match": "^oppo-find-x9-ultra",
+      "island": "circle",
+      "position": "tc",
+      "arrange": "ring",
+      "front": "punch",
+      "verified": "https://www.oppo.com/fr/smartphones/",
+      "lenses": 4
+    },
+    {
+      "match": "^oppo-find-x(9|10)",
+      "island": "square",
+      "position": "tl",
+      "arrange": "grid",
+      "front": "punch",
+      "verified": "https://www.oppo.com/fr/smartphones/"
+    },
+    {
+      "match": "^oppo-find-n",
+      "island": "pill-v",
+      "position": "tl",
+      "arrange": "column",
+      "front": "punch",
+      "verified": null
+    },
+    {
+      "match": "^oppo-reno1[3-6]",
+      "island": "square",
+      "position": "tl",
+      "arrange": "grid",
+      "front": "punch",
+      "verified": "https://www.oppo.com/fr/smartphones/"
+    },
+    {
+      "match": "^oppo-reno",
+      "island": "pill-v",
+      "position": "tl",
+      "arrange": "column",
+      "front": "punch",
+      "verified": null
+    },
+    {
+      "match": "^honor-magic-v",
+      "island": "circle",
+      "position": "tc",
+      "arrange": "ring",
+      "front": "punch",
+      "verified": "https://www.honor.com/fr/phones/",
+      "lenses": 3
+    },
+    {
+      "match": "^honor-magic\\d",
+      "island": "circle",
+      "position": "tc",
+      "arrange": "ring",
+      "front": "punch",
+      "verified": null
+    },
+    {
+      "match": "^realme-(1[1-6]-pro|gt-8)",
+      "island": "circle",
+      "position": "tc",
+      "arrange": "ring",
+      "front": "punch",
+      "verified": null
+    }
+  ],
+  "default": {
+    "island": "square",
+    "position": "tl",
+    "arrange": "grid",
+    "front": "punch",
+    "verified": null
+  }
+}
