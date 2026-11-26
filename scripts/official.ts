@@ -452,7 +452,7 @@ export function parseXiaomiSpecs(text: string, modelName: string) {
   const video = t.match(/Enregistrement vidéo de la caméra arrière \| ([^|]+?) \|/);
   if (video) v.video = video[1].trim();
   // Réseau
-  if (/5G/.test(modelName) || /Prend en charge la 5G/i.test(t)) v.five_g = true;
+  if (/5G/.test(modelName) || /Prend en charge la 5G/i.test(t) || /5G ?: ?(?:SA|NSA|Prise en charge|n\d)/i.test(t)) v.five_g = true;
   else if (/Prend en charge la 4G|4G ?: ?LTE/i.test(t)) v.five_g = false;
   if (/eSIM/i.test(t.slice(t.indexOf("Réseau")))) v.esim = true;
   if (/\| NFC \| Oui|Prend en charge (?:le )?NFC|\| NFC \|/i.test(t) && !/\| NFC \| Non/.test(t)) v.nfc = true;
@@ -470,27 +470,55 @@ export function parseXiaomiSpecs(text: string, modelName: string) {
   return { specs: v, configs };
 }
 
+/** Adresse de la page « specs » à partir d'une adresse de boutique (…/buy/?gid=… → …/specs/). */
+export function xiaomiSpecsUrl(shopUrl: string): string {
+  const u = new URL(shopUrl);
+  u.search = "";
+  u.pathname = u.pathname.replace(/\/buy\/?$/, "/specs/");
+  if (!u.pathname.endsWith("/specs/")) u.pathname = u.pathname.replace(/\/?$/, "/specs/");
+  return u.toString();
+}
+
+/** Adresses candidates mi.com/fr pour un modèle sans offre (identifiant du site, puis sans « -5g »). */
+export function xiaomiSlugCandidates(modelId: string): string[] {
+  const slugs = [modelId, modelId.replace(/-5g$/, "")];
+  return [...new Set(slugs)].map((s) => `https://www.mi.com/fr/product/${s}/specs/`);
+}
+
 export async function importXiaomiSpecs(db: DatabaseSync, stats: Stats) {
-  const pages = db.prepare(`SELECT DISTINCT c.model_id, o.url, m.name FROM offers o JOIN configs c ON c.id=o.config_id JOIN models m ON m.id=c.model_id
-    WHERE o.source='xiaomi-fr' AND o.is_test=0`).all() as { model_id: string; url: string; name: string }[];
-  for (const p of pages) {
-    const url = p.url.replace(/\/buy\/?$/, "/specs/");
-    let text: string;
-    try {
-      text = flatText(await get(url)).replace(/’/g, "'");
-    } catch (e) {
-      stats.notes.push(`page Xiaomi inaccessible : ${url} (${(e as Error).message})`);
-      continue;
+  // Tous les modèles Xiaomi, REDMI et POCO : d'abord la page liée à une offre de la boutique, sinon l'adresse déduite
+  // de l'identifiant du modèle (les pages des modèles retirés de la vente restent souvent en ligne).
+  const models = db.prepare(`SELECT m.id, m.name FROM models m WHERE m.brand_id IN ('xiaomi','redmi','poco') AND m.is_test=0`).all() as { id: string; name: string }[];
+  const shop = new Map<string, string>();
+  for (const o of db.prepare(`SELECT DISTINCT c.model_id, o.url FROM offers o JOIN configs c ON c.id=o.config_id WHERE o.source='xiaomi-fr' AND o.is_test=0`).all() as { model_id: string; url: string }[])
+    if (!shop.has(o.model_id)) shop.set(o.model_id, xiaomiSpecsUrl(o.url));
+  let found = 0;
+  const missing: string[] = [];
+  for (const m of models) {
+    const urls = [...new Set([shop.get(m.id), ...xiaomiSlugCandidates(m.id)].filter((u): u is string => !!u))];
+    let done = false;
+    for (const url of urls) {
+      let text: string;
+      try {
+        const res = await fetch(url, { headers: { "User-Agent": BROWSER_UA, "Accept-Language": "fr-FR,fr;q=0.9" }, redirect: "follow", signal: AbortSignal.timeout(45_000) });
+        if (!res.ok || res.url.includes("/errors/")) continue;
+        text = flatText(await res.text()).replace(/’/g, "'");
+      } catch {
+        continue;
+      }
+      const { specs, configs } = parseXiaomiSpecs(text, m.name);
+      if (Object.keys(specs).length < 4) continue;
+      for (const [k, v] of Object.entries(specs)) upsertSpec(db, m.id, k, v, "Xiaomi France — caractéristiques (mi.com/fr)", url, stats);
+      // Configurations annoncées (sans prix : un prix n'est jamais déduit d'une configuration).
+      for (const c of configs)
+        db.prepare("INSERT INTO configs (id, model_id, storage_gb, ram_gb) VALUES (?,?,?,?) ON CONFLICT(id) DO UPDATE SET ram_gb=excluded.ram_gb").run(`${m.id}-${c.storage}`, m.id, c.storage, c.ram);
+      if (configs.length) upsertSpec(db, m.id, "ram_gb", Math.min(...configs.map((c) => c.ram)), "Xiaomi France — caractéristiques (mi.com/fr)", url, stats);
+      done = true;
+      found++;
+      break;
     }
-    const { specs, configs } = parseXiaomiSpecs(text, p.name);
-    if (!Object.keys(specs).length) {
-      stats.notes.push(`caractéristiques introuvables : ${url}`);
-      continue;
-    }
-    for (const [k, v] of Object.entries(specs)) upsertSpec(db, p.model_id, k, v, "Xiaomi France — caractéristiques (mi.com/fr)", url, stats);
-    // Configurations annoncées (sans prix : un prix n'est jamais déduit d'une configuration).
-    for (const c of configs)
-      db.prepare("INSERT INTO configs (id, model_id, storage_gb, ram_gb) VALUES (?,?,?,?) ON CONFLICT(id) DO UPDATE SET ram_gb=excluded.ram_gb").run(`${p.model_id}-${c.storage}`, p.model_id, c.storage, c.ram);
-    if (configs.length) upsertSpec(db, p.model_id, "ram_gb", Math.min(...configs.map((c) => c.ram)), "Xiaomi France — caractéristiques (mi.com/fr)", url, stats);
+    if (!done) missing.push(m.id);
+    await new Promise((r) => setTimeout(r, 300));
   }
+  stats.notes.push(`${found}/${models.length} modèles lus sur mi.com/fr` + (missing.length ? ` ; page officielle introuvable : ${missing.join(", ")}` : ""));
 }

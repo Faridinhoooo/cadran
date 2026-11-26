@@ -7,6 +7,7 @@ import { NR, dateFr, dateTimeFr, euros, releaseLabel, sourceLabel, specText, sto
 import { securityDeadline, securityHeadline, supportStatus, upgradesDeadline } from "@/lib/support";
 import { Gallery } from "@/components/Gallery";
 import { ShopLinks } from "@/components/ShopLinks";
+import { swatches } from "@/lib/colors";
 import { Crumbs, SecurityLine, SourceBadge, SourceLegend } from "@/components/ui";
 import { CompareToggle, CompareTray } from "@/components/CompareTray";
 import { MARKET_WINDOW_DAYS } from "@/lib/market";
@@ -160,6 +161,12 @@ export default async function Page({ params, searchParams }: Params) {
   const specRows = specsFor(id);
   const specs = specMap(specRows);
   const measured = specMap(specRows, "mesure");
+  // Maquette 3D : seulement si les trois dimensions sont connues (sinon aucune proportion réelle à montrer).
+  const dimH = Number(specs.height_mm), dimW = Number(specs.width_mm), dimT = Number(specs.thickness_mm);
+  const sw = swatches(specs.colors);
+  const mock3d = dimH > 0 && dimW > 0 && dimT > 0
+    ? { name: m.name, heightMm: dimH, widthMm: dimW, thicknessMm: dimT, form: m.form_factor, lenses: typeof specs.cameras === "string" ? (specs.cameras.match(/\d+ ?(?:Mpx|MP)/gi)?.length || 1) : 2, swatches: sw.list, officialColors: sw.official }
+    : null;
   const support = supportFor(id);
   const configs = configsFor(id);
   const media = mediaFor(id);
@@ -218,7 +225,7 @@ export default async function Page({ params, searchParams }: Params) {
       <Crumbs items={[{ href: "/catalogue", label: "Catalogue" }, { href: `/catalogue?marque=${m.brand_id}`, label: m.brand_name }, ...(m.series_id ? [{ href: `/catalogue?marque=${m.brand_id}&gamme=${m.series_id}`, label: m.series_name ?? "" }] : []), { label: m.name }]} />
 
       <div className="grid lg:grid-cols-[minmax(0,460px)_1fr] gap-8 items-start">
-        <Gallery name={m.name} media={media} form={m.form_factor} />
+        <Gallery name={m.name} media={media} form={m.form_factor} mock={mock3d} />
         <div>
           <p className="text-sm text-muted uppercase tracking-wider">{m.brand_name}{m.series_name ? ` · ${m.series_name}` : ""}</p>
           <h1 className="display text-4xl sm:text-6xl mt-1">{m.name}</h1>

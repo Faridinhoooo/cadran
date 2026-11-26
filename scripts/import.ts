@@ -19,6 +19,10 @@ import { fetchIcecat, importIcecat, mapIcecat } from "./icecat";
 import { ebayConfigured, importEbayUsed } from "./ebay";
 import { publishedModelSql } from "../src/lib/catalog-policy";
 import { configuredFeeds, downloadFeed, feedToOffers, parseCsv, toFeedRow, type FeedRow } from "./feeds";
+import { fetchOppoSpecs, oppoInventory, parseOppoSpecs } from "./oppo";
+import { honorInventory, parseHonorSpecs, refreshHonorCache } from "./honor";
+import { fetchRealmeSpecs, parseRealmeSpecs, realmeInventory } from "./realme";
+import { ASUS_MODELS, fetchAsusSpecs, parseAsusSpecs } from "./asus";
 import { importAppleSpecs, importGoogleSpecs, importGoogleSupport, importSamsungSpecs, importXiaomiSpecs, verifyAppleNoDeadline, flatText, parseXiaomiSpecs, upsertSpec } from "./official";
 
 const ROOT = process.cwd();
@@ -743,6 +747,133 @@ async function importRedmiInventory(db: DatabaseSync, stats: { added: number; up
   }
 }
 
+// ───────────────────────── OPPO : inventaire et fiches officielles ─────────────────────────
+async function importOppo(db: DatabaseSync, stats: { added: number; updated: number; notes: string[] }) {
+  const inv = oppoInventory();
+  let ok = 0;
+  const missing: string[] = [];
+  for (const e of inv.models) {
+    const page = await fetchOppoSpecs(e.slug);
+    if (!page) {
+      missing.push(e.name);
+      continue;
+    }
+    const before = db.prepare("SELECT 1 FROM models WHERE id=?").get(modelSlug("OPPO", e.name));
+    const fr = page.locale === "France";
+    const existing = db.prepare("SELECT fr_status FROM models WHERE id=?").get(modelSlug("OPPO", e.name)) as { fr_status: string } | undefined;
+    const id = upsertModel(db, {
+      brand: "oppo", brandName: "OPPO", name: e.name, series: e.series, os: "android",
+      form: /flip/i.test(e.slug) ? "clapet" : /find-n/i.test(e.slug) ? "pliable" : "classique",
+      release: null, releaseSource: `Date de lancement non publiée sur la page consultée : ${page.url}`,
+      frStatus: fr || existing?.fr_status === "confirme" ? "confirme" : "a_verifier",
+      frSource: fr ? `Page officielle OPPO France : ${page.url}` : undefined,
+    }, stats);
+    if (!before) stats.notes.push(`ajouté : ${e.name} (${page.locale})`);
+    const { specs, configs } = parseOppoSpecs(page.text, e.name);
+    const source = `OPPO — caractéristiques officielles (site ${page.locale})`;
+    for (const [k, v] of Object.entries(specs)) upsertSpec(db, id, k, v, source, page.url, stats);
+    for (const c of configs)
+      db.prepare("INSERT INTO configs (id, model_id, storage_gb, ram_gb) VALUES (?,?,?,?) ON CONFLICT(id) DO UPDATE SET ram_gb=excluded.ram_gb").run(`${id}-${c.storage}`, id, c.storage, c.ram);
+    db.prepare(`INSERT INTO support (model_id, source_name, source_url, checked_at, level)
+        VALUES (?, 'OPPO — aucune échéance datée publiée sur la page consultée', ?, ?, 'consulte')
+      ON CONFLICT(model_id) DO NOTHING`).run(id, page.url, new Date().toISOString().slice(0, 10));
+    ok++;
+    await new Promise((r) => setTimeout(r, 300));
+  }
+  stats.notes.push(`${ok}/${inv.models.length} fiches OPPO relevées` + (missing.length ? ` ; page introuvable : ${missing.join(", ")}` : ""));
+}
+
+// ───────────────────────── HONOR : inventaire et fiches officielles ─────────────────────────
+async function importHonor(db: DatabaseSync, stats: { added: number; updated: number; notes: string[] }) {
+  const inv = honorInventory();
+  const cache = await refreshHonorCache(inv.models.map((m) => m.slug), stats.notes);
+  let ok = 0;
+  const missing: string[] = [];
+  for (const e of inv.models) {
+    const page = cache[e.slug];
+    if (!page) {
+      missing.push(e.name);
+      continue;
+    }
+    const before = db.prepare("SELECT 1 FROM models WHERE id=?").get(modelSlug("HONOR", e.name));
+    const id = upsertModel(db, {
+      brand: "honor", brandName: "HONOR", name: e.name, series: e.series, os: "android",
+      form: /magic-v/i.test(e.slug) ? "pliable" : "classique",
+      release: null, releaseSource: `Date de lancement non publiée sur la page consultée : ${page.url}`,
+      frStatus: "confirme", frSource: `Page officielle HONOR France : ${page.url}`,
+    }, stats);
+    if (!before) stats.notes.push(`ajouté : ${e.name}`);
+    const { specs, configs } = parseHonorSpecs(page.pairs, e.name);
+    const source = `HONOR France — caractéristiques officielles (relevé du ${page.fetched_at.slice(0, 10)})`;
+    for (const [k, v] of Object.entries(specs)) upsertSpec(db, id, k, v, source, page.url, stats);
+    for (const c of configs)
+      db.prepare("INSERT INTO configs (id, model_id, storage_gb, ram_gb) VALUES (?,?,?,?) ON CONFLICT(id) DO UPDATE SET ram_gb=excluded.ram_gb").run(`${id}-${c.storage}`, id, c.storage, c.ram);
+    db.prepare(`INSERT INTO support (model_id, source_name, source_url, checked_at, level)
+        VALUES (?, 'HONOR — aucune échéance datée publiée sur la page consultée', ?, ?, 'consulte')
+      ON CONFLICT(model_id) DO NOTHING`).run(id, page.url, page.fetched_at.slice(0, 10));
+    ok++;
+  }
+  stats.notes.push(`${ok}/${inv.models.length} fiches HONOR` + (missing.length ? ` ; pas encore relevées : ${missing.join(", ")}` : ""));
+}
+
+// ───────────────────────── realme : inventaire et fiches officielles ─────────────────────────
+async function importRealme(db: DatabaseSync, stats: { added: number; updated: number; notes: string[] }) {
+  const inv = realmeInventory();
+  let ok = 0;
+  const missing: string[] = [];
+  for (const e of inv.models) {
+    const page = await fetchRealmeSpecs(e.slug);
+    if (!page) {
+      missing.push(e.name);
+      continue;
+    }
+    const before = db.prepare("SELECT 1 FROM models WHERE id=?").get(modelSlug("realme", e.name));
+    const id = upsertModel(db, {
+      brand: "realme", brandName: "realme", name: e.name, series: e.series, os: "android", form: "classique",
+      release: null, releaseSource: `Date de lancement non publiée sur la page consultée : ${page.url}`,
+      frStatus: "confirme", frSource: `Boutique officielle realme France : ${page.url}`,
+    }, stats);
+    if (!before) stats.notes.push(`ajouté : ${e.name}`);
+    const { specs, configs } = parseRealmeSpecs(page.text, e.name);
+    for (const [k, v] of Object.entries(specs)) upsertSpec(db, id, k, v, "realme France — caractéristiques officielles", page.url, stats);
+    for (const c of configs)
+      db.prepare("INSERT INTO configs (id, model_id, storage_gb, ram_gb) VALUES (?,?,?,?) ON CONFLICT(id) DO UPDATE SET ram_gb=COALESCE(excluded.ram_gb, configs.ram_gb)").run(`${id}-${c.storage}`, id, c.storage, c.ram);
+    db.prepare(`INSERT INTO support (model_id, source_name, source_url, checked_at, level)
+        VALUES (?, 'realme — aucune échéance datée publiée sur la page consultée', ?, ?, 'consulte')
+      ON CONFLICT(model_id) DO NOTHING`).run(id, page.url, new Date().toISOString().slice(0, 10));
+    ok++;
+    await new Promise((r) => setTimeout(r, 400));
+  }
+  stats.notes.push(`${ok}/${inv.models.length} fiches realme` + (missing.length ? ` ; page introuvable : ${missing.join(", ")}` : ""));
+}
+
+// ───────────────────────── ASUS : fiches officielles ─────────────────────────
+async function importAsus(db: DatabaseSync, stats: { added: number; updated: number; notes: string[] }) {
+  let ok = 0;
+  const missing: string[] = [];
+  for (const m of ASUS_MODELS) {
+    const text = await fetchAsusSpecs(m.url);
+    if (!text) {
+      missing.push(m.name);
+      continue;
+    }
+    const before = db.prepare("SELECT 1 FROM models WHERE id=?").get(modelSlug("ASUS", m.name));
+    const id = upsertModel(db, {
+      brand: "asus", brandName: "ASUS", name: m.name, series: m.series, os: "android", form: "classique",
+      release: null, releaseSource: `Date de lancement non publiée sur la page consultée : ${m.url}`,
+      frStatus: "confirme", frSource: `Page officielle ASUS France : ${m.url}`,
+    }, stats);
+    if (!before) stats.notes.push(`ajouté : ${m.name}`);
+    const { specs, configs } = parseAsusSpecs(text, m.name);
+    for (const [k, v] of Object.entries(specs)) upsertSpec(db, id, k, v, "ASUS France — caractéristiques officielles", m.url, stats);
+    for (const c of configs)
+      db.prepare("INSERT INTO configs (id, model_id, storage_gb, ram_gb) VALUES (?,?,?,?) ON CONFLICT(id) DO NOTHING").run(`${id}-${c.storage}`, id, c.storage, c.ram);
+    ok++;
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  stats.notes.push(`${ok}/${ASUS_MODELS.length} fiches ASUS` + (missing.length ? ` ; page introuvable : ${missing.join(", ")}` : ""));
+}
+
 // ───────────────────────── Xiaomi Store France ─────────────────────────
 /**
  * Source : Xiaomi Store France.
@@ -1033,6 +1164,10 @@ async function main() {
       ["Samsung France — fiches officielles", importSamsungSpecs],
       ["Inventaire REDMI France", importRedmiInventory],
       ["Xiaomi France — fiches officielles", importXiaomiSpecs],
+      ["OPPO — inventaire et fiches officielles", importOppo],
+      ["HONOR — inventaire et fiches officielles", importHonor],
+      ["realme — inventaire et fiches officielles", importRealme],
+      ["ASUS — fiches officielles", importAsus],
       ["Open Icecat", importIcecat],
     ] as const) {
       const run = startRun(db, name);

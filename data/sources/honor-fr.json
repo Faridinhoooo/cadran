@@ -1,0 +1,47 @@
+{
+  "_about": "Inventaire HONOR : smartphones présents sur honor.com/fr (plan du site), lancés depuis 2023, chacun rattaché à sa page « Caractéristiques » (honor.com/fr/phones/<slug>/spec/). Vente en France confirmée par la présence sur le site français. Les éditions spéciales en double (variantes de coloris ou de collaboration d'un même modèle) ne sont pas dupliquées.",
+  "sources": ["https://www.honor.com/fr/sitemap.xml"],
+  "models": [
+    { "slug": "honor-200", "name": "HONOR 200", "series": "HONOR" },
+    { "slug": "honor-200-lite", "name": "HONOR 200 Lite", "series": "HONOR" },
+    { "slug": "honor-200-pro", "name": "HONOR 200 Pro", "series": "HONOR" },
+    { "slug": "honor-200-smart", "name": "HONOR 200 Smart", "series": "HONOR" },
+    { "slug": "honor-400", "name": "HONOR 400", "series": "HONOR" },
+    { "slug": "honor-400-lite", "name": "HONOR 400 Lite", "series": "HONOR" },
+    { "slug": "honor-400-smart", "name": "HONOR 400 Smart", "series": "HONOR" },
+    { "slug": "honor-400-smart-5g", "name": "HONOR 400 Smart 5G", "series": "HONOR" },
+    { "slug": "honor-600", "name": "HONOR 600", "series": "HONOR" },
+    { "slug": "honor-600-lite", "name": "HONOR 600 Lite", "series": "HONOR" },
+    { "slug": "honor-600-pro", "name": "HONOR 600 Pro", "series": "HONOR" },
+    { "slug": "honor-600-smart-5g", "name": "HONOR 600 Smart 5G", "series": "HONOR" },
+    { "slug": "honor-90", "name": "HONOR 90", "series": "HONOR" },
+    { "slug": "honor-90-lite", "name": "HONOR 90 Lite", "series": "HONOR" },
+    { "slug": "honor-90-smart-5g", "name": "HONOR 90 Smart 5G", "series": "HONOR" },
+    { "slug": "honor-magic-v2", "name": "HONOR Magic V2", "series": "Magic" },
+    { "slug": "honor-magic-v2-rsr-porsche-design", "name": "HONOR Magic V2 RSR Porsche Design", "series": "Magic" },
+    { "slug": "honor-magic-v3", "name": "HONOR Magic V3", "series": "Magic" },
+    { "slug": "honor-magic-v5", "name": "HONOR Magic V5", "series": "Magic" },
+    { "slug": "honor-magic-v6", "name": "HONOR Magic V6", "series": "Magic" },
+    { "slug": "honor-magic5-lite", "name": "HONOR Magic5 Lite", "series": "Magic" },
+    { "slug": "honor-magic5-pro", "name": "HONOR Magic5 Pro", "series": "Magic" },
+    { "slug": "honor-magic6-lite", "name": "HONOR Magic6 Lite", "series": "Magic" },
+    { "slug": "honor-magic6-pro", "name": "HONOR Magic6 Pro", "series": "Magic" },
+    { "slug": "honor-magic6-rsr-porsche-design", "name": "HONOR Magic6 RSR Porsche Design", "series": "Magic" },
+    { "slug": "honor-magic7-lite", "name": "HONOR Magic7 Lite", "series": "Magic" },
+    { "slug": "honor-magic7-pro", "name": "HONOR Magic7 Pro", "series": "Magic" },
+    { "slug": "honor-magic7-rsr-porsche-design", "name": "HONOR Magic7 RSR Porsche Design", "series": "Magic" },
+    { "slug": "honor-magic8-lite", "name": "HONOR Magic8 Lite", "series": "Magic" },
+    { "slug": "honor-magic8-pro", "name": "HONOR Magic8 Pro", "series": "Magic" },
+    { "slug": "honor-x5c-plus", "name": "HONOR X5c Plus", "series": "X" },
+    { "slug": "honor-x6b", "name": "HONOR X6b", "series": "X" },
+    { "slug": "honor-x7a", "name": "HONOR X7a", "series": "X" }
+  ],
+  "excluded": {
+    "_motif": "Pages honor.com/fr de modèles lancés avant 2023, ou doublons d'édition spéciale.",
+    "slugs": ["honor-50", "honor-50-lite", "honor-70", "honor-70-lite", "honor-magic-v", "honor-magic-vs", "honor-magic4-lite", "honor-magic4-lite-5g", "honor-magic4-pro", "honor-x6", "honor-x7", "honor-x8", "honor-x8-5g", "honor-600-pro-molly", "honor-600-pro1"]
+  },
+  "not_found": {
+    "_motif": "Modèles du catalogue absents de honor.com/fr : fiche à compléter.",
+    "ids": ["honor-400-pro", "honor-x6a", "honor-x7b", "honor-x8b", "honor-x9b", "honor-x9c"]
+  }
+}

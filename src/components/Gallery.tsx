@@ -3,6 +3,7 @@
 
 import { createElement, useState } from "react";
 import { illustrationFor } from "@/lib/visual";
+import { Phone3D, type Phone3DProps } from "./Phone3D";
 
 export interface GalleryMedia {
   id: number;
@@ -37,7 +38,7 @@ function loadModelViewer(): Promise<void> {
   return mvLoading;
 }
 
-export function Gallery({ name, media, form }: { name: string; media: GalleryMedia[]; form?: string | null }) {
+export function Gallery({ name, media, form, mock }: { name: string; media: GalleryMedia[]; form?: string | null; mock?: Phone3DProps | null }) {
   const photos = media.filter((m) => m.kind === "photo");
   const model3d = media.find((m) => m.kind === "3d");
   const [idx, setIdx] = useState(0);
@@ -45,6 +46,16 @@ export function Gallery({ name, media, form }: { name: string; media: GalleryMed
   const [err, setErr] = useState<string | null>(null);
   const [broken, setBroken] = useState<Set<number>>(new Set());
   const cur = photos[idx];
+  const [maquette, setMaquette] = useState(false);
+
+  if (maquette && mock) {
+    return (
+      <div>
+        <Phone3D {...mock} />
+        <button type="button" className="btn btn-ghost min-h-[44px] text-sm mt-3" onClick={() => setMaquette(false)}>Revenir à la photo</button>
+      </div>
+    );
+  }
 
   async function open3d() {
     setErr(null);
@@ -97,6 +108,11 @@ export function Gallery({ name, media, form }: { name: string; media: GalleryMed
       )}
 
       <div className="flex flex-wrap gap-3 mt-3">
+        {mock && mode !== "3d" && (
+          <button type="button" className="btn btn-primary min-h-[44px] text-sm" onClick={() => setMaquette(true)}>
+            Voir en 3D et en couleurs
+          </button>
+        )}
         {model3d && mode !== "3d" && (
           <button type="button" className="btn btn-ghost min-h-[44px] text-sm" onClick={open3d}>Voir en 3D</button>
         )}
