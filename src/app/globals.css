@@ -181,6 +181,9 @@ table.specs td {
   text-align: left;
 }
 
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 /* Puces de budget rapides */
 .chip {
   display: inline-flex;

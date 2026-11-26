@@ -960,7 +960,7 @@ export async function reportProblems(db: DatabaseSync, since: string) {
   const failed = db.prepare("SELECT source, notes FROM import_runs WHERE started_at >= ? AND status <> 'ok' ORDER BY id").all(since) as { source: string; notes: string | null }[];
   if (!failed.length) return [];
   const lines = failed.map((f) => `• ${f.source} : ${(f.notes ?? "échec").split("\n").slice(-1)[0]}`);
-  const text = `Cadran — ${failed.length} étape(s) d'import en échec le ${new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" })}\n${lines.join("\n")}`;
+  const text = `PickJust — ${failed.length} étape(s) d'import en échec le ${new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" })}\n${lines.join("\n")}`;
   // Pendant les tests, rien n'est écrit dans le vrai journal ni envoyé au webhook.
   if (process.env.VITEST) return failed;
   fs.mkdirSync(path.join(ROOT, "data"), { recursive: true });

@@ -3,7 +3,7 @@ import { Field, LegalPage } from "@/components/LegalPage";
 import { MISSING, siteConfig } from "@/lib/site-config";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Mentions légales", description: "Éditeur, hébergeur et contact du site Cadran." };
+export const metadata: Metadata = { title: "Mentions légales", description: "Éditeur, hébergeur et contact du site PickJust." };
 
 export default function Page() {
   const c = siteConfig();
@@ -14,7 +14,7 @@ export default function Page() {
         {c.nonProfessional ? (
           <>
             <p>
-              Cadran est un site d&apos;information gratuit, édité à titre non professionnel par un particulier, sans publicité ni
+              PickJust est un site d&apos;information gratuit, édité à titre non professionnel par un particulier, sans publicité ni
               activité commerciale. Conformément à l&apos;article 6, III, 2 de la loi n° 2004-575 du 21 juin 2004 pour la confiance dans
               l&apos;économie numérique, l&apos;éditeur a choisi de ne pas rendre publique son identité ; les éléments permettant de
               l&apos;identifier ont été communiqués à l&apos;hébergeur.

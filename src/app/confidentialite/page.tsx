@@ -3,7 +3,7 @@ import { LegalPage } from "@/components/LegalPage";
 import { MISSING, siteConfig } from "@/lib/site-config";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Confidentialité et cookies", description: "Données traitées par Cadran : aucun compte, aucun cookie de suivi." };
+export const metadata: Metadata = { title: "Confidentialité et cookies", description: "Données traitées par PickJust : aucun compte, aucun cookie de suivi." };
 
 export default function Page() {
   const c = siteConfig();
@@ -38,7 +38,7 @@ export default function Page() {
           Certaines photos produit sont chargées depuis Wikimedia Commons ou Icecat : ces services reçoivent alors ton adresse IP, comme
           pour toute image publiée sur le web. Les liens « Voir l&apos;offre » ou « Vérifier chez le vendeur » t&apos;emmènent sur le site du
           vendeur, qui applique sa propre politique de confidentialité.
-          {c.affiliate && " Certains de ces liens sont des liens d'affiliation : le vendeur peut alors savoir que tu viens de Cadran."}
+          {c.affiliate && " Certains de ces liens sont des liens d'affiliation : le vendeur peut alors savoir que tu viens de PickJust."}
         </p>
       </section>
       <section>

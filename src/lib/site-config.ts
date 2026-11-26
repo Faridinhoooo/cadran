@@ -4,7 +4,7 @@ const v = (k: string) => process.env[k]?.trim() || null;
 
 export function siteConfig() {
   return {
-    name: "Cadran",
+    name: "PickJust",
     url: siteUrl(),
     editor: {
       name: v("EDITEUR_NOM"), // personne physique ou raison sociale

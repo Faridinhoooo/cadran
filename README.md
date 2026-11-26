@@ -1,4 +1,4 @@
-# Cadran — quel smartphone pour ton budget ?
+# PickJust — quel smartphone pour ton budget ?
 
 Site en français (Next.js 15, TypeScript, Tailwind CSS 4, SQLite via `node:sqlite`) qui recommande un smartphone
 selon un budget total, l'état d'achat, les priorités et le système, avec un catalogue et un comparateur.

@@ -67,7 +67,7 @@ annonces hors de France et vendeurs à moins de 95 % d'avis positifs.
 1. Ouvre https://developer.ebay.com et crée un compte **eBay Developers Program** (gratuit).
 2. Menu **Application Keysets** → crée un jeu de clés **Production**.
 3. eBay demande de traiter les notifications de suppression de compte : choisis **l'exemption**
-   (Cadran ne stocke aucune donnée d'utilisateur eBay).
+   (PickJust ne stocke aucune donnée d'utilisateur eBay).
 4. Copie **App ID (Client ID)** et **Cert ID (Client Secret)** dans `site/.env.local` (et dans les variables Vercel) :
    ```
    EBAY_CLIENT_ID=…

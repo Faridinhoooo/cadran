@@ -3,6 +3,7 @@ import { Archivo, Inter } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { NavLinks } from "@/components/NavLinks";
+import { Logo } from "@/components/Logo";
 import { siteUrl } from "@/lib/site-config";
 
 const display = Archivo({ subsets: ["latin"], weight: ["700", "800", "900"], variable: "--font-display" });
@@ -10,11 +11,11 @@ const body = Inter({ subsets: ["latin"], variable: "--font-body" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
-  openGraph: { type: "website", locale: "fr_FR", siteName: "Cadran" },
+  openGraph: { type: "website", locale: "fr_FR", siteName: "PickJust" },
   twitter: { card: "summary_large_image" },
-  applicationName: "Cadran",
+  applicationName: "PickJust",
   formatDetection: { telephone: false },
-  title: { default: "Cadran — le bon smartphone pour ton budget", template: "%s · Cadran" },
+  title: { default: "PickJust — le bon smartphone pour ton budget", template: "%s · PickJust" },
   description: "Entre ton budget, réponds à trois questions et découvre quel smartphone acheter, dans quel état et pourquoi.",
 };
 
@@ -30,9 +31,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Aller au contenu
         </a>
         <header className="border-b border-line bg-ink/85 backdrop-blur sticky top-0 z-40">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 flex items-center gap-x-3 sm:gap-x-6 py-2 sm:py-3">
-            <Link href="/" className="display text-2xl tracking-tight" aria-label="Cadran, accueil">
-              Cadr<span className="text-red">a</span>n
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 flex items-center gap-x-2 sm:gap-x-6 py-2 sm:py-3">
+            <Link href="/" aria-label="PickJust, accueil" className="shrink-0">
+              <span className="sm:hidden"><Logo size={22} /></span>
+              <span className="hidden sm:block"><Logo size={28} /></span>
             </Link>
             <NavLinks />
           </div>
@@ -43,7 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer className="border-t border-line mt-20 bg-panel/50">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
             <div>
-              <Link href="/" className="display text-2xl tracking-tight">Cadr<span className="text-red">a</span>n</Link>
+              <Link href="/" aria-label="PickJust, accueil"><Logo size={30} /></Link>
               <p className="text-sm text-muted mt-3 max-w-xs">
                 Le bon smartphone pour ton budget. Prix en euros, marché français. Aucune inscription, aucune donnée personnelle collectée.
               </p>
@@ -64,7 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             ))}
           </div>
           <div className="border-t border-line">
-            <p className="mx-auto max-w-7xl px-4 sm:px-6 py-4 text-xs text-muted">© {new Date().getFullYear()} Cadran · Les prix peuvent changer chez le vendeur : vérifie toujours le montant final avant de payer.</p>
+            <p className="mx-auto max-w-7xl px-4 sm:px-6 py-4 text-xs text-muted">© {new Date().getFullYear()} PickJust · Les prix peuvent changer chez le vendeur : vérifie toujours le montant final avant de payer.</p>
           </div>
         </footer>
       </body>

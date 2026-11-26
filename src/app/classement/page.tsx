@@ -37,14 +37,14 @@ export default function Page() {
         <h2>Relations avec les vendeurs et rémunération</h2>
         <p>
           {c.affiliate
-            ? "Certains liens vers les vendeurs sont des liens d'affiliation : Cadran peut percevoir une commission si tu achètes après avoir cliqué. Cette commission n'a aucune influence sur le classement, et le prix payé reste le même."
-            : "Cadran n'a aujourd'hui aucun lien capitalistique ni contractuel avec les vendeurs référencés et ne perçoit aucune commission sur les achats."}
+            ? "Certains liens vers les vendeurs sont des liens d'affiliation : PickJust peut percevoir une commission si tu achètes après avoir cliqué. Cette commission n'a aucune influence sur le classement, et le prix payé reste le même."
+            : "PickJust n'a aujourd'hui aucun lien capitalistique ni contractuel avec les vendeurs référencés et ne perçoit aucune commission sur les achats."}
         </p>
       </section>
       <section>
         <h2>Limites</h2>
         <ul>
-          <li>Les caractéristiques sont annoncées par les fabricants ; elles ne sont pas mesurées par Cadran.</li>
+          <li>Les caractéristiques sont annoncées par les fabricants ; elles ne sont pas mesurées par PickJust.</li>
           <li>Les prix peuvent changer entre le relevé et ta visite : la date de relevé est affichée sur chaque offre. Vérifie toujours le total chez le vendeur.</li>
         </ul>
       </section>
