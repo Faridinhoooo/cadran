@@ -296,14 +296,14 @@ export default async function Page({ params, searchParams }: Params) {
               <>
                 <p className="text-3xl font-extrabold tabular-nums mt-2">{euros(market.median)}</p>
                 <p className="text-sm">Fourchette centrale : {euros(market.p25)} – {euros(market.p75)} · {market.count} annonces du {dateFr(market.from)} au {dateFr(market.to)}</p>
-                <p className="text-xs text-muted mt-2">Prix demandés par les vendeurs, hors frais de livraison et de protection acheteur.</p>
+                <p className="text-xs text-muted mt-2">Prix demandés par les vendeurs sur eBay France (API officielle), hors frais de livraison et de protection acheteur. Annonces pour pièces, bloquées, accessoires et vendeurs peu évalués exclues.</p>
               </>
             ) : (
               <>
                 <p className="mt-3 font-semibold">Trop peu d&apos;annonces comparables pour estimer le prix</p>
                 <p className="text-xs text-muted mt-2">
                   Fenêtre de {MARKET_WINDOW_DAYS} jours, minimum 5 annonces du même modèle, même capacité et état comparable.
-                  Aucune source d&apos;annonces dont la réutilisation est autorisée n&apos;est encore connectée.
+                  Source : annonces d&apos;occasion eBay France (API officielle), actualisées chaque jour dès que l&apos;accès est configuré.
                 </p>
               </>
             )}

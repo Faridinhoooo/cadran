@@ -1,0 +1,6 @@
+{
+  "_about": "Règle unique de publication du catalogue. publishOnlyPriced : seuls les téléphones ayant au moins une offre fiable sont visibles (catalogue, recherche, fiches, comparateur, guides, recommandations, sitemap). Une offre est fiable si elle est en vente, en stock, relevée il y a moins de maxOfferAgeDays jours, cohérente avec la page du vendeur et, sauf acceptStartingPrices, rattachée à une capacité précise (un prix « à partir de » ne l'est pas).",
+  "publishOnlyPriced": true,
+  "acceptStartingPrices": false,
+  "maxOfferAgeDays": 7
+}

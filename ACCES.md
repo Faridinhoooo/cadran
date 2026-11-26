@@ -57,6 +57,28 @@ Boulanger, Cdiscount, Rakuten, Back Market… selon les annonceurs présents sur
 Le même connecteur accepte d'autres flux CSV (Effiliation, Kelkoo…) : ajoute-les à la suite, séparés par `;`
 (`awin|URL1;effiliation|URL2`).
 
+## Occasion — API officielle eBay (gratuite)
+
+Seule source d'occasion à la fois fiable (annonces réelles, vendeurs évalués) et durable (API officielle versionnée).
+Le connecteur est prêt (`scripts/ebay.ts`) : il calcule la cote (médiane, fourchette 25e–75e percentile, au moins 5
+annonces comparables sur 30 jours) par modèle et capacité, en excluant pour pièces, bloqués, lots, accessoires,
+annonces hors de France et vendeurs à moins de 95 % d'avis positifs.
+
+1. Ouvre https://developer.ebay.com et crée un compte **eBay Developers Program** (gratuit).
+2. Menu **Application Keysets** → crée un jeu de clés **Production**.
+3. eBay demande de traiter les notifications de suppression de compte : choisis **l'exemption**
+   (Cadran ne stocke aucune donnée d'utilisateur eBay).
+4. Copie **App ID (Client ID)** et **Cert ID (Client Secret)** dans `site/.env.local` (et dans les variables Vercel) :
+   ```
+   EBAY_CLIENT_ID=…
+   EBAY_CLIENT_SECRET=…
+   ```
+5. `npm run import -- --only=occasion`
+
+Avant d'ouvrir le site au public, lis l'**API License Agreement** d'eBay (lien dans le portail développeur) :
+l'usage des annonces pour une cote agrégée doit y être conforme. Leboncoin et Vinted n'ont pas d'API ouverte :
+ils ne sont pas utilisés.
+
 ## 3. Actualisation automatique
 
 Une fois pour toutes (crée deux tâches planifiées Windows : prix chaque jour à 6 h, fiches chaque lundi) :

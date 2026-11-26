@@ -53,13 +53,18 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
   const serie = series.find((s) => s.id === sp.gamme);
   const parentOf = (id: string) => allBrands.find((b) => b.id === id)?.parent_id;
   // Sous-marques rangées sous leur marque mère (Xiaomi → Redmi, POCO ; Nothing → CMF)
-  const navBrands = allBrands.filter((b) => !b.parent_id).flatMap((b) => [b, ...allBrands.filter((c) => c.parent_id === b.id)]);
+  // Marques sans téléphone publié masquées (une marque mère reste si une sous-marque en a).
+  const has = (id: string) => (brandCount.get(id) ?? 0) > 0;
+  const navBrands = allBrands
+    .filter((b) => !b.parent_id)
+    .flatMap((b) => [b, ...allBrands.filter((c) => c.parent_id === b.id && has(c.id))])
+    .filter((b) => has(b.id) || allBrands.some((c) => c.parent_id === b.id && has(c.id)));
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 pb-28">
       <Crumbs items={[{ href: "/catalogue", label: "Catalogue" }, ...(brand ? [{ href: href({ gamme: undefined }), label: brand.name }] : []), ...(serie ? [{ label: serie.name }] : [])]} />
       <h1 className="display text-4xl sm:text-6xl">Catalogue</h1>
-      <p className="text-muted mt-2">Smartphones sortis depuis le 1er janvier 2023. Les fiches restent consultables même quand le modèle n&apos;est plus vendu.</p>
+      <p className="text-muted mt-2">Seuls les smartphones dont un prix actuel est relevé de façon fiable sont affichés : en vente, en stock, relevé il y a moins de 7 jours, pour une capacité précise.</p>
 
       <form action="/catalogue" method="get" className="mt-6 grid gap-3 md:grid-cols-[1fr_auto_auto_auto_auto] items-end bg-panel border border-line p-4" role="search">
         {sp.marque && <input type="hidden" name="marque" value={sp.marque} />}

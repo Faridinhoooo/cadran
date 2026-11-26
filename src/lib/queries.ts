@@ -1,6 +1,7 @@
 import "server-only";
 import { getDb } from "./db";
 import { excludedBrands, excludedSql, isExcludedBrand } from "./brand-policy";
+import { catalogPolicy, publishedModelSql } from "./catalog-policy";
 import fs from "node:fs";
 import path from "node:path";
 import { modelSlug } from "./text";
@@ -79,9 +80,12 @@ const row = <T>(sql: string, ...p: (string | number | null)[]) => {
   return (r ? { ...r } : undefined) as unknown as T | undefined;
 };
 
-const MODEL_SELECT = `SELECT m.id, m.name, m.brand_id, b.name AS brand_name, m.series_id, s.name AS series_name, m.os, m.form_factor,
+// Modèles visibles sur le site : marques non exclues ET, selon catalog-policy.json, au moins une offre fiable.
+// Calculé à chaque requête (la fraîcheur des offres dépend de la date du jour).
+const MODEL_SELECT = () => `SELECT m.id, m.name, m.brand_id, b.name AS brand_name, m.series_id, s.name AS series_name, m.os, m.form_factor,
   m.release_date, m.release_scope, m.release_source, m.release_level, m.fr_status, m.fr_source, m.discontinued
-  FROM models m JOIN brands b ON b.id=m.brand_id LEFT JOIN series s ON s.id=m.series_id WHERE m.is_test=0 AND ${excludedSql("m.brand_id")}`;
+  FROM models m JOIN brands b ON b.id=m.brand_id LEFT JOIN series s ON s.id=m.series_id
+  WHERE m.is_test=0 AND ${excludedSql("m.brand_id")} AND ${publishedModelSql()}`;
 
 export function brands(): BrandRow[] {
   return rows<BrandRow>(`SELECT * FROM brands WHERE ${excludedSql("id")} ORDER BY name COLLATE NOCASE`);
@@ -93,15 +97,15 @@ export function brandAliases(): BrandAliasInfo[] {
 
 export function seriesList(): { id: string; brand_id: string; name: string; n: number }[] {
   return rows(`SELECT s.id, s.brand_id, s.name, COUNT(m.id) n FROM series s JOIN models m ON m.series_id=s.id AND m.is_test=0 AND ${excludedSql("m.brand_id")}
-    GROUP BY s.id ORDER BY s.name COLLATE NOCASE`);
+    AND ${publishedModelSql()} GROUP BY s.id ORDER BY s.name COLLATE NOCASE`);
 }
 
 export function allModels(): ModelRow[] {
-  return rows<ModelRow>(`${MODEL_SELECT} ORDER BY COALESCE(m.release_date,'0000') DESC, m.name`);
+  return rows<ModelRow>(`${MODEL_SELECT()} ORDER BY COALESCE(m.release_date,'0000') DESC, m.name`);
 }
 
 export function getModel(id: string): ModelRow | undefined {
-  return row<ModelRow>(`${MODEL_SELECT} AND m.id=?`, id);
+  return row<ModelRow>(`${MODEL_SELECT()} AND m.id=?`, id);
 }
 
 export function getBrand(id: string) {
@@ -154,7 +158,8 @@ export function marketFor(configId: string, today: Date): MarketEstimate {
 /** Tous les modèles qui ont au moins une offre (les seuls recommandables), prêts pour le moteur. */
 export function candidates(): CandidateModel[] {
   const ids = rows<{ id: string }>(`SELECT DISTINCT c.model_id id FROM offers o JOIN configs c ON c.id=o.config_id
-    JOIN models m ON m.id=c.model_id WHERE o.is_test=0 AND m.is_test=0 AND ${excludedSql("m.brand_id")}`);
+    JOIN models m ON m.id=c.model_id WHERE o.is_test=0 AND m.is_test=0 AND ${excludedSql("m.brand_id")} AND ${publishedModelSql()}`);
+  const policy = catalogPolicy();
   const thumbs = thumbnails();
   return ids.map(({ id }) => {
     const m = getModel(id)!;
@@ -162,7 +167,9 @@ export function candidates(): CandidateModel[] {
     return {
       id, name: m.name, brand_id: m.brand_id, brand_name: m.brand_name, os: m.os, form_factor: m.form_factor,
       image: thumbs.get(id)?.thumb_url ?? null, specs: specMap(sp), measured: specMap(sp, "mesure"),
-      support: supportFor(id), configs: configsFor(id),
+      support: supportFor(id),
+      // Un prix « à partir de » n'est pas rattaché à une capacité : écarté si la règle de publication l'exige.
+      configs: configsFor(id).map((c) => ({ ...c, offers: c.offers.filter((o) => policy.acceptStartingPrices || o.capacity_status !== "prix_de_depart") })),
     };
   });
 }
@@ -248,11 +255,12 @@ export function coverage() {
   const runs = rows<{ source: string; finished_at: string | null; status: string; added: number; updated: number; notes: string | null }>(`
     SELECT r.source, r.finished_at, r.status, r.added, r.updated, r.notes FROM import_runs r
     WHERE r.id = (SELECT MAX(id) FROM import_runs r2 WHERE r2.source=r.source) ORDER BY r.finished_at DESC`);
-  const totals = row<{ models: number; offers: number; media: number; officialSpecs: number; officialSupport: number; editorialSpecs: number }>(`SELECT
+  const totals = row<{ models: number; published: number; offers: number; media: number; officialSpecs: number; officialSupport: number; editorialSpecs: number }>(`SELECT
     (SELECT COUNT(DISTINCT model_id) FROM specs WHERE level IN ('officiel','autorise')) officialSpecs,
     (SELECT COUNT(*) FROM support WHERE level IN ('officiel','autorise')) officialSupport,
     (SELECT COUNT(DISTINCT model_id) FROM specs WHERE level='editorial' AND key<>'chip_tier' AND model_id NOT IN (SELECT model_id FROM specs WHERE level IN ('officiel','autorise'))) editorialSpecs,
     (SELECT COUNT(*) FROM models m WHERE is_test=0 AND ${excludedSql("m.brand_id")}) models,
+    (SELECT COUNT(*) FROM models m WHERE is_test=0 AND ${excludedSql("m.brand_id")} AND ${publishedModelSql()}) published,
     (SELECT COUNT(*) FROM offers WHERE available=1 AND is_test=0) offers,
     (SELECT COUNT(DISTINCT model_id) FROM media) media`)!;
   return { byBrand, bySeries, byYear, runs, totals };

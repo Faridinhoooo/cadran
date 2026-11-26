@@ -16,6 +16,8 @@ import { finalizeForDeploy, openDb } from "../src/lib/db";
 import { isExcludedBrand } from "../src/lib/brand-policy";
 import { modelSlug, normalize, slugify } from "../src/lib/text";
 import { fetchIcecat, importIcecat, mapIcecat } from "./icecat";
+import { ebayConfigured, importEbayUsed } from "./ebay";
+import { publishedModelSql } from "../src/lib/catalog-policy";
 import { configuredFeeds, downloadFeed, feedToOffers, parseCsv, toFeedRow, type FeedRow } from "./feeds";
 import { importAppleSpecs, importGoogleSpecs, importGoogleSupport, importSamsungSpecs, importXiaomiSpecs, verifyAppleNoDeadline, flatText, parseXiaomiSpecs, upsertSpec } from "./official";
 
@@ -1006,6 +1008,22 @@ async function main() {
     importManualOffers(db);
   }
   if (want("offers") || want("verify")) await verifyOffers(db);
+  // Cote d'occasion : API officielle eBay, active seulement si EBAY_CLIENT_ID / EBAY_CLIENT_SECRET sont configurés.
+  if (want("offers") || want("occasion")) {
+    if (!ebayConfigured()) console.log("[Occasion eBay] clés absentes (EBAY_CLIENT_ID, EBAY_CLIENT_SECRET) — étape ignorée");
+    else {
+      const run = startRun(db, "Occasion eBay");
+      try {
+        const configs = (db.prepare(`SELECT c.id configId, m.name modelName, c.storage_gb storageGb FROM configs c JOIN models m ON m.id=c.model_id
+          WHERE c.storage_gb > 0 AND m.is_test=0 AND ${publishedModelSql()}`).all() as { configId: string; modelName: string; storageGb: number }[]);
+        await importEbayUsed(db, run.stats, configs);
+        run.finish();
+      } catch (e) {
+        run.stats.notes.push((e as Error).message);
+        run.finish("echec");
+      }
+    }
+  }
   if (want("official")) {
     for (const [name, fn] of [
       ["Google — suivi officiel Pixel", importGoogleSupport],

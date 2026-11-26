@@ -61,7 +61,7 @@ export default function Home() {
       </section>
 
       <p className="text-sm text-muted pb-4">
-        {totals.models} modèles référencés depuis 2023 · {totals.offers} offres vérifiées en cours
+        {totals.published} smartphones avec un prix actuel fiable · {totals.offers} offres relevées
         {updated && <> · actualisé le {dateTimeFr(updated)}</>} ·{" "}
         <Link href="/couverture" className="underline">voir la couverture et les lacunes</Link>
       </p>
