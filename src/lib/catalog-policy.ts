@@ -33,6 +33,11 @@ export function reliableOfferSql(p: CatalogPolicy, now = new Date()): string {
   ].join(" AND ");
 }
 
+/** Condition SQL « modèle avec au moins une offre fiable » (alias de table : m), quelle que soit la règle d'affichage. */
+export function pricedModelSql(p: CatalogPolicy = catalogPolicy(), now = new Date()): string {
+  return pricedModelSql(p, now);
+}
+
 /** Condition SQL « modèle publié » (alias de table : m). */
 export function publishedModelSql(p: CatalogPolicy = catalogPolicy(), now = new Date()): string {
   if (!p.publishOnlyPriced) return "1=1";

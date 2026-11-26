@@ -1,7 +1,7 @@
 import "server-only";
 import { getDb } from "./db";
 import { excludedBrands, excludedSql, isExcludedBrand } from "./brand-policy";
-import { catalogPolicy, publishedModelSql } from "./catalog-policy";
+import { catalogPolicy, pricedModelSql, publishedModelSql, reliableOfferSql } from "./catalog-policy";
 import fs from "node:fs";
 import path from "node:path";
 import { modelSlug } from "./text";
@@ -189,6 +189,8 @@ export interface ModelSummary extends ModelRow {
   reliable: Record<string, unknown>;
   /** Offres connues mais trop anciennes ou indisponibles : « Prix à actualiser ». */
   staleOffers: number;
+  /** Sans prix fiable : ce qu'on sait quand même (rupture chez le vendeur, prix « à partir de », prix ancien). */
+  priceNote: { kind: "rupture" | "depart" | "ancien"; price: number; seller: string } | null;
 }
 
 /** Données légères pour le catalogue (une requête par table, pas par modèle). */
@@ -196,7 +198,7 @@ export function catalogSummaries(): ModelSummary[] {
   const thumbs = thumbnails();
   const prices = new Map<string, { neuf: number | null; reco: number | null }>();
   for (const r of rows<{ model_id: string; condition: string; p: number }>(`SELECT c.model_id, o.condition, MIN(o.price) p FROM offers o
-      JOIN configs c ON c.id=o.config_id WHERE o.available=1 AND o.is_test=0 AND o.is_demo=0 AND o.checked_at >= '${new Date(Date.now() - 7 * 864e5).toISOString()}'
+      JOIN configs c ON c.id=o.config_id WHERE ${reliableOfferSql(catalogPolicy())}
       GROUP BY c.model_id, o.condition`)) {
     const e = prices.get(r.model_id) ?? { neuf: null, reco: null };
     if (r.condition === "neuf") e.neuf = r.p;
@@ -223,6 +225,14 @@ export function catalogSummaries(): ModelSummary[] {
     WHERE o.available=1 AND o.is_test=0 AND o.is_demo=0 AND o.checked_at >= ?`, cutoff).map((r) => r.model_id));
   const staleCount = new Map(rows<{ model_id: string; n: number }>(`SELECT c.model_id, COUNT(*) n FROM offers o JOIN configs c ON c.id=o.config_id
     WHERE o.is_test=0 GROUP BY c.model_id`).map((r) => [r.model_id, r.n]));
+  // Dernière information de prix non fiable, par ordre d'intérêt : rupture récente, prix de départ récent, prix ancien.
+  const notes = new Map<string, ModelSummary["priceNote"]>();
+  for (const r of rows<{ model_id: string; kind: "rupture" | "depart" | "ancien"; price: number; seller: string }>(`
+      SELECT c.model_id, CASE WHEN o.checked_at < ? THEN 'ancien' WHEN o.stock='rupture' THEN 'rupture' ELSE 'depart' END kind, o.price, o.seller
+      FROM offers o JOIN configs c ON c.id=o.config_id
+      WHERE o.is_test=0 AND o.is_demo=0 AND COALESCE(o.variant_check,'')<>'ecart'
+      ORDER BY CASE WHEN o.checked_at < ? THEN 2 WHEN o.stock='rupture' THEN 0 ELSE 1 END, o.price`, cutoff, cutoff))
+    if (!notes.has(r.model_id)) notes.set(r.model_id, { kind: r.kind, price: r.price, seller: r.seller });
   const storages = new Map<string, number[]>();
   for (const c of rows<{ model_id: string; storage_gb: number }>("SELECT model_id, storage_gb FROM configs ORDER BY storage_gb")) {
     storages.set(c.model_id, [...(storages.get(c.model_id) ?? []), c.storage_gb]);
@@ -236,6 +246,7 @@ export function catalogSummaries(): ModelSummary[] {
       officialSpecs: official.has(m.id), supportLevel: s?.level ?? null,
       reliable: reliable.get(m.id) ?? {},
       staleOffers: fresh.has(m.id) ? 0 : staleCount.get(m.id) ?? 0,
+      priceNote: prices.has(m.id) ? null : notes.get(m.id) ?? null,
     };
   });
 }
@@ -255,12 +266,13 @@ export function coverage() {
   const runs = rows<{ source: string; finished_at: string | null; status: string; added: number; updated: number; notes: string | null }>(`
     SELECT r.source, r.finished_at, r.status, r.added, r.updated, r.notes FROM import_runs r
     WHERE r.id = (SELECT MAX(id) FROM import_runs r2 WHERE r2.source=r.source) ORDER BY r.finished_at DESC`);
-  const totals = row<{ models: number; published: number; offers: number; media: number; officialSpecs: number; officialSupport: number; editorialSpecs: number }>(`SELECT
+  const totals = row<{ models: number; published: number; priced: number; offers: number; media: number; officialSpecs: number; officialSupport: number; editorialSpecs: number }>(`SELECT
     (SELECT COUNT(DISTINCT model_id) FROM specs WHERE level IN ('officiel','autorise')) officialSpecs,
     (SELECT COUNT(*) FROM support WHERE level IN ('officiel','autorise')) officialSupport,
     (SELECT COUNT(DISTINCT model_id) FROM specs WHERE level='editorial' AND key<>'chip_tier' AND model_id NOT IN (SELECT model_id FROM specs WHERE level IN ('officiel','autorise'))) editorialSpecs,
     (SELECT COUNT(*) FROM models m WHERE is_test=0 AND ${excludedSql("m.brand_id")}) models,
     (SELECT COUNT(*) FROM models m WHERE is_test=0 AND ${excludedSql("m.brand_id")} AND ${publishedModelSql()}) published,
+    (SELECT COUNT(*) FROM models m WHERE is_test=0 AND ${excludedSql("m.brand_id")} AND ${pricedModelSql()}) priced,
     (SELECT COUNT(*) FROM offers WHERE available=1 AND is_test=0) offers,
     (SELECT COUNT(DISTINCT model_id) FROM media) media`)!;
   return { byBrand, bySeries, byYear, runs, totals };

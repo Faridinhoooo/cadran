@@ -8,7 +8,7 @@ import { Crumbs, PhotoFrame } from "@/components/ui";
 import { CompareToggle, CompareTray } from "@/components/CompareTray";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Catalogue des smartphones au prix vérifié", description: "Tous les smartphones vendus en France dont le prix actuel a été relevé chez le vendeur : Apple, Samsung, Xiaomi, REDMI, POCO. Filtres par budget, système, format et année.", alternates: { canonical: "/catalogue" } };
+export const metadata: Metadata = { title: "Catalogue des smartphones", description: "Les smartphones vendus en France depuis 2023 : caractéristiques, durée des mises à jour et prix relevés chez le vendeur quand ils sont fiables. Filtres par marque, budget, système, format et année.", alternates: { canonical: "/catalogue" } };
 
 const PAGE = 48;
 type SP = Record<string, string | undefined>;
@@ -35,6 +35,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
   const max = Number(sp.max);
   if (max > 0) list = list.filter((m) => [m.minNew, m.minRefurb].some((p) => p !== null && p <= max));
   if (sp.tri === "prix") list = [...list].sort((a, b) => (Math.min(a.minNew ?? 1e9, a.minRefurb ?? 1e9) - Math.min(b.minNew ?? 1e9, b.minRefurb ?? 1e9)));
+  // Tri par défaut : les téléphones avec un prix vérifié d'abord (tri stable : l'ordre par date est conservé dans chaque groupe).
+  if (!sp.tri) list = [...list].sort((a, b) => Number(a.minNew === null && a.minRefurb === null) - Number(b.minNew === null && b.minRefurb === null));
   if (sp.tri === "nom") list = [...list].sort((a, b) => a.name.localeCompare(b.name, "fr"));
 
   const page = Math.max(1, Number(sp.page) || 1);
@@ -64,7 +66,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 pb-28">
       <Crumbs items={[{ href: "/catalogue", label: "Catalogue" }, ...(brand ? [{ href: href({ gamme: undefined }), label: brand.name }] : []), ...(serie ? [{ label: serie.name }] : [])]} />
       <h1 className="display text-4xl sm:text-6xl">Catalogue</h1>
-      <p className="text-muted mt-2">Seuls les smartphones dont un prix actuel est relevé de façon fiable sont affichés : en vente, en stock, relevé il y a moins de 7 jours, pour une capacité précise.</p>
+      <p className="text-muted mt-2 max-w-3xl">Les smartphones vendus en France depuis 2023, avec leurs caractéristiques et la durée de leurs mises à jour. Un prix n&apos;est affiché que s&apos;il est fiable : en vente, en stock, relevé il y a moins de 7 jours, pour une capacité précise. Coche « Avec une offre vérifiée » pour ne voir que ceux-là.</p>
 
       <form action="/catalogue" method="get" className="mt-6 grid gap-3 md:grid-cols-[1fr_auto_auto_auto_auto] items-end bg-panel border border-line p-4" role="search">
         {sp.marque && <input type="hidden" name="marque" value={sp.marque} />}
@@ -100,7 +102,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
           </label>
           <label className="flex items-center gap-2">Tri
             <select name="tri" defaultValue={sp.tri ?? ""} className="bg-panel-2 border border-line px-2 py-2">
-              <option value="">Plus récents</option><option value="prix">Prix croissant</option><option value="nom">Nom</option>
+              <option value="">Prix vérifiés d&apos;abord</option><option value="recent">Plus récents</option><option value="prix">Prix croissant</option><option value="nom">Nom</option>
             </select>
           </label>
         </div>
@@ -160,10 +162,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
                             <span className="text-lg font-extrabold tabular-nums">{euros(b.p)}</span>
                           </p>
                         ))
-                      ) : m.staleOffers ? (
-                        <p className="text-sm text-warn font-semibold">Prix à actualiser</p>
+                      ) : m.priceNote ? (
+                        <div className="text-sm">
+                          <p className="text-warn font-semibold">
+                            {m.priceNote.kind === "rupture" ? `En rupture chez ${m.priceNote.seller}` : m.priceNote.kind === "depart" ? "Prix « à partir de » seulement" : "Prix à actualiser"}
+                          </p>
+                          <p className="text-xs text-muted mt-0.5 tabular-nums">
+                            {m.priceNote.kind === "depart" ? `Dès ${euros(m.priceNote.price)}, capacité non précisée` : `Dernier prix relevé : ${euros(m.priceNote.price)}`}
+                          </p>
+                        </div>
                       ) : (
-                        <p className="text-sm text-muted">Pas d&apos;offre relevée</p>
+                        <p className="text-sm text-muted font-semibold">Prix non relevé</p>
                       )}
                     </div>
                     {(() => {

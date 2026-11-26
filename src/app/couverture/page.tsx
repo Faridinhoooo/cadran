@@ -35,7 +35,7 @@ export default function Page() {
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
       <h1 className="display text-4xl sm:text-6xl">Sources, couverture et méthode</h1>
       <p className="mt-4 text-lg">
-        <strong>{c.totals.published}</strong> smartphones publiés (prix actuel fiable) sur <strong>{c.totals.models}</strong> référencés · <strong>{c.totals.offers}</strong> offres actives · <strong>{c.totals.media}</strong> modèles illustrés.
+        <strong>{c.totals.published}</strong> smartphones affichés, dont <strong>{c.totals.priced}</strong> avec un prix actuel fiable · <strong>{c.totals.offers}</strong> offres actives · <strong>{c.totals.media}</strong> modèles illustrés.
         {c.runs[0]?.finished_at && <> Dernière actualisation : {dateTimeFr(c.runs[0].finished_at)}.</>}
       </p>
       <p className="text-muted mt-2">Une marque présente avec quelques fiches ne signifie pas que toute sa gamme est couverte.</p>

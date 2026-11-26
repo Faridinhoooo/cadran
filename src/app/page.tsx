@@ -63,9 +63,9 @@ export default function Home() {
       <section aria-label="Le catalogue en chiffres" className="border-y border-line bg-panel/60 backdrop-blur-sm">
         <dl className="mx-auto max-w-7xl px-4 sm:px-6 grid grid-cols-2 lg:grid-cols-4">
           {[
-            [String(totals.published), "smartphones au prix vérifié"],
+            [String(totals.published), "smartphones référencés"],
+            [String(totals.priced), "avec un prix vérifié aujourd'hui"],
             [String(totals.offers), "offres relevées chez les vendeurs"],
-            ["7 jours", "âge maximum d'un prix affiché"],
             ["0 €", "payé par un vendeur pour être classé"],
           ].map(([v, l], i) => (
             <div key={l} className={`flex flex-col-reverse py-6 ${i % 2 ? "pl-5 border-l border-line" : "pr-5"} ${i === 2 ? "lg:pl-5 lg:border-l" : ""} ${i > 1 ? "border-t lg:border-t-0" : ""} border-line`}>

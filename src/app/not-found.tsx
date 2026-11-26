@@ -11,8 +11,7 @@ export default function NotFound() {
         Page <span className="text-red">introuvable</span>
       </h1>
       <p className="text-muted mt-6 text-lg max-w-xl">
-        Cette adresse n&apos;existe pas, ou le téléphone n&apos;est plus affiché : nous ne publions que les modèles dont le prix
-        actuel a été relevé de façon fiable dans les 7 derniers jours.
+        Cette adresse n&apos;existe pas ou a changé. Le téléphone que tu cherches est peut-être dans le catalogue sous un autre nom.
       </p>
       <div className="flex flex-wrap gap-3 mt-10">
         <Link href="/trouver" className="btn btn-primary">Trouver mon smartphone</Link>
