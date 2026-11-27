@@ -7,6 +7,7 @@ import { normalizeChip } from "@/lib/chips";
 import { securityDeadline, keepYearsVerdict } from "@/lib/support";
 import { Thumb } from "@/components/ui";
 import { ShopLinks } from "@/components/ShopLinks";
+import { usedLinks } from "@/lib/shop-links";
 import type { MediaRow } from "@/lib/queries";
 
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
@@ -49,7 +50,12 @@ function Gauge({ value, label, detail, from, to }: { value: number; label: strin
 
 function reasons(c: Choice, answers: Answers, s: Scales, today: Date): string[] {
   const sp = c.model.specs;
-  const out: string[] = [c.why];
+  const out: string[] = [];
+  if (c.diversity) {
+    const sys = c.diversity === "ios" ? "iPhone" : "Android";
+    out.push(`Tu hésites entre iPhone et Android : voici le meilleur ${sys} dans ton budget${c.otherCondition ? `, en ${c.offer.condition === "occasion" ? "occasion" : "reconditionné"} (un état que tu n'avais pas coché)` : ""}.`);
+  }
+  out.push(c.why);
   const mah = num(sp.battery_mah), score = num(sp.chip_score), inch = num(sp.screen_in);
   if (answers.usage === "intensif" && (score !== null || mah !== null)) {
     const bits = [score !== null ? `une puce plus puissante que ${percentileBelow(score, s.chip.values)} % des modèles` : null, mah !== null && !answers.priorities.includes("autonomie") ? `une batterie de ${mah.toLocaleString("fr-FR")} mAh (plus grande que ${percentileBelow(mah, s.battery.values)} % des modèles)` : null].filter(Boolean);
@@ -72,7 +78,35 @@ function reasons(c: Choice, answers: Answers, s: Scales, today: Date): string[] 
   return out.slice(0, 5);
 }
 
-export function ChoicesSection({ choices, answers, scales, thumbs, today }: { choices: Choice[]; answers: Answers; scales: Scales; thumbs: Map<string, MediaRow>; today: Date }) {
+/** Aucun iPhone vérifié dans le budget alors que la personne hésite : renvoi vers l'occasion, filtré sur le budget. */
+function UsedIphoneOption({ budget, models }: { budget: number; models: string[] }) {
+  return (
+    <aside aria-labelledby="option-iphone" className="border border-line bg-panel cut p-5 sm:p-6">
+      <h3 id="option-iphone" className="display text-xl">Et en iPhone&nbsp;?</h3>
+      <p className="text-sm text-muted mt-1 max-w-3xl">
+        Aucun iPhone neuf ou reconditionné n&apos;a de prix vérifié sous {euros(budget)} chez les vendeurs suivis par PickJust.
+        En occasion, ces modèles peuvent entrer dans ton budget : les liens ci-dessous sont déjà filtrés jusqu&apos;à {euros(budget)}.
+      </p>
+      <ul className="grid sm:grid-cols-3 gap-3 mt-4">
+        {models.map((name) => (
+          <li key={name} className="border border-line bg-panel-2 p-4">
+            <p className="font-extrabold">{name}</p>
+            <p className="text-sm mt-2 flex flex-wrap gap-x-3 gap-y-1">
+              {usedLinks("Apple", name, null, budget).map((l) => (
+                <a key={l.id} href={l.url} target="_blank" rel="noopener noreferrer nofollow" className="font-semibold underline underline-offset-2 hover:text-red">
+                  {l.label} ↗<span className="sr-only"> (nouvel onglet)</span>
+                </a>
+              ))}
+            </p>
+          </li>
+        ))}
+      </ul>
+      <p className="text-xs text-muted mt-3">Prix non vérifiés par PickJust. Vérifie l&apos;état de la batterie, la garantie et que l&apos;iPhone n&apos;est pas bloqué (iCloud) avant d&apos;acheter.</p>
+    </aside>
+  );
+}
+
+export function ChoicesSection({ choices, answers, scales, thumbs, today, usedIphones = [] }: { choices: Choice[]; answers: Answers; scales: Scales; thumbs: Map<string, MediaRow>; today: Date; usedIphones?: string[] }) {
   return (
     <section aria-labelledby="choix" className="grid gap-5">
       <div>
@@ -95,7 +129,10 @@ export function ChoicesSection({ choices, answers, scales, thumbs, today }: { ch
                 <p className="bg-red text-ink text-center text-xs font-extrabold uppercase tracking-widest py-1.5">★ Notre meilleur choix pour toi</p>
               )}
               <div className="p-4 pb-0 flex items-center justify-between gap-2">
-                <span className={`display text-lg ${i === 0 ? "text-red" : "text-muted"}`}>{i === 0 ? "N°1" : `N°${i + 1}`}</span>
+                <span className={`display text-lg ${i === 0 ? "text-red" : "text-muted"}`}>
+                  {i === 0 ? "N°1" : `N°${i + 1}`}
+                  {c.diversity && <span className="ml-2 align-middle tag text-[10px] text-text">Option {c.diversity === "ios" ? "iPhone" : "Android"}</span>}
+                </span>
                 <span className="text-xs text-muted">{CONDITION_LABELS[c.offer.condition]} · {c.offer.seller}</span>
               </div>
               <div className={`p-4 grid ${i === 0 ? "grid-cols-[112px_1fr]" : "grid-cols-[88px_1fr]"} gap-4 items-center`}>
@@ -162,6 +199,9 @@ export function ChoicesSection({ choices, answers, scales, thumbs, today }: { ch
           );
         })}
       </ol>
+      {answers.os === "any" && !choices.some((c) => c.model.os === "ios") && usedIphones.length > 0 && (
+        <UsedIphoneOption budget={answers.budget} models={usedIphones} />
+      )}
       <p className="text-xs text-muted">
         Jauges : position du modèle entre le moins et le plus performant des smartphones du catalogue PickJust (hors téléphones gaming).
         Puissance : indice PickJust de 0 à 100, établi d&apos;après la gamme et la génération des puces (indicatif, pas un test mesuré). Batterie : capacité annoncée par le fabricant, pas une mesure d&apos;autonomie.

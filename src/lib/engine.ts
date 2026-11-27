@@ -600,6 +600,10 @@ export interface Choice {
   total: number | null;
   shown: number;
   why: string;
+  /** Choix ajouté pour proposer les deux systèmes quand la personne hésite (« les deux me vont »). */
+  diversity?: "ios" | "android";
+  /** L'offre est dans un état non coché (reconditionné ou occasion), proposée pour avoir un iPhone ou un Android. */
+  otherCondition?: boolean;
 }
 
 /**
@@ -610,12 +614,35 @@ export function topChoices(answers: Answers, models: CandidateModel[], today: Da
   const entries = [...admissibleEntries(answers, models, today), ...verifyEntries(answers, models, today)];
   if (!entries.length) return [];
   // Une offre confirmée passe devant une offre à vérifier du même modèle.
-  const ranked = rank(answers, [...entries].sort((a, b) => Number(offerTotal(a.offer) === null) - Number(offerTotal(b.offer) === null)), today);
-  return ranked.slice(0, count).map((x, i) => ({
+  const confirmedFirst = (list: Entry[]) => [...list].sort((a, b) => Number(offerTotal(a.offer) === null) - Number(offerTotal(b.offer) === null));
+  const ranked = rank(answers, confirmedFirst(entries), today);
+  const pick = (x: (typeof ranked)[number], i: number, extra: Partial<Choice> = {}): Choice => ({
     model: x.e.model, config: x.e.config, offer: x.e.offer,
     total: offerTotal(x.e.offer), shown: shownPrice(x.e.offer),
-    why: whyOneLiner(x.e, answers, i, today),
-  }));
+    why: whyOneLiner(x.e, answers, i, today), ...extra,
+  });
+  const out = ranked.slice(0, count).map((x, i) => pick(x, i));
+
+  // « Les deux me vont » : au moins un iPhone et au moins un Android parmi les choix, si c'est possible dans le
+  // budget. On cherche d'abord dans les états choisis, puis en reconditionné et en occasion.
+  if (answers.os === "any" && count >= 2) {
+    for (const sys of ["ios", "android"] as const) {
+      if (out.some((c) => c.model.os === sys)) continue;
+      let alt = ranked.find((x) => x.e.model.os === sys);
+      let other = false;
+      if (!alt) {
+        const wide: Answers = { ...answers, conditions: ["neuf", "reconditionne", "occasion"] };
+        const more = [...admissibleEntries(wide, models, today), ...verifyEntries(wide, models, today)].filter((e) => e.model.os === sys);
+        alt = rank(wide, confirmedFirst(more), today)[0];
+        other = !!alt && !answers.conditions.includes(alt.e.offer.condition);
+      }
+      if (!alt) continue;
+      // Remplace le dernier choix de l'autre système (on garde le n°1 tel quel).
+      const replaceAt = out.length < count ? out.length : [...out.keys()].reverse().find((i) => i > 0 && out.filter((c) => c.model.os === out[i].model.os).length > 1) ?? out.length - 1;
+      out[replaceAt] = pick(alt, replaceAt, { diversity: sys, otherCondition: other });
+    }
+  }
+  return out;
 }
 
 export function recommend(answers: Answers, models: CandidateModel[], today: Date): Result {

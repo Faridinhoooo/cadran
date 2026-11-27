@@ -26,11 +26,12 @@ export function shopLinks(brandName: string, modelName: string, storageGb?: numb
 }
 
 /** Recherches d'occasion et de reconditionné (liens neutres). Rakuten France a fermé sa marketplace le 30/09/2026. */
-export function usedLinks(brandName: string, modelName: string, storageGb?: number | null): ShopLink[] {
+export function usedLinks(brandName: string, modelName: string, storageGb?: number | null, maxPrice?: number | null): ShopLink[] {
   const q = encodeURIComponent(searchQuery(brandName, modelName, storageGb));
+  const max = maxPrice ? Math.floor(maxPrice) : null;
   return [
     { id: "backmarket", label: "Back Market", hint: "Reconditionné par des pros, garanti 12 mois", url: `https://www.backmarket.fr/fr-fr/search?q=${q}` },
-    { id: "ebay", label: "eBay", hint: "Occasion, vendeurs notés", url: `https://www.ebay.fr/sch/i.html?_nkw=${q}&LH_ItemCondition=3000` },
-    { id: "leboncoin", label: "Leboncoin", hint: "Entre particuliers, partout en France", url: `https://www.leboncoin.fr/recherche?category=17&text=${q}` },
+    { id: "ebay", label: "eBay", hint: max ? `Occasion, jusqu'à ${max} €` : "Occasion, vendeurs notés", url: `https://www.ebay.fr/sch/i.html?_nkw=${q}&LH_ItemCondition=3000${max ? `&_udhi=${max}` : ""}` },
+    { id: "leboncoin", label: "Leboncoin", hint: max ? `Entre particuliers, jusqu'à ${max} €` : "Entre particuliers, partout en France", url: `https://www.leboncoin.fr/recherche?category=17&text=${q}${max ? `&price=0-${max}` : ""}` },
   ];
 }

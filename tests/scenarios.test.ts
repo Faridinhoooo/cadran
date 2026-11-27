@@ -215,3 +215,29 @@ describe("Fiabilité du questionnaire : le budget sert à viser la bonne gamme",
     expect(topChoices({ ...base, budget: 800, priorities: ["prix"] }, tous, TODAY)[0].model.id).toBe("pas-cher");
   });
 });
+
+describe("« Les deux me vont » : un iPhone et un Android parmi les 3 choix", () => {
+  const phone = (id: string, os: "ios" | "android", price: number, mah: number, condition: "neuf" | "reconditionne" = "neuf") =>
+    model({ id, name: id, os, specs: { battery_mah: mah, screen_in: 6.3, chip_tier: 3 }, configs: [{ id: `${id}-128`, storage_gb: 128, ram_gb: 8, offers: [offer({ id: `o-${id}`, price, condition })] }] });
+  const androids = [phone("a1", "android", 390, 7000), phone("a2", "android", 380, 6500), phone("a3", "android", 370, 6000)];
+  it("ajoute le meilleur iPhone à la place du dernier Android, le n°1 reste en tête", () => {
+    const c = topChoices({ ...base, priorities: ["autonomie"] }, [...androids, phone("i1", "ios", 390, 3500)], TODAY);
+    expect(c[0].model.id).toBe("a1");
+    expect(c.map((x) => x.model.os)).toContain("ios");
+    expect(c.find((x) => x.model.os === "ios")?.diversity).toBe("ios");
+    expect(c).toHaveLength(3);
+  });
+  it("cherche en reconditionné si l'iPhone n'existe pas dans l'état coché, et le signale", () => {
+    const c = topChoices({ ...base, conditions: ["neuf"], priorities: ["autonomie"] }, [...androids, phone("i1", "ios", 390, 3500, "reconditionne")], TODAY);
+    const ios = c.find((x) => x.model.os === "ios");
+    expect(ios?.otherCondition).toBe(true);
+  });
+  it("aucun iPhone dans le budget : on ne dépasse jamais le budget pour en ajouter un", () => {
+    const c = topChoices({ ...base, priorities: ["autonomie"] }, [...androids, phone("i1", "ios", 900, 3500)], TODAY);
+    expect(c.every((x) => x.model.os === "android")).toBe(true);
+  });
+  it("Android uniquement : aucun iPhone ajouté", () => {
+    const c = topChoices({ ...base, os: "android", priorities: ["autonomie"] }, [...androids, phone("i1", "ios", 390, 3500)], TODAY);
+    expect(c.every((x) => x.model.os === "android" && !x.diversity)).toBe(true);
+  });
+});

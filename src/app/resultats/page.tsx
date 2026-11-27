@@ -126,7 +126,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
         <h1 className="display text-2xl sm:text-3xl">Ton résultat</h1>
         <a href="#reponses" className="btn btn-ghost min-h-[44px] text-sm">Modifier mes réponses</a>
       </div>
-      {choices.length > 0 && <ChoicesSection choices={choices} answers={answers} scales={scales()} thumbs={thumbnails()} today={today} />}
+      {choices.length > 0 && <ChoicesSection choices={choices} answers={answers} scales={scales()} thumbs={thumbnails()} today={today} usedIphones={usedIphoneModels()} />}
     <div className="mt-12 grid lg:grid-cols-[340px_1fr] gap-8 items-start">
       <aside id="reponses" aria-label="Tes réponses" className="grid gap-2 lg:sticky lg:top-20 order-2 lg:order-none scroll-mt-24">
         <h2 className="display text-xl mb-2">Tes réponses</h2>
@@ -443,4 +443,13 @@ function ElsewhereSection({ answers }: { answers: Answers }) {
       </p>
     </section>
   );
+}
+
+/** iPhone « classiques » récents (hors Pro, Plus, Air) du catalogue, du plus ancien au plus récent : les plus abordables en occasion. */
+function usedIphoneModels(): string[] {
+  return catalogSummaries()
+    .filter((m) => m.brand_id === "apple" && /^iPhone \d+e?$/.test(m.name) && (m.release_date ?? "") >= "2023")
+    .sort((a, b) => (a.release_date ?? "").localeCompare(b.release_date ?? ""))
+    .slice(0, 3)
+    .map((m) => m.name);
 }
