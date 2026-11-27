@@ -3,7 +3,7 @@ import Link from "next/link";
 import { brandAliases, brands, catalogSummaries, seriesList } from "@/lib/queries";
 import { searchModels } from "@/lib/search";
 import { euros } from "@/lib/format";
-import { shopLinks } from "@/lib/shop-links";
+import { shopLinks, usedLinks } from "@/lib/shop-links";
 import { SEGMENT_LABELS, segmentOf } from "@/lib/chips";
 import { deadline, type Deadline } from "@/lib/support";
 import { Crumbs, PhotoFrame } from "@/components/ui";
@@ -195,10 +195,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
                       ) : (
                         <div className="text-sm">
                           <p className="text-muted font-semibold">Prix non relevé ici</p>
-                          <a href={shopLinks(m.brand_name, m.name)[0].url} target="_blank" rel="noopener noreferrer nofollow"
-                            className="relative z-10 text-xs font-semibold underline underline-offset-2 hover:text-red">
-                            Voir les prix sur Google Shopping ↗<span className="sr-only"> (nouvel onglet)</span>
-                          </a>
+                          <span className="relative z-10 flex flex-wrap gap-x-3 text-xs font-semibold">
+                            <a href={shopLinks(m.brand_name, m.name)[0].url} target="_blank" rel="noopener noreferrer nofollow" className="underline underline-offset-2 hover:text-red">
+                              Prix neufs ↗<span className="sr-only"> sur Google Shopping (nouvel onglet)</span>
+                            </a>
+                            <a href={usedLinks(m.brand_name, m.name)[0].url} target="_blank" rel="noopener noreferrer nofollow" className="underline underline-offset-2 hover:text-red">
+                              En reconditionné ↗<span className="sr-only"> sur Back Market (nouvel onglet)</span>
+                            </a>
+                          </span>
                         </div>
                       )}
                     </div>

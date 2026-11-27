@@ -6,7 +6,7 @@ import { isFresh, offerTotal } from "@/lib/engine";
 import { NR, dateFr, dateTimeFr, euros, releaseLabel, sourceLabel, specText, storageLabel } from "@/lib/format";
 import { securityDeadline, securityHeadline, supportStatus, upgradesDeadline } from "@/lib/support";
 import { Gallery } from "@/components/Gallery";
-import { ShopLinks } from "@/components/ShopLinks";
+import { ShopLinks, UsedLinks } from "@/components/ShopLinks";
 import { swatches } from "@/lib/colors";
 import { cameraLayout } from "@/lib/camera-layout";
 import { KeySpecs, describe } from "@/components/KeySpecs";
@@ -284,7 +284,7 @@ export default async function Page({ params, searchParams }: Params) {
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted mt-1.5">Coût total livraison comprise{sel ? `, pour ${storageLabel(sel.storage_gb)}` : ""}. <a href="#prix" className="underline">Détail des offres</a> · <a href="#ailleurs" className="underline">Comparer ailleurs</a></p>
+          <p className="text-xs text-muted mt-1.5">Coût total livraison comprise{sel ? `, pour ${storageLabel(sel.storage_gb)}` : ""}. <a href="#prix" className="underline">Détail des offres</a> · <a href="#occasion-liens" className="underline">En occasion</a> · <a href="#ailleurs" className="underline">Comparer ailleurs</a></p>
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <MoreSpecsButton target="tout">Toutes les caractéristiques ↓</MoreSpecsButton>
@@ -318,6 +318,9 @@ export default async function Page({ params, searchParams }: Params) {
               </>
             )}
           </section>
+        </div>
+        <div className="mt-4">
+          <UsedLinks brand={m.brand_name} name={m.name} storageGb={sel?.storage_gb || null} emphasis={!offers.some((o) => o.available)} />
         </div>
         <div className="mt-4">
           <ShopLinks brand={m.brand_name} name={m.name} storageGb={sel?.storage_gb || null}

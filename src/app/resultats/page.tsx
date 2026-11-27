@@ -121,9 +121,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
   ].filter(Boolean);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 grid lg:grid-cols-[340px_1fr] gap-8 items-start">
-      <aside aria-label="Tes réponses" className="grid gap-2 lg:sticky lg:top-20 order-2 lg:order-none">
-        <h1 className="display text-3xl mb-2">Ton résultat</h1>
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <h1 className="display text-2xl sm:text-3xl">Ton résultat</h1>
+        <a href="#reponses" className="btn btn-ghost min-h-[44px] text-sm">Modifier mes réponses</a>
+      </div>
+      {choices.length > 0 && <ChoicesSection choices={choices} answers={answers} scales={scales()} thumbs={thumbnails()} today={today} />}
+    <div className="mt-12 grid lg:grid-cols-[340px_1fr] gap-8 items-start">
+      <aside id="reponses" aria-label="Tes réponses" className="grid gap-2 lg:sticky lg:top-20 order-2 lg:order-none scroll-mt-24">
+        <h2 className="display text-xl mb-2">Tes réponses</h2>
         <form action="/resultats" method="get" className="bg-panel border border-line px-4 py-3 flex flex-wrap items-end gap-2">
           {[...toParams(answers).entries()].filter(([k]) => k !== "budget").map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
           <label className="grid gap-1 flex-1">
@@ -176,7 +182,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
       </aside>
 
       <div className="grid gap-8 min-w-0 order-1 lg:order-none">
-        {choices.length > 0 && <ChoicesSection choices={choices} answers={answers} scales={scales()} thumbs={thumbnails()} today={today} />}
         {result.status === "ok" ? (
           <details className="group bg-panel/40 border border-line" open={choices.length === 0}>
             <summary className="cursor-pointer px-5 py-4 font-bold min-h-[52px] flex items-center justify-between gap-3">
@@ -277,6 +282,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
         <FunnelDetails f={result.funnel} />
         <DataFreshness />
       </div>
+    </div>
     </div>
   );
 }

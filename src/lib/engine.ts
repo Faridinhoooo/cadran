@@ -286,11 +286,18 @@ export function profileFit(e: Entry, answers: Answers, today: Date): { fit: numb
   return { fit: vals.length ? vals.reduce((x, y) => x + y, 0) / vals.length : 0.5, parts };
 }
 
+/** Part du budget exploitée, ramenée entre 0 (≤ 45 % du budget) et 1 (≥ 95 %). */
+export function budgetUse(total: number, budget: number): number {
+  return clamp01((total / budget - 0.45) / 0.5);
+}
+
 export function rank(answers: Answers, entries: Entry[], today: Date) {
   const prios = answers.priorities.slice(0, 2);
   const weights = prios.length === 2 ? [0.65, 0.35] : [1];
   const raws = prios.map((p) => entries.map((e) => rawMetric(p, e, answers, today)));
   const norms = raws.map(normalizeAll);
+  const minByModel = new Map<string, number>();
+  for (const e of entries) minByModel.set(e.model.id, Math.min(minByModel.get(e.model.id) ?? Infinity, e.total));
   let scored = entries.map((e, i) => {
     const n: Partial<Record<Priority, number | null>> = {};
     let score = 0;
@@ -298,6 +305,11 @@ export function rank(answers: Answers, entries: Entry[], today: Date) {
       n[p] = norms[k][i];
       score += weights[k] * (norms[k][i] ?? 0);
     });
+    // Budget : sauf si la priorité est le prix, un budget plus élevé signale une attente de gamme supérieure.
+    // Un modèle qui exploite bien le budget (≥ 85 %) passe devant un modèle bien moins cher et un peu meilleur
+    // sur un seul critère. Un modèle à moins de 45 % du budget ne reçoit pas ce bonus.
+    // Calculé sur le prix le plus bas du modèle : le bonus ne pousse jamais une capacité plus chère du même téléphone.
+    if (prios[0] !== "prix") score += 0.45 * budgetUse(minByModel.get(e.model.id) ?? e.total, answers.budget);
     // Profil (taille, intensité d'usage, durée) : critère complémentaire, moins fort que les priorités.
     if (answers.size || answers.usage || answers.keepYears) score += 0.35 * profileFit(e, answers, today).fit;
     // Départage léger : à valeur égale, la moins chère passe devant.

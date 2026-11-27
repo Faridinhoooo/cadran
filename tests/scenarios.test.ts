@@ -198,3 +198,20 @@ describe("Profil et 3 choix", () => {
     for (const x of c) expect(x.why.length).toBeGreaterThan(10);
   });
 });
+
+describe("Fiabilité du questionnaire : le budget sert à viser la bonne gamme", () => {
+  const phone = (id: string, price: number, mah: number) =>
+    model({ id, name: id, specs: { battery_mah: mah, screen_in: 6.6, chip_tier: 3 }, configs: [{ id: `${id}-256`, storage_gb: 256, ram_gb: 8, offers: [offer({ id: `o-${id}`, price })] }] });
+  const tous = [phone("pas-cher", 350, 8000), phone("haut", 750, 7000), phone("milieu", 500, 5000), phone("trop-cher", 900, 9000)];
+  it("à 800 € pour l'autonomie, un modèle qui exploite le budget passe devant un modèle bien moins cher à peine meilleur", () => {
+    const c = topChoices({ ...base, budget: 800, priorities: ["autonomie"] }, tous, TODAY);
+    expect(c[0].model.id).toBe("haut");
+  });
+  it("jamais au-dessus du budget, frais inclus", () => {
+    for (const b of [400, 800, 1200]) for (const p of ["photo", "autonomie", "jeux", "prix"] as const)
+      for (const x of topChoices({ ...base, budget: b, priorities: [p] }, tous, TODAY)) expect(x.total ?? x.shown).toBeLessThanOrEqual(b);
+  });
+  it("si la priorité est le prix, le moins cher reste en tête", () => {
+    expect(topChoices({ ...base, budget: 800, priorities: ["prix"] }, tous, TODAY)[0].model.id).toBe("pas-cher");
+  });
+});

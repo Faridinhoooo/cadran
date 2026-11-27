@@ -2,7 +2,7 @@
 // n'affiche pas (ou pas encore) de prix. Aucun lien d'affiliation, aucun paramètre de suivi : PickJust ne touche rien.
 
 export interface ShopLink {
-  id: "google" | "idealo" | "backmarket" | "ebay";
+  id: "google" | "idealo" | "backmarket" | "ebay" | "leboncoin";
   label: string;
   hint: string;
   url: string;
@@ -22,5 +22,15 @@ export function shopLinks(brandName: string, modelName: string, storageGb?: numb
     { id: "idealo", label: "idealo", hint: "Comparateur de prix", url: `https://www.idealo.fr/prechcat.html?q=${q}` },
     { id: "backmarket", label: "Back Market", hint: "Reconditionné", url: `https://www.backmarket.fr/fr-fr/search?q=${q}` },
     { id: "ebay", label: "eBay", hint: "Occasion et neuf", url: `https://www.ebay.fr/sch/i.html?_nkw=${q}` },
+  ];
+}
+
+/** Recherches d'occasion et de reconditionné (liens neutres). Rakuten France a fermé sa marketplace le 30/09/2026. */
+export function usedLinks(brandName: string, modelName: string, storageGb?: number | null): ShopLink[] {
+  const q = encodeURIComponent(searchQuery(brandName, modelName, storageGb));
+  return [
+    { id: "backmarket", label: "Back Market", hint: "Reconditionné par des pros, garanti 12 mois", url: `https://www.backmarket.fr/fr-fr/search?q=${q}` },
+    { id: "ebay", label: "eBay", hint: "Occasion, vendeurs notés", url: `https://www.ebay.fr/sch/i.html?_nkw=${q}&LH_ItemCondition=3000` },
+    { id: "leboncoin", label: "Leboncoin", hint: "Entre particuliers, partout en France", url: `https://www.leboncoin.fr/recherche?category=17&text=${q}` },
   ];
 }

@@ -81,7 +81,7 @@ export function ChoicesSection({ choices, answers, scales, thumbs, today }: { ch
         </h2>
         <div className="mt-2"><ProfileSummary answers={answers} /></div>
       </div>
-      <ol className="grid gap-4 lg:grid-cols-3">
+      <ol className="grid gap-5 lg:grid-cols-[1.2fr_1fr_1fr] items-stretch">
         {choices.map((c, i) => {
           const sp = c.model.specs;
           const chip = normalizeChip(sp.chip) ?? (typeof sp.chip === "string" ? sp.chip : null);
@@ -90,18 +90,21 @@ export function ChoicesSection({ choices, answers, scales, thumbs, today }: { ch
           const ram = c.config.ram_gb ?? num(sp.ram_gb);
           const mah = num(sp.battery_mah);
           return (
-            <li key={c.model.id} className={`bg-panel border ${i === 0 ? "border-red" : "border-line"} cut flex flex-col`}>
+            <li key={c.model.id} className={`relative border cut flex flex-col ${i === 0 ? "border-red border-2 bg-[linear-gradient(180deg,#1d1213,#121214_45%)] shadow-[0_0_60px_-20px_rgba(255,52,52,0.6)]" : "bg-panel border-line"}`}>
+              {i === 0 && (
+                <p className="bg-red text-ink text-center text-xs font-extrabold uppercase tracking-widest py-1.5">★ Notre meilleur choix pour toi</p>
+              )}
               <div className="p-4 pb-0 flex items-center justify-between gap-2">
-                <span className={`tag ${i === 0 ? "text-red" : ""}`}>{i === 0 ? "Choix n°1" : `Choix n°${i + 1}`}</span>
+                <span className={`display text-lg ${i === 0 ? "text-red" : "text-muted"}`}>{i === 0 ? "N°1" : `N°${i + 1}`}</span>
                 <span className="text-xs text-muted">{CONDITION_LABELS[c.offer.condition]} · {c.offer.seller}</span>
               </div>
-              <div className="p-4 grid grid-cols-[88px_1fr] gap-4 items-center">
-                <Thumb media={thumbs.get(c.model.id) ?? null} alt={c.model.name} form={c.model.form_factor} size={88} />
+              <div className={`p-4 grid ${i === 0 ? "grid-cols-[112px_1fr]" : "grid-cols-[88px_1fr]"} gap-4 items-center`}>
+                <Thumb media={thumbs.get(c.model.id) ?? null} alt={c.model.name} form={c.model.form_factor} size={i === 0 ? 112 : 88} />
                 <div className="min-w-0">
-                  <h3 className="font-extrabold text-xl leading-tight">
+                  <h3 className={`font-extrabold leading-tight ${i === 0 ? "text-2xl" : "text-xl"}`}>
                     <Link href={`/telephone/${c.model.id}${c.config.storage_gb ? `?go=${c.config.storage_gb}` : ""}`} className="hover:text-red">{c.model.name}</Link>
                   </h3>
-                  <p className="mt-1 text-2xl font-extrabold tabular-nums">{euros(c.total ?? c.shown)}</p>
+                  <p className={`mt-1 font-extrabold tabular-nums ${i === 0 ? "text-3xl" : "text-2xl"}`}>{euros(c.total ?? c.shown)}</p>
                   <p className={`text-xs font-semibold ${c.total !== null ? "text-ok" : "text-warn"}`}>
                     {c.total !== null ? "✓ Frais inclus, dans ton budget" : "Hors livraison : à vérifier chez le vendeur"}
                   </p>
