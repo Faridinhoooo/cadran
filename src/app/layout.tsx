@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Outfit } from "next/font/google";
+import localFont from "next/font/local";
 import Link from "next/link";
 import "./globals.css";
 import { NavLinks } from "@/components/NavLinks";
 import { Logo } from "@/components/Logo";
 import { siteUrl } from "@/lib/site-config";
 
-const display = Outfit({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-display" });
-const body = Inter({ subsets: ["latin"], variable: "--font-body" });
+// Polices intégrées au site (licence SIL OFL) : le build ne dépend plus du téléchargement depuis Google Fonts.
+const display = localFont({ src: "./fonts/outfit.woff2", weight: "100 900", variable: "--font-display", display: "swap" });
+const body = localFont({ src: "./fonts/inter.woff2", weight: "100 900", variable: "--font-body", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
