@@ -71,46 +71,46 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
       <h1 className="display text-4xl sm:text-6xl">Catalogue</h1>
       <p className="text-muted mt-2 max-w-3xl">Les smartphones vendus en France depuis 2023, avec leurs caractéristiques et la durée de leurs mises à jour. Un prix n&apos;est affiché que s&apos;il est fiable : en vente, en stock, relevé il y a moins de 7 jours, pour une capacité précise. Coche « Avec une offre vérifiée » pour ne voir que ceux-là.</p>
 
-      <form action="/catalogue" method="get" className="mt-6 grid gap-3 md:grid-cols-[1fr_auto_auto_auto_auto_auto] items-end bg-panel border border-line p-4" role="search">
+      <form action="/catalogue" method="get" className="mt-6 grid gap-3 md:grid-cols-[1fr_auto_auto_auto_auto_auto] items-end bg-panel rounded-3xl p-4" role="search">
         {sp.marque && <input type="hidden" name="marque" value={sp.marque} />}
         {sp.gamme && <input type="hidden" name="gamme" value={sp.gamme} />}
         <label className="grid gap-1">
           <span className="text-sm font-semibold">Rechercher un modèle, une marque ou une gamme</span>
-          <input name="q" defaultValue={q} placeholder="ex. Galaxy A, Redmi Note, One Plus 12" className="bg-panel-2 border border-line px-3 py-3" />
+          <input name="q" defaultValue={q} placeholder="ex. Galaxy A, Redmi Note, One Plus 12" className="bg-page border border-line rounded-xl px-3 py-3" />
         </label>
         <label className="grid gap-1">
           <span className="text-sm font-semibold">Système</span>
-          <select name="os" defaultValue={sp.os ?? ""} className="bg-panel-2 border border-line px-3 py-3">
+          <select name="os" defaultValue={sp.os ?? ""} className="bg-page border border-line rounded-xl px-3 py-3">
             <option value="">Tous</option><option value="ios">iPhone (iOS)</option><option value="android">Android</option>
           </select>
         </label>
         <label className="grid gap-1">
           <span className="text-sm font-semibold">Format</span>
-          <select name="forme" defaultValue={sp.forme ?? ""} className="bg-panel-2 border border-line px-3 py-3">
+          <select name="forme" defaultValue={sp.forme ?? ""} className="bg-page border border-line rounded-xl px-3 py-3">
             <option value="">Tous</option><option value="classique">Classique</option><option value="pliable">Pliable</option><option value="clapet">À clapet</option><option value="durci">Durci</option>
           </select>
         </label>
         <label className="grid gap-1">
           <span className="text-sm font-semibold">Gamme</span>
-          <select name="segment" defaultValue={sp.segment ?? ""} className="bg-panel-2 border border-line px-3 py-3">
+          <select name="segment" defaultValue={sp.segment ?? ""} className="bg-page border border-line rounded-xl px-3 py-3">
             <option value="">Toutes</option><option value="entree">Entrée de gamme</option><option value="milieu">Milieu de gamme</option><option value="haut">Haut de gamme</option>
           </select>
         </label>
         <label className="grid gap-1">
           <span className="text-sm font-semibold">Prix max (€)</span>
-          <input name="max" type="number" min={0} defaultValue={sp.max} className="bg-panel-2 border border-line px-3 py-3 w-32" />
+          <input name="max" type="number" min={0} defaultValue={sp.max} className="bg-page border border-line rounded-xl px-3 py-3 w-32" />
         </label>
         <button className="btn btn-primary">Filtrer</button>
         <div className="md:col-span-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
           <label className="flex items-center gap-2 min-h-[40px]"><input type="checkbox" name="offre" value="1" defaultChecked={sp.offre === "1"} className="w-5 h-5 accent-[var(--red)]" /> Avec une offre vérifiée</label>
           <label className="flex items-center gap-2 min-h-[40px]"><input type="checkbox" name="fr" value="1" defaultChecked={sp.fr === "1"} className="w-5 h-5 accent-[var(--red)]" /> Vente en France confirmée</label>
           <label className="flex items-center gap-2">Année
-            <select name="annee" defaultValue={sp.annee ?? ""} className="bg-panel-2 border border-line px-2 py-2">
+            <select name="annee" defaultValue={sp.annee ?? ""} className="bg-page border border-line rounded-xl px-2 py-2">
               <option value="">Toutes</option>{["2026", "2025", "2024", "2023"].map((y) => <option key={y}>{y}</option>)}
             </select>
           </label>
           <label className="flex items-center gap-2">Tri
-            <select name="tri" defaultValue={sp.tri ?? ""} className="bg-panel-2 border border-line px-2 py-2">
+            <select name="tri" defaultValue={sp.tri ?? ""} className="bg-page border border-line rounded-xl px-2 py-2">
               <option value="">Prix vérifiés d&apos;abord</option><option value="recent">Plus récents</option><option value="prix">Prix croissant</option><option value="nom">Nom</option>
             </select>
           </label>
@@ -150,10 +150,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
               const sec = deadline(m.security_end, m.security_end_precision, !!m.security_end_confirmed, today);
               const best = [m.minNew !== null ? { l: "Neuf", p: m.minNew } : null, m.minRefurb !== null ? { l: "Reconditionné", p: m.minRefurb } : null].filter(Boolean) as { l: string; p: number }[];
               return (
-                <li key={m.id} className="card-link group relative bg-panel border border-line flex flex-col">
+                <li key={m.id} className="card-link group relative bg-page border border-line rounded-3xl overflow-hidden flex flex-col">
                   <PhotoFrame media={m.thumb} alt={m.name} form={m.form_factor} className="aspect-[4/3]" />
                   {m.form_factor && m.form_factor !== "classique" && (
-                    <span className="absolute top-2 left-2 tag bg-ink/80 text-text">{m.form_factor === "pliable" ? "Pliable" : m.form_factor === "clapet" ? "À clapet" : "Durci"}</span>
+                    <span className="absolute top-2 left-2 tag bg-page/90 text-text">{m.form_factor === "pliable" ? "Pliable" : m.form_factor === "clapet" ? "À clapet" : "Durci"}</span>
                   )}
                   <div className="p-4 flex flex-col gap-3 flex-1">
                     <div>
@@ -165,7 +165,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
                       {(() => {
                         const seg = segmentOf(m.specs);
                         return seg ? (
-                          <p className={`mt-2 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 border ${seg === "haut" ? "border-red text-red" : seg === "milieu" ? "border-warn/70 text-warn" : "border-white/25 text-muted"}`}>
+                          <p className={`mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ${seg === "haut" ? "bg-red-soft text-red" : seg === "milieu" ? "bg-amber-50 text-warn" : "bg-panel-2 text-muted"}`}>
                             <span aria-hidden>{seg === "haut" ? "▲▲▲" : seg === "milieu" ? "▲▲" : "▲"}</span>{SEGMENT_LABELS[seg]}
                           </p>
                         ) : null;
@@ -210,7 +210,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
                       const keys = keyFacts(m.reliable, m.storages);
                       return keys.length ? (
                         <ul className="flex flex-wrap gap-1.5 text-xs">
-                          {keys.map((k) => <li key={k} className="px-2 py-1 bg-panel-2 border border-line">{k}</li>)}
+                          {keys.map((k) => <li key={k} className="px-2 py-1 bg-page border border-line rounded-xl">{k}</li>)}
                         </ul>
                       ) : null;
                     })()}

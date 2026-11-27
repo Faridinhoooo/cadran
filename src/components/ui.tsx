@@ -5,37 +5,43 @@ import { securityHeadline } from "@/lib/support";
 import { cardVisual } from "@/lib/visual";
 import { PhoneVisual } from "./PhoneVisual";
 
-/** Illustration originale d'un téléphone générique (non identifiable) — utilisée sur l'accueil. */
+/** Illustration originale (non identifiable) : un téléphone qui affiche l'écran « Tes 3 choix » de PickJust. Accueil. */
 export function PhoneIllustration({ className = "" }: { className?: string }) {
+  const display = { fontFamily: "var(--font-display), system-ui, sans-serif" };
+  const body = { fontFamily: "var(--font-body), system-ui, sans-serif" };
+  const row = (y: number, first: boolean, w1: number, w2: number) => (
+    <g key={y}>
+      <rect x="34" y={y} width="252" height="104" rx="18" fill={first ? "#ffffff" : "#f4f4f6"} stroke={first ? "#e0222c" : "none"} strokeWidth="2.5" />
+      <rect x="48" y={y + 14} width="48" height="76" rx="10" fill={first ? "#f4f4f6" : "#e9e9ee"} />
+      <rect x="62" y={y + 20} width="20" height="5" rx="2.5" fill="#cfcfd6" />
+      <text x="110" y={y + 30} fontSize="12" fontWeight="600" fill={first ? "#e0222c" : "#8b8b94"} style={body}>{first ? "N°1 · Meilleur choix" : `N°${y > 300 ? 3 : 2}`}</text>
+      <rect x="110" y={y + 40} width={w1} height="11" rx="5.5" fill="#111114" />
+      <rect x="110" y={y + 62} width="160" height="7" rx="3.5" fill="#e3e3e8" />
+      <rect x="110" y={y + 62} width={w2} height="7" rx="3.5" fill={first ? "#e0222c" : "#9a9aa3"} />
+      <rect x="110" y={y + 78} width="160" height="7" rx="3.5" fill="#e3e3e8" />
+      <rect x="110" y={y + 78} width={w2 - 24} height="7" rx="3.5" fill={first ? "#22c55e" : "#b7b7bf"} />
+    </g>
+  );
   return (
-    <svg viewBox="0 0 320 560" className={className} role="img" aria-label="Illustration d'un smartphone générique">
+    <svg viewBox="0 0 320 600" className={className} role="img" aria-label="Illustration : l'écran des 3 choix PickJust sur un smartphone générique">
       <defs>
-        <linearGradient id="scr" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#2a0b0d" />
-          <stop offset="0.55" stopColor="#120708" />
-          <stop offset="1" stopColor="#0a0a0b" />
-        </linearGradient>
-        <linearGradient id="edge" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#3a3a42" />
-          <stop offset="0.5" stopColor="#8a8a94" />
-          <stop offset="1" stopColor="#3a3a42" />
+        <linearGradient id="pj-edge" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#d9d9de" />
+          <stop offset="0.5" stopColor="#f6f6f8" />
+          <stop offset="1" stopColor="#bdbdc4" />
         </linearGradient>
       </defs>
-      <rect x="10" y="6" width="300" height="548" rx="46" fill="url(#edge)" />
-      <rect x="18" y="14" width="284" height="532" rx="40" fill="#050506" />
-      <rect x="28" y="24" width="264" height="512" rx="32" fill="url(#scr)" />
-      <rect x="122" y="40" width="76" height="20" rx="10" fill="#050506" />
-      <g fontFamily="Archivo, sans-serif" fontWeight="900" fill="#f5f5f4">
-        <text x="52" y="150" fontSize="22" letterSpacing="1">TON BUDGET</text>
-        <text x="52" y="210" fontSize="56" fill="#ff3434">400 €</text>
-      </g>
-      <g fill="none" strokeWidth="10" strokeLinecap="round">
-        <circle cx="160" cy="350" r="78" stroke="#2b2b31" />
-        <path d="M160 272 a78 78 0 1 1 -74 102" stroke="#ff3434" />
-      </g>
-      <text x="160" y="360" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="20" fontWeight="700" fill="#f5f5f4">7 questions</text>
-      <rect x="52" y="468" width="216" height="40" fill="#ff3434" style={{ clipPath: "polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)" }} />
-      <text x="160" y="494" textAnchor="middle" fontFamily="Archivo, sans-serif" fontSize="15" fontWeight="900" fill="#0a0a0b">TROUVER</text>
+      <rect x="6" y="4" width="308" height="592" rx="52" fill="url(#pj-edge)" />
+      <rect x="13" y="11" width="294" height="578" rx="46" fill="#0f0f12" />
+      <rect x="20" y="18" width="280" height="564" rx="40" fill="#ffffff" />
+      <rect x="128" y="32" width="64" height="18" rx="9" fill="#0f0f12" />
+      <text x="34" y="96" fontSize="13" fontWeight="600" fill="#8b8b94" style={body}>Budget 400 € · Photo</text>
+      <text x="34" y="128" fontSize="28" fontWeight="700" fill="#111114" letterSpacing="-0.8" style={display}>Tes 3 choix</text>
+      {row(148, true, 120, 138)}
+      {row(266, false, 100, 112)}
+      {row(384, false, 86, 96)}
+      <rect x="34" y="512" width="252" height="46" rx="23" fill="#0f0f12" />
+      <text x="160" y="541" textAnchor="middle" fontSize="14" fontWeight="600" fill="#ffffff" style={body}>Voir pourquoi</text>
     </svg>
   );
 }
@@ -72,14 +78,14 @@ const LEVELS: Record<string, { label: string; short: string; icon: string; cls: 
   officiel: { label: "Source officielle", short: "Officiel", icon: "✓", cls: "text-ok border-ok/50", help: "Relevé automatiquement sur la page du constructeur, à la date indiquée." },
   autorise: { label: "Source autorisée (Icecat)", short: "Icecat", icon: "✓", cls: "text-ok border-ok/40", help: "Fiche fournie par le fabricant au catalogue ouvert Open Icecat, pour cette référence exacte." },
   communautaire: { label: "Source communautaire", short: "Communautaire", icon: "◐", cls: "text-warn border-warn/50", help: "Base collaborative sourcée sur les politiques constructeurs (endoflife.date)." },
-  editorial: { label: "Saisie à vérifier", short: "À vérifier", icon: "!", cls: "text-muted border-white/25", help: "Saisie éditoriale d'après la fiche constructeur, pas encore confirmée par un relevé automatique." },
+  editorial: { label: "Saisie à vérifier", short: "À vérifier", icon: "!", cls: "text-muted border-text/25", help: "Saisie éditoriale d'après la fiche constructeur, pas encore confirmée par un relevé automatique." },
 };
 
 export function SourceBadge({ level, compact = false, iconOnMobile = false }: { level: SourceLevel | null | undefined; compact?: boolean; iconOnMobile?: boolean }) {
   const l = LEVELS[level ?? "editorial"] ?? LEVELS.editorial;
   const text = compact ? l.short : l.label;
   return (
-    <span title={l.help} className={`inline-flex items-center gap-1 border px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap ${l.cls}`}>
+    <span title={l.help} className={`inline-flex items-center gap-1 border rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap ${l.cls}`}>
       <span aria-hidden>{l.icon}</span>
       {iconOnMobile ? <><span className="hidden sm:inline">{text}</span><span className="sr-only sm:hidden">{l.label}</span></> : text}
     </span>
@@ -150,7 +156,7 @@ export function BudgetGauge({ price, budget, confirmed }: { price: number; budge
   const left = Math.max(0, budget - price);
   return (
     <div className="mt-3" aria-hidden>
-      <div className="h-1.5 bg-panel-2 overflow-hidden">
+      <div className="h-1.5 bg-panel-2 rounded-full overflow-hidden">
         <div className={`h-full ${confirmed ? "bg-ok" : "bg-warn"}`} style={{ width: `${pct}%` }} />
       </div>
       <p className="mt-1.5 flex justify-between text-[11px] text-muted tabular-nums">

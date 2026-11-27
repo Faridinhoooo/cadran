@@ -40,9 +40,9 @@ export default function Page() {
       </p>
       <p className="text-muted mt-2">Une marque présente avec quelques fiches ne signifie pas que toute sa gamme est couverte.</p>
       <div className="grid sm:grid-cols-3 gap-3 mt-6">
-        <div className="bg-panel border border-line p-4"><p className="display text-3xl text-ok">{c.totals.officialSpecs}</p><p className="text-sm text-muted">fiches techniques relevées sur une page officielle</p></div>
-        <div className="bg-panel border border-line p-4"><p className="display text-3xl text-ok">{c.totals.officialSupport}</p><p className="text-sm text-muted">échéances de suivi calculées depuis une page officielle</p></div>
-        <div className="bg-panel border border-line p-4"><p className="display text-3xl">{c.totals.editorialSpecs}</p><p className="text-sm text-muted">fiches encore en saisie « À vérifier »</p></div>
+        <div className="bg-panel rounded-3xl p-4"><p className="display text-3xl text-ok">{c.totals.officialSpecs}</p><p className="text-sm text-muted">fiches techniques relevées sur une page officielle</p></div>
+        <div className="bg-panel rounded-3xl p-4"><p className="display text-3xl text-ok">{c.totals.officialSupport}</p><p className="text-sm text-muted">échéances de suivi calculées depuis une page officielle</p></div>
+        <div className="bg-panel rounded-3xl p-4"><p className="display text-3xl">{c.totals.editorialSpecs}</p><p className="text-sm text-muted">fiches encore en saisie « À vérifier »</p></div>
       </div>
       <div className="mt-4"><SourceLegend /></div>
 
@@ -63,7 +63,7 @@ export default function Page() {
         <h2 id="sources" className="display text-2xl">Sources</h2>
         <div className="mt-3 grid md:grid-cols-2 gap-3">
           {SOURCES.map((s) => (
-            <div key={s.name} className="bg-panel border border-line p-4">
+            <div key={s.name} className="bg-panel rounded-3xl p-4">
               <p className="font-extrabold">{s.url ? <a href={s.url} className="underline" target="_blank" rel="noopener noreferrer">{s.name}</a> : s.name}</p>
               <p className="tag mt-1">{s.status}</p>
               <p className="text-sm text-muted mt-2">{s.what}</p>
@@ -74,7 +74,7 @@ export default function Page() {
 
       <section className="mt-10" aria-labelledby="marques">
         <h2 id="marques" className="display text-2xl">Couverture par marque</h2>
-        <div className="overflow-x-auto mt-3 border border-line bg-panel">
+        <div className="overflow-x-auto mt-3 bg-panel rounded-3xl">
           <table className="specs w-full text-sm min-w-[620px]">
             <thead><tr><th>Marque</th><th>Modèles</th><th>Vente FR confirmée</th><th>Fiche officielle</th><th>Fiche à vérifier</th><th>Avec photo</th><th>Avec offre active</th></tr></thead>
             <tbody>
@@ -112,7 +112,7 @@ export default function Page() {
           ))}
           , complétées par les anciennes pages produit encore en ligne.
         </p>
-        <div className="overflow-x-auto mt-3 border border-line bg-panel">
+        <div className="overflow-x-auto mt-3 bg-panel rounded-3xl">
           <table className="specs w-full text-sm min-w-[560px]">
             <thead><tr><th>Année d&apos;annonce</th>{redmi.families.map((f) => <th key={f}>{f}</th>)}</tr></thead>
             <tbody>
@@ -146,7 +146,7 @@ export default function Page() {
         <h2 id="imports" className="display text-2xl">Derniers imports</h2>
         <ul className="mt-3 grid gap-2 text-sm">
           {c.runs.map((r) => (
-            <li key={r.source} className="bg-panel border border-line p-3">
+            <li key={r.source} className="bg-panel rounded-3xl p-3">
               <strong>{r.source}</strong> — {r.status === "ok" ? "réussi" : r.status} {r.finished_at && `le ${dateTimeFr(r.finished_at)}`} · {r.added} ajouts, {r.updated} mises à jour
             </li>
           ))}

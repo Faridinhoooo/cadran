@@ -58,7 +58,7 @@ export default async function Page({ params }: Params) {
       <nav aria-label="Autres budgets" className="flex flex-wrap gap-2 mt-5">
         {GUIDE_BUDGETS.map((b) => (
           <Link key={b} href={`/meilleurs-smartphones/${b}`} aria-current={b === budget ? "page" : undefined}
-            className={`px-3 py-2 min-h-[44px] grid place-items-center border text-sm font-bold ${b === budget ? "border-red text-red" : "border-line hover:border-white/40"}`}>
+            className={`px-4 py-2 min-h-[44px] grid place-items-center border rounded-full text-sm font-semibold ${b === budget ? "border-red text-red" : "border-line hover:border-text/30"}`}>
             {euros(b)}
           </Link>
         ))}
@@ -69,9 +69,9 @@ export default async function Page({ params }: Params) {
           <h2 id="gagnants" className="display text-2xl sm:text-3xl">Notre sélection par usage</h2>
           <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
             {g.winners.map((w) => (
-              <li key={w.priority} className="bg-panel border border-line flex flex-col">
+              <li key={w.priority} className="bg-panel rounded-3xl flex flex-col">
                 <div className="px-4 pt-4">
-                  <p className="tag text-red">{w.title}</p>
+                  <p className="eyebrow">{w.title}</p>
                   <p className="text-xs text-muted mt-2">{w.blurb}</p>
                 </div>
                 {w.item ? (
@@ -110,7 +110,7 @@ export default async function Page({ params }: Params) {
       <section aria-labelledby="toutes" className="mt-12">
         <h2 id="toutes" className="display text-2xl sm:text-3xl">Toutes les offres sous {euros(budget)}</h2>
         {g.offers.length ? (
-          <div className="overflow-x-auto mt-4 border border-line bg-panel">
+          <div className="overflow-x-auto mt-4 bg-panel rounded-3xl">
             <table className="specs w-full text-sm min-w-[640px]">
               <thead>
                 <tr><th>Modèle</th><th>Capacité</th><th>État</th><th>Vendeur</th><th>Prix</th><th>Source</th></tr>

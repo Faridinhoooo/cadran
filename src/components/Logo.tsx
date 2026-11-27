@@ -1,7 +1,7 @@
 // Identité PickJust : « pick » (choisir) + « just » (le juste choix, le prix juste).
-// Symbole : la tuile à coins coupés de l'interface, frappée d'une coche — le bon choix, validé.
+// Symbole : une tuile arrondie rouge frappée d'une coche blanche — le bon choix, validé.
 
-export const BRAND = { name: "PickJust", red: "#ff3434", ink: "#0a0a0b", text: "#f5f5f4" };
+export const BRAND = { name: "PickJust", red: "#e0222c", ink: "#0f0f12", text: "#111114" };
 
 /** Symbole seul (favicon, application, réseaux). */
 export function LogoMark({ size = 32, className = "", title }: { size?: number; className?: string; title?: string }) {
@@ -15,19 +15,19 @@ export function LogoMark({ size = 32, className = "", title }: { size?: number; 
       aria-label={title}
       aria-hidden={title ? undefined : true}
     >
-      <path d="M13 0H64V51L51 64H0V13Z" fill={BRAND.red} />
-      <path d="M14 34 L27 47 L51 19" fill="none" stroke={BRAND.ink} strokeWidth="9.5" strokeLinecap="square" strokeLinejoin="miter" />
+      <path d="M0 18A18 18 0 0 1 18 0H46A18 18 0 0 1 64 18V46A18 18 0 0 1 46 64H18A18 18 0 0 1 0 46Z" fill={BRAND.red} />
+      <path d="M17 33 L28 44 L48 22" fill="none" stroke="#ffffff" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
-/** Logo complet : symbole + nom (« Pick » clair, « Just » rouge). */
+/** Logo complet : symbole + nom (« Pick » encre, « Just » rouge). */
 export function Logo({ size = 30, className = "" }: { size?: number; className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
       <LogoMark size={size} />
-      <span className="display leading-none tracking-[-0.02em]" style={{ fontSize: size * 0.8 }}>
-        PICK<span className="text-red">JUST</span>
+      <span className="display leading-none font-bold tracking-[-0.03em]" style={{ fontSize: size * 0.82 }}>
+        Pick<span className="text-red">Just</span>
       </span>
     </span>
   );

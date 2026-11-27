@@ -38,9 +38,9 @@ function Gauge({ value, label, detail, from, to }: { value: number; label: strin
   const pct = Math.round(value * 100);
   return (
     <div className="mt-1.5">
-      <div className="relative h-2.5 bg-panel-2 overflow-hidden" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={label} aria-valuetext={detail}>
+      <div className="relative h-2.5 bg-panel-2 rounded-full overflow-hidden" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={label} aria-valuetext={detail}>
         <div className="absolute inset-y-0 left-0 bg-[linear-gradient(90deg,#ff3434,#ffb347_55%,#4ade80)]" style={{ width: "100%", clipPath: `inset(0 ${100 - pct}% 0 0)` }} />
-        {[25, 50, 75].map((t) => <span key={t} aria-hidden className="absolute inset-y-0 w-px bg-ink/60" style={{ left: `${t}%` }} />)}
+        {[25, 50, 75].map((t) => <span key={t} aria-hidden className="absolute inset-y-0 w-px bg-page/80" style={{ left: `${t}%` }} />)}
       </div>
       <p className="flex justify-between text-[10px] text-muted mt-1 tabular-nums"><span>{from}</span><span>{to}</span></p>
       <p className="text-xs mt-0.5">{detail}</p>
@@ -81,7 +81,7 @@ function reasons(c: Choice, answers: Answers, s: Scales, today: Date): string[] 
 /** Aucun iPhone vérifié dans le budget alors que la personne hésite : renvoi vers l'occasion, filtré sur le budget. */
 function UsedIphoneOption({ budget, models }: { budget: number; models: string[] }) {
   return (
-    <aside aria-labelledby="option-iphone" className="border border-line bg-panel cut p-5 sm:p-6">
+    <aside aria-labelledby="option-iphone" className="bg-panel rounded-3xl p-5 sm:p-6">
       <h3 id="option-iphone" className="display text-xl">Et en iPhone&nbsp;?</h3>
       <p className="text-sm text-muted mt-1 max-w-3xl">
         Aucun iPhone neuf ou reconditionné n&apos;a de prix vérifié sous {euros(budget)} chez les vendeurs suivis par PickJust.
@@ -89,7 +89,7 @@ function UsedIphoneOption({ budget, models }: { budget: number; models: string[]
       </p>
       <ul className="grid sm:grid-cols-3 gap-3 mt-4">
         {models.map((name) => (
-          <li key={name} className="border border-line bg-panel-2 p-4">
+          <li key={name} className="bg-panel-2 rounded-2xl p-4">
             <p className="font-extrabold">{name}</p>
             <p className="text-sm mt-2 flex flex-wrap gap-x-3 gap-y-1">
               {usedLinks("Apple", name, null, budget).map((l) => (
@@ -124,9 +124,9 @@ export function ChoicesSection({ choices, answers, scales, thumbs, today, usedIp
           const ram = c.config.ram_gb ?? num(sp.ram_gb);
           const mah = num(sp.battery_mah);
           return (
-            <li key={c.model.id} className={`relative border cut flex flex-col ${i === 0 ? "border-red border-2 bg-[linear-gradient(180deg,#1d1213,#121214_45%)] shadow-[0_0_60px_-20px_rgba(255,52,52,0.6)]" : "bg-panel border-line"}`}>
+            <li key={c.model.id} className={`relative border cut flex flex-col ${i === 0 ? "border-red border-2 bg-page shadow-[0_24px_60px_-28px_rgba(224,34,44,0.45)]" : "bg-panel border-transparent"}`}>
               {i === 0 && (
-                <p className="bg-red text-ink text-center text-xs font-extrabold uppercase tracking-widest py-1.5">★ Notre meilleur choix pour toi</p>
+                <p className="bg-red text-white text-center text-xs font-extrabold uppercase tracking-widest py-1.5">★ Notre meilleur choix pour toi</p>
               )}
               <div className="p-4 pb-0 flex items-center justify-between gap-2">
                 <span className={`display text-lg ${i === 0 ? "text-red" : "text-muted"}`}>

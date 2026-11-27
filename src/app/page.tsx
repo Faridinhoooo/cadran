@@ -33,141 +33,149 @@ export default function Home() {
 
   return (
     <div className="overflow-x-clip">
-      {/* ——— Héros ——— */}
-      <section className="relative mx-auto max-w-7xl px-4 sm:px-6 grid lg:grid-cols-[1.15fr_0.85fr] gap-10 items-center pt-8 pb-14 lg:pt-16">
-        <div className="rise">
-          <p className="tag text-red mb-5">Neuf · Reconditionné · Occasion</p>
-          <h1 className="display text-[2.7rem] leading-[0.92] sm:text-7xl xl:text-8xl">
-            Quel smartphone pour <span className="text-red">ton budget</span>&nbsp;?
-          </h1>
-          <p className="text-lg text-muted mt-5 max-w-xl">
-            Des prix relevés chez les vendeurs, frais compris, et 3 téléphones conseillés en 7 questions rapides, avec la raison de chaque choix.
-          </p>
-          <div className="mt-8">
-            <BudgetForm />
+      {/* ——— Héros : grand titre, budget, et l'écran des 3 choix ——— */}
+      <section className="relative bg-[linear-gradient(180deg,var(--page)_0%,var(--panel)_100%)]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 grid lg:grid-cols-[1.1fr_0.9fr] gap-12 items-center pt-12 pb-16 sm:pt-20 lg:pb-24">
+          <div className="rise">
+            <p className="eyebrow">Neuf · Reconditionné · Occasion</p>
+            <h1 className="display text-[2.9rem] sm:text-7xl xl:text-[5.5rem] mt-4">
+              Le bon smartphone.
+              <br />
+              <span className="text-red">Au juste prix.</span>
+            </h1>
+            <p className="text-lg sm:text-xl text-muted mt-6 max-w-xl leading-relaxed">
+              Donne ton budget, réponds à 7 questions rapides : PickJust te propose 3 téléphones, avec des prix relevés chez les vendeurs et la raison de chaque choix.
+            </p>
+            <div className="mt-9">
+              <BudgetForm />
+            </div>
+            <div className="mt-6 flex flex-wrap items-center gap-2" aria-label="Budgets fréquents">
+              <span className="text-sm text-muted mr-1">Budgets fréquents :</span>
+              {QUICK.map((b) => (
+                <Link key={b} href={`/trouver?budget=${b}`} className="chip">{euros(b)}</Link>
+              ))}
+            </div>
           </div>
-          <div className="mt-5 flex flex-wrap items-center gap-2" aria-label="Budgets fréquents">
-            <span className="text-xs uppercase tracking-wider font-bold text-muted mr-1">Ou directement :</span>
-            {QUICK.map((b) => (
-              <Link key={b} href={`/trouver?budget=${b}`} className="chip">{euros(b)}</Link>
-            ))}
+          <div className="relative mx-auto w-full max-w-[22rem] rise rise-2 hidden sm:block">
+            <div className="halo absolute -inset-24" aria-hidden />
+            <PhoneIllustration className="relative w-[82%] mx-auto drop-shadow-[0_40px_60px_rgba(15,15,18,0.22)] float" />
           </div>
-        </div>
-        <div className="relative mx-auto w-full max-w-sm lg:max-w-md rise rise-2 hidden sm:block">
-          <div className="halo absolute -inset-16" aria-hidden />
-          <PhoneIllustration className="relative w-[70%] mx-auto drop-shadow-[0_30px_60px_rgba(255,52,52,0.25)] float" />
         </div>
       </section>
 
       {/* ——— Chiffres clés ——— */}
-      <section aria-label="Le catalogue en chiffres" className="border-y border-line bg-panel/60 backdrop-blur-sm">
-        <dl className="mx-auto max-w-7xl px-4 sm:px-6 grid grid-cols-2 lg:grid-cols-4">
+      <section aria-label="Le catalogue en chiffres" className="mx-auto max-w-7xl px-4 sm:px-6 pt-14 sm:pt-20">
+        <dl className="grid grid-cols-2 lg:grid-cols-4 gap-y-10 gap-x-6 text-center">
           {[
             [String(totals.published), "smartphones référencés"],
             [String(totals.priced), "avec un prix vérifié aujourd'hui"],
             [String(totals.offers), "offres relevées chez les vendeurs"],
             ["0 €", "payé par un vendeur pour être classé"],
-          ].map(([v, l], i) => (
-            <div key={l} className={`flex flex-col-reverse py-6 ${i % 2 ? "pl-5 border-l border-line" : "pr-5"} ${i === 2 ? "lg:pl-5 lg:border-l" : ""} ${i > 1 ? "border-t lg:border-t-0" : ""} border-line`}>
-              <dt className="text-sm text-muted mt-1">{l}</dt>
-              <dd className="display text-3xl sm:text-4xl tabular-nums">{v}</dd>
+          ].map(([v, l]) => (
+            <div key={l} className="flex flex-col-reverse">
+              <dt className="text-sm text-muted mt-2">{l}</dt>
+              <dd className="display text-4xl sm:text-6xl tabular-nums">{v}</dd>
             </div>
           ))}
         </dl>
         {updated && (
-          <p className="mx-auto max-w-7xl px-4 sm:px-6 pb-4 -mt-1 text-xs text-muted flex items-center gap-2">
+          <p className="mt-8 text-sm text-muted flex flex-wrap items-center justify-center gap-2 text-center">
             <span className="live" aria-hidden /> Prix actualisés le {dateTimeFr(updated)} ·{" "}
-            <Link href="/couverture" className="underline hover:text-text">sources et lacunes</Link>
+            <Link href="/couverture" className="underline underline-offset-2 hover:text-text">sources et lacunes</Link>
           </p>
         )}
       </section>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        {/* ——— Par budget ——— */}
-        <section aria-labelledby="budgets" className="pt-16">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="tag text-red">Guides</p>
-              <h2 id="budgets" className="display text-3xl sm:text-5xl mt-3">Les meilleurs par budget</h2>
-            </div>
-            <Link href="/meilleurs-smartphones" className="link-arrow">Tous les budgets</Link>
-          </div>
-          <ul className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
-            {showcase.map((s) => (
-              <li key={s.budget}>
-                <Link href={`/meilleurs-smartphones/${s.budget}`} className="card-link group block h-full bg-panel border border-line cut">
-                  <div className="p-5 pb-3 flex items-baseline justify-between gap-3">
-                    <p className="display text-3xl">
-                      <span className="text-muted text-lg mr-1">À</span>
-                      {euros(s.budget)}
-                    </p>
-                    <span className="text-xs text-muted tabular-nums">{s.count} modèle{s.count > 1 ? "s" : ""} au total</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-px bg-line mx-5">
-                    {s.picks.length ? s.picks.map((m) => (
-                      <PhotoFrame key={m.id} media={m.thumb} alt={m.name} form={m.form_factor} className="aspect-[3/4]" />
-                    )) : <p className="col-span-3 bg-panel py-10 text-center text-sm text-muted">Aucune offre relevée</p>}
-                  </div>
-                  <div className="p-5 pt-4 flex items-center justify-between gap-3">
-                    <p className="text-sm text-muted">{s.inBand ? <>{s.inBand} entre {s.floor ? euros(s.floor) : "0 €"} et {euros(s.budget)}</> : "Aucun dans cette tranche"}</p>
-                    <span className="text-sm font-bold text-red group-hover:translate-x-1 transition-transform" aria-hidden>Voir →</span>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
+      {/* ——— Par budget ——— */}
+      <section aria-labelledby="budgets" className="mx-auto max-w-7xl px-4 sm:px-6 pt-24 sm:pt-32">
+        <div className="text-center max-w-2xl mx-auto">
+          <p className="eyebrow">Guides</p>
+          <h2 id="budgets" className="display text-4xl sm:text-6xl mt-3">Les meilleurs par budget</h2>
+          <p className="text-muted text-lg mt-4">Les modèles qui entrent vraiment dans ton plafond, frais compris.</p>
+        </div>
+        <ul className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mt-12">
+          {showcase.map((s) => (
+            <li key={s.budget}>
+              <Link href={`/meilleurs-smartphones/${s.budget}`} className="card-link group flex flex-col h-full bg-panel rounded-[28px] overflow-hidden">
+                <div className="px-6 pt-7 text-center">
+                  <p className="display text-3xl sm:text-4xl">Jusqu&apos;à {euros(s.budget)}</p>
+                  <p className="text-sm text-muted mt-2 tabular-nums">{s.count} modèle{s.count > 1 ? "s" : ""} au total</p>
+                </div>
+                <div className="grid grid-cols-3 gap-2 px-5 mt-6">
+                  {s.picks.length ? s.picks.map((m) => (
+                    <PhotoFrame key={m.id} media={m.thumb} alt={m.name} form={m.form_factor} className="aspect-[3/4] rounded-2xl" />
+                  )) : <p className="col-span-3 py-10 text-center text-sm text-muted">Aucune offre relevée</p>}
+                </div>
+                <div className="px-6 pt-5 pb-7 mt-auto flex flex-col items-center gap-3 text-center">
+                  <p className="text-sm text-muted">{s.inBand ? <>{s.inBand} entre {s.floor ? euros(s.floor) : "0 €"} et {euros(s.budget)}</> : "Aucun dans cette tranche"}</p>
+                  <span className="btn btn-ghost min-h-[40px] text-sm group-hover:bg-ink group-hover:text-white transition-colors" aria-hidden>Voir la sélection</span>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <p className="text-center mt-8"><Link href="/meilleurs-smartphones" className="link-arrow">Tous les budgets</Link></p>
+      </section>
 
-        {/* ——— Comment ça marche ——— */}
-        <section aria-labelledby="comment" className="pt-20">
-          <p className="tag text-red">Méthode</p>
-          <h2 id="comment" className="display text-3xl sm:text-5xl mt-3">Comment ça marche</h2>
-          <ol className="grid md:grid-cols-3 gap-4 mt-8">
+      {/* ——— Comment ça marche : bandeau sombre pleine largeur ——— */}
+      <section aria-labelledby="comment" className="mt-24 sm:mt-32 bg-ink text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 sm:py-28">
+          <div className="max-w-3xl">
+            <p className="eyebrow !text-[#ff6b70]">Méthode</p>
+            <h2 id="comment" className="display text-4xl sm:text-6xl mt-3">3 choix. Pas 300.</h2>
+            <p className="text-white/70 text-lg mt-4 max-w-2xl">Au lieu d&apos;un catalogue infini, une courte sélection adaptée à toi, et la raison de chaque choix.</p>
+          </div>
+          <ol className="grid md:grid-cols-3 gap-10 md:gap-8 mt-14">
             {[
               ["01", "Ton budget", "Le plafond inclut la livraison et les frais obligatoires. Une offre à 395 € avec 10 € de frais dépasse un budget de 400 €."],
               ["02", "7 questions rapides", "L'état, tes priorités, ton usage, la taille d'écran, le stockage, la durée et le système. Tu peux revenir en arrière sans rien perdre."],
-              ["03", "3 choix expliqués", "Trois téléphones avec leur processeur, leur mémoire, leur stockage et leur batterie, des jauges pour comparer, et pourquoi chacun est fait pour toi."],
+              ["03", "3 choix expliqués", "Processeur, mémoire, stockage et batterie, des jauges pour comparer, et pourquoi chaque téléphone est fait pour toi."],
             ].map(([n, t, d]) => (
-              <li key={n} className="relative bg-panel border border-line p-6 cut overflow-hidden">
-                <p className="display text-red text-4xl">{n}</p>
-                <h3 className="display text-xl mt-3">{t}</h3>
-                <p className="text-muted mt-2">{d}</p>
+              <li key={n} className="border-t border-white/15 pt-6">
+                <p className="display text-5xl text-white/30 tabular-nums">{n}</p>
+                <h3 className="display text-2xl mt-4">{t}</h3>
+                <p className="text-white/70 mt-3 leading-relaxed">{d}</p>
               </li>
             ))}
           </ol>
-        </section>
+          <Link href="/trouver" className="btn btn-red mt-14">Trouver mon smartphone</Link>
+        </div>
+      </section>
 
-        {/* ——— Par marque ——— */}
-        <section aria-labelledby="marques" className="pt-20">
-          <p className="tag text-red">Catalogue</p>
-          <h2 id="marques" className="display text-3xl sm:text-5xl mt-3">Par marque</h2>
-          <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-8">
-            {brandTiles.map((b) => (
-              <li key={b.id}>
-                <Link href={`/catalogue?marque=${b.id}`} className="card-link group block bg-panel border border-line cut-sm p-5 h-full">
-                  <p className="display text-2xl group-hover:text-red transition-colors">{b.name}</p>
-                  <p className="text-sm text-muted mt-2 tabular-nums">
-                    {b.n} modèle{b.n > 1 ? "s" : ""}{Number.isFinite(b.from) && <> · dès {euros(b.from)}</>}
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
+      {/* ——— Par marque ——— */}
+      <section aria-labelledby="marques" className="mx-auto max-w-7xl px-4 sm:px-6 pt-24 sm:pt-32">
+        <div className="text-center max-w-2xl mx-auto">
+          <p className="eyebrow">Catalogue</p>
+          <h2 id="marques" className="display text-4xl sm:text-6xl mt-3">Par marque</h2>
+        </div>
+        <ul className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-12">
+          {brandTiles.map((b) => (
+            <li key={b.id}>
+              <Link href={`/catalogue?marque=${b.id}`} className="card-link group block bg-panel rounded-3xl px-5 py-7 h-full text-center">
+                <p className="display text-2xl">{b.name}</p>
+                <p className="text-sm text-muted mt-2 tabular-nums">
+                  {b.n} modèle{b.n > 1 ? "s" : ""}{Number.isFinite(b.from) && <> · dès {euros(b.from)}</>}
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
 
-        {/* ——— Appel final ——— */}
-        <section className="mt-20 relative overflow-hidden border border-red cut bg-[linear-gradient(120deg,#1d1213,#0f0f11_60%)] p-8 sm:p-12">
-          <div className="halo absolute -right-40 -top-40 w-[28rem] h-[28rem]" aria-hidden />
-          <div className="relative max-w-2xl">
-            <h2 className="display text-3xl sm:text-5xl">Une minute pour <span className="text-red">bien choisir</span></h2>
-            <p className="text-muted mt-3 text-lg">Sans inscription, sans cookie publicitaire, sans vendeur qui paie pour passer devant.</p>
-            <div className="flex flex-wrap gap-3 mt-7">
+      {/* ——— Appel final ——— */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 mt-24 sm:mt-32">
+        <div className="relative overflow-hidden rounded-[32px] bg-panel px-6 py-16 sm:py-24 text-center">
+          <div className="halo absolute left-1/2 -translate-x-1/2 -top-48 w-[40rem] h-[40rem]" aria-hidden />
+          <div className="relative max-w-2xl mx-auto">
+            <h2 className="display text-4xl sm:text-6xl">Une minute pour <span className="text-red">bien choisir</span>.</h2>
+            <p className="text-muted mt-4 text-lg">Sans inscription, sans cookie publicitaire, sans vendeur qui paie pour passer devant.</p>
+            <div className="flex flex-wrap justify-center gap-3 mt-9">
               <Link href="/trouver" className="btn btn-primary">Trouver mon smartphone</Link>
-              <Link href="/comparer" className="btn btn-secondary">Comparer des modèles</Link>
+              <Link href="/comparer" className="btn btn-ghost">Comparer des modèles</Link>
             </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </div>
   );
 }

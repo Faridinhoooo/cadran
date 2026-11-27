@@ -23,7 +23,7 @@ export default function Page() {
           const g = budgetGuide(b, models, today);
           const cheapest = g.winners.find((w) => w.priority === "prix")?.item;
           return (
-            <li key={b} className="relative bg-panel border border-line hover:border-white/35 p-5 flex flex-col gap-2">
+            <li key={b} className="relative bg-panel rounded-3xl hover:border-text/30 p-5 flex flex-col gap-2">
               <h2 className="display text-3xl">
                 <Link href={`/meilleurs-smartphones/${b}`} className="after:absolute after:inset-0 hover:text-red">{euros(b)}</Link>
               </h2>

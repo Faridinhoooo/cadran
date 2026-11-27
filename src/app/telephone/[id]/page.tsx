@@ -91,7 +91,7 @@ function OfferBlock({ title, offers, cond, today }: { title: string; offers: Off
   const { best, unknownTotal, stale } = bestBy(offers, cond, today);
   const others = offers.filter((o) => o.condition === cond && isFresh(o, today) && o.id !== best?.id);
   return (
-    <section className="bg-panel border border-line p-5 cut-sm flex flex-col gap-2" aria-labelledby={`b-${cond}`}>
+    <section className="bg-panel rounded-3xl p-5 cut-sm flex flex-col gap-2" aria-labelledby={`b-${cond}`}>
       <h3 id={`b-${cond}`} className="display text-xl">{title}</h3>
       {best ? (
         <>
@@ -238,7 +238,7 @@ export default async function Page({ params, searchParams }: Params) {
           {(() => {
             const seg = segmentOf(specs);
             return seg ? (
-              <p className={`mt-2 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2 py-1 border ${seg === "haut" ? "border-red text-red" : seg === "milieu" ? "border-warn/70 text-warn" : "border-white/25 text-muted"}`}
+              <p className={`mt-2 inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${seg === "haut" ? "bg-red-soft text-red" : seg === "milieu" ? "bg-amber-50 text-warn" : "bg-panel-2 text-muted"}`}
                 title="D'après l'indice PickJust de puissance de la puce">
                 <span aria-hidden>{seg === "haut" ? "▲▲▲" : seg === "milieu" ? "▲▲" : "▲"}</span>{SEGMENT_LABELS[seg]}
               </p>
@@ -262,7 +262,7 @@ export default async function Page({ params, searchParams }: Params) {
               <div className="flex flex-wrap gap-2" role="group" aria-labelledby="cap">
                 {configs.map((c) => (
                   <Link key={c.id} href={`/telephone/${id}?go=${c.storage_gb}`} scroll={false} aria-current={c.id === sel?.id ? "true" : undefined}
-                    className={`px-4 py-2.5 min-h-[44px] border-2 font-bold ${c.id === sel?.id ? "border-red bg-[#1d1213]" : "border-line hover:border-white/40"}`}>
+                    className={`px-5 py-2.5 min-h-[44px] border-2 rounded-full font-semibold ${c.id === sel?.id ? "border-red bg-red-soft" : "border-line hover:border-text/30"}`}>
                     {c.id === sel?.id && <span aria-hidden>✓ </span>}{storageLabel(c.storage_gb)}
                   </Link>
                 ))}
@@ -271,7 +271,7 @@ export default async function Page({ params, searchParams }: Params) {
           )}
 
           {/* Prix par état : l'information qui aide à décider, avant les caractéristiques */}
-          <div className="mt-6 grid grid-cols-3 gap-px bg-line border border-line" role="group" aria-label={`Prix ${sel ? `en ${storageLabel(sel.storage_gb)}` : ""}`}>
+          <div className="mt-6 grid grid-cols-3 gap-px bg-line border border-line rounded-2xl overflow-hidden" role="group" aria-label={`Prix ${sel ? `en ${storageLabel(sel.storage_gb)}` : ""}`}>
             {([
               ["Neuf", ...tile("neuf")],
               ["Reconditionné", ...tile("reconditionne")],
@@ -299,7 +299,7 @@ export default async function Page({ params, searchParams }: Params) {
         <div className="grid md:grid-cols-3 gap-4 mt-4">
           <OfferBlock title="Neuf" offers={offers} cond="neuf" today={today} />
           <OfferBlock title="Reconditionné professionnel" offers={offers} cond="reconditionne" today={today} />
-          <section className="bg-panel border border-line p-5 cut-sm" aria-labelledby="b-occ">
+          <section className="bg-panel rounded-3xl p-5 cut-sm" aria-labelledby="b-occ">
             <h3 id="b-occ" className="display text-xl">Occasion entre particuliers</h3>
             <p className="tag mt-2">Estimation de marché, pas une offre</p>
             {market?.ok ? (
@@ -329,7 +329,7 @@ export default async function Page({ params, searchParams }: Params) {
       </section>
 
       <details id="tout" className="group mt-12 scroll-mt-20">
-        <summary className="list-none [&::-webkit-details-marker]:hidden cursor-pointer bg-panel border border-line px-5 py-4 flex items-center justify-between gap-4 min-h-[60px] hover:border-white/30">
+        <summary className="list-none [&::-webkit-details-marker]:hidden cursor-pointer bg-panel rounded-3xl px-5 py-4 flex items-center justify-between gap-4 min-h-[60px] hover:border-text/30">
           <span>
             <span className="display text-xl sm:text-2xl">Toutes les caractéristiques</span>
             <span className="block text-sm text-muted">Mises à jour, écran, photo, connectivité, dimensions, sources</span>
@@ -338,12 +338,12 @@ export default async function Page({ params, searchParams }: Params) {
         </summary>
         <div className="pt-6">
           <dl className="grid sm:grid-cols-3 gap-3">
-            <div className="bg-panel border border-line p-4">
+            <div className="bg-panel rounded-3xl p-4">
               <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Correctifs de sécurité</dt>
               <dd className="font-bold mt-1 text-sm"><SecurityLine d={sec} /></dd>
               <dd className="mt-2"><SupportPill s={supportStatus(support)} /></dd>
             </div>
-            <div className="bg-panel border border-line p-4">
+            <div className="bg-panel rounded-3xl p-4">
               <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Sortie</dt>
               <dd className="font-bold mt-1">{m.release_date ? rel.date : "Date de lancement en France inconnue"}</dd>
               {!m.release_date && m.release_source?.match(/https?:\/\/\S+/) && (
@@ -355,7 +355,7 @@ export default async function Page({ params, searchParams }: Params) {
               <dd className="text-xs mt-1">{m.fr_status === "confirme" ? <span className="text-ok">✓ Vendu en France</span> : <span className="text-muted">Vente en France à vérifier</span>}</dd>
               {m.release_date && <dd className="mt-2"><SourceBadge level={m.release_level} compact /></dd>}
             </div>
-            <div className="bg-panel border border-line p-4">
+            <div className="bg-panel rounded-3xl p-4">
               <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Origine de la marque</dt>
               <dd className="font-bold mt-1">{brand.origin_country ?? NR}</dd>
               <dd className="text-xs text-muted mt-0.5">
@@ -365,7 +365,7 @@ export default async function Page({ params, searchParams }: Params) {
             </div>
           </dl>
 
-      <section className="mt-8 bg-panel border border-line cut p-6 sm:p-8" aria-labelledby="maj">
+      <section className="mt-8 bg-panel rounded-3xl p-6 sm:p-8" aria-labelledby="maj">
         <h2 id="maj" className="display text-2xl sm:text-3xl">Jusqu&apos;à quand ce téléphone sera-t-il mis à jour&nbsp;?</h2>
         <div className="mt-3"><SupportPill s={supportStatus(support)} big /></div>
         <p className="text-sm text-muted mt-2">Calculé aujourd&apos;hui, {dateFr(today.toISOString().slice(0, 10))}. Acheter neuf, reconditionné ou d&apos;occasion ne remet pas ce suivi à zéro.</p>
@@ -420,7 +420,7 @@ export default async function Page({ params, searchParams }: Params) {
         )}
         <div className="grid md:grid-cols-2 gap-6 mt-4">
           {GROUPS.map((g) => (
-            <div key={g.title} className="bg-panel border border-line">
+            <div key={g.title} className="bg-panel rounded-3xl">
               <h3 className="font-extrabold px-3 pt-3">{g.title}</h3>
               <table className="specs w-full text-sm">
                 <tbody>
@@ -456,7 +456,7 @@ export default async function Page({ params, searchParams }: Params) {
 }
 
 function SupportPill({ s, big = false }: { s: ReturnType<typeof supportStatus>; big?: boolean }) {
-  const cls = s.kind === "officiel" ? "text-ok border-ok/50" : s.kind === "absence_verifiee" ? "text-text border-white/40" : "text-warn border-warn/50";
+  const cls = s.kind === "officiel" ? "text-ok border-ok/50" : s.kind === "absence_verifiee" ? "text-text border-text/25" : "text-warn border-warn/50";
   const icon = s.kind === "officiel" ? "✓" : s.kind === "absence_verifiee" ? "○" : "?";
   return (
     <span title={s.help} className={`inline-flex items-center gap-1.5 border px-2 py-1 font-bold ${big ? "text-sm" : "text-[11px] uppercase tracking-wider"} ${cls}`}>

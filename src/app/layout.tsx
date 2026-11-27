@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Inter } from "next/font/google";
+import { Inter, Outfit } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { NavLinks } from "@/components/NavLinks";
 import { Logo } from "@/components/Logo";
 import { siteUrl } from "@/lib/site-config";
 
-const display = Archivo({ subsets: ["latin"], weight: ["700", "800", "900"], variable: "--font-display" });
+const display = Outfit({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-display" });
 const body = Inter({ subsets: ["latin"], variable: "--font-body" });
 
 export const metadata: Metadata = {
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: "Entre ton budget, réponds à 7 questions rapides et découvre quel smartphone acheter, dans quel état et pourquoi.",
 };
 
-export const viewport: Viewport = { themeColor: "#0a0a0b", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#ffffff", width: "device-width", initialScale: 1 };
 
 
 
@@ -30,8 +30,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#contenu" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 btn btn-secondary">
           Aller au contenu
         </a>
-        <header className="border-b border-line bg-ink/85 backdrop-blur sticky top-0 z-40">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 flex items-center gap-x-2 sm:gap-x-6 py-2 sm:py-3">
+        <header className="border-b border-line bg-page/95 backdrop-blur-xl sticky top-0 z-40">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 flex items-center gap-x-2 sm:gap-x-6 h-14 sm:h-16">
             <Link href="/" aria-label="PickJust, accueil" className="shrink-0">
               <span className="sm:hidden"><Logo size={22} /></span>
               <span className="hidden sm:block"><Logo size={28} /></span>
@@ -42,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main id="contenu" className="flex-1">
           {children}
         </main>
-        <footer className="border-t border-line mt-20 bg-panel/50">
+        <footer className="mt-24 bg-panel">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
             <div>
               <Link href="/" aria-label="PickJust, accueil"><Logo size={30} /></Link>
@@ -56,10 +56,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               ["Transparence", [["/couverture", "Sources et méthode"], ["/classement", "Comment nous classons"], ["/mentions-legales", "Mentions légales"], ["/confidentialite", "Confidentialité"]]],
             ].map(([title, links]) => (
               <nav key={title as string} aria-label={title as string}>
-                <p className="text-xs font-bold uppercase tracking-wider text-muted">{title as string}</p>
+                <p className="text-sm font-semibold">{title as string}</p>
                 <ul className="mt-3 space-y-2 text-sm">
                   {(links as string[][]).map(([href, label]) => (
-                    <li key={href}><Link href={href} className="hover:text-red transition-colors">{label}</Link></li>
+                    <li key={href}><Link href={href} className="text-muted hover:text-text transition-colors">{label}</Link></li>
                   ))}
                 </ul>
               </nav>

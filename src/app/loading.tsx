@@ -6,7 +6,7 @@ export default function Loading() {
       <div className="h-14 w-2/3 max-w-xl bg-panel-2 animate-pulse mt-4" />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-10">
         {Array.from({ length: 6 }, (_, i) => (
-          <div key={i} className="cut border border-line bg-panel">
+          <div key={i} className="cut bg-panel rounded-3xl">
             <div className="aspect-[4/3] bg-panel-2 animate-pulse" />
             <div className="p-4 space-y-2">
               <div className="h-3 w-1/3 bg-panel-2 animate-pulse" />

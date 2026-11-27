@@ -268,12 +268,12 @@ export function Phone3D(p: Phone3DProps) {
           aria-label={`Maquette 3D indicative du ${p.name}, à faire tourner. Proportions réelles : ${dims}.`} />
         {state === "chargement" && <p className="absolute inset-0 grid place-items-center text-sm text-muted" role="status">Chargement de la maquette 3D…</p>}
         {state === "erreur" && <p className="absolute inset-0 grid place-items-center text-sm text-warn p-6 text-center" role="alert">La 3D n&apos;est pas disponible sur cet appareil. La photo reste affichée.</p>}
-        <span className="absolute top-2 left-2 tag bg-ink/80 text-text">Maquette 3D indicative</span>
+        <span className="absolute top-2 left-2 tag bg-page/90 text-text">Maquette 3D indicative</span>
         {state === "pret" && <span className="absolute bottom-2 right-3 text-[11px] text-muted">Fais glisser pour tourner</span>}
       </div>
       <div className="mt-3 flex flex-wrap gap-2" aria-label="Orientation">
         {(["face", "dos", "profil"] as const).map((v) => (
-          <button key={v} type="button" onClick={() => setView.current(v)} className="px-3 py-1.5 min-h-[40px] border border-line hover:border-white/40 text-xs font-bold uppercase tracking-wider">
+          <button key={v} type="button" onClick={() => setView.current(v)} className="px-3 py-1.5 min-h-[40px] border border-line hover:border-text/30 text-xs font-bold uppercase tracking-wider">
             {v === "face" ? "Face" : v === "dos" ? "Dos" : "Profil"}
           </button>
         ))}
@@ -281,8 +281,8 @@ export function Phone3D(p: Phone3DProps) {
       <div className="mt-2 flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Coloris">
         {p.swatches.map((s, i) => (
           <button key={s.name} type="button" role="radio" aria-checked={i === color} onClick={() => pick(i)} title={s.name}
-            className={`flex items-center gap-2 px-2.5 py-1.5 min-h-[40px] border text-xs font-semibold ${i === color ? "border-red" : "border-line hover:border-white/40"}`}>
-            <span aria-hidden className="w-5 h-5 rounded-full border border-white/30" style={{ background: s.hex }} />
+            className={`flex items-center gap-2 px-3 py-1.5 min-h-[40px] border rounded-full text-xs font-semibold ${i === color ? "border-red" : "border-line hover:border-text/30"}`}>
+            <span aria-hidden className="w-5 h-5 rounded-full border border-text/25" style={{ background: s.hex }} />
             {s.name}
           </button>
         ))}

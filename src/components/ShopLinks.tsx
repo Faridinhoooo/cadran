@@ -18,13 +18,13 @@ export function ShopLinks({ brand, name, storageGb, title = "Comparer les prix a
     );
   }
   return (
-    <section aria-labelledby="ailleurs-titre" id="ailleurs" className="bg-panel border border-line cut-sm p-5 scroll-mt-24">
+    <section aria-labelledby="ailleurs-titre" id="ailleurs" className="bg-panel rounded-3xl p-5 scroll-mt-24">
       <h3 id="ailleurs-titre" className="display text-xl">{title}</h3>
       <ul className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-4">
         {links.map((l) => (
           <li key={l.id}>
             <a href={l.url} target="_blank" rel="noopener noreferrer nofollow"
-              className="card-link group flex flex-col justify-between h-full min-h-[72px] border border-line bg-panel-2 px-4 py-3">
+              className="card-link group flex flex-col justify-between h-full min-h-[72px] bg-panel-2 rounded-2xl px-4 py-3">
               <span className="font-bold group-hover:text-red transition-colors">{l.label} <span aria-hidden>↗</span></span>
               <span className="text-xs text-muted mt-1">{l.hint}</span>
               <span className="sr-only"> (nouvel onglet)</span>
@@ -51,7 +51,7 @@ export function UsedLinks({ brand, name, storageGb, emphasis = false }: { brand:
         {links.map((l) => (
           <li key={l.id}>
             <a href={l.url} target="_blank" rel="noopener noreferrer nofollow"
-              className="card-link group flex flex-col justify-between h-full min-h-[72px] border border-line bg-panel-2 px-4 py-3">
+              className="card-link group flex flex-col justify-between h-full min-h-[72px] bg-panel-2 rounded-2xl px-4 py-3">
               <span className="font-bold group-hover:text-red transition-colors">{l.label} <span aria-hidden>↗</span></span>
               <span className="text-xs text-muted mt-1">{l.hint}</span>
               <span className="sr-only"> (nouvel onglet)</span>

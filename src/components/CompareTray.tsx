@@ -45,7 +45,7 @@ export function CompareToggle({ id, name }: { id: string; name: string }) {
       aria-pressed={on}
       disabled={full}
       onClick={() => write(on ? ids.filter((x) => x !== id) : [...ids, id])}
-      className={`text-sm font-semibold px-3 py-2 min-h-[44px] border ${on ? "border-red text-text bg-[#1d1213]" : "border-line text-muted hover:text-text"} disabled:opacity-40`}
+      className={`text-sm font-semibold px-4 py-2 min-h-[44px] border rounded-full ${on ? "border-red text-text bg-red-soft" : "border-line text-muted hover:text-text"} disabled:opacity-40`}
     >
       {on ? "✓ Dans le comparateur" : full ? "Comparateur plein (3)" : "+ Comparer"}
       <span className="sr-only"> {name}</span>
@@ -57,7 +57,7 @@ export function CompareTray() {
   const ids = useSelection();
   if (!ids.length) return null;
   return (
-    <div className="fixed bottom-0 inset-x-0 z-40 bg-panel border-t border-red">
+    <div className="fixed bottom-0 inset-x-0 z-40 bg-page/95 backdrop-blur-xl border-t border-line shadow-[0_-12px_30px_-18px_rgba(15,15,18,0.3)]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex flex-wrap items-center gap-3">
         <p className="text-sm font-semibold">{ids.length} téléphone{ids.length > 1 ? "s" : ""} sélectionné{ids.length > 1 ? "s" : ""} (2 ou 3 pour comparer)</p>
         <button type="button" onClick={() => write([])} className="text-sm underline text-muted ml-auto">Vider</button>

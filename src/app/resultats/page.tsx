@@ -22,7 +22,7 @@ const PRIO_SHORT: Record<Priority, string> = {
 
 function EditRow({ label, value, children }: { label: string; value: string; children: React.ReactNode }) {
   return (
-    <details className="bg-panel border border-line group">
+    <details className="bg-panel rounded-3xl group">
       <summary className="cursor-pointer list-none px-4 py-3 min-h-[52px] flex flex-wrap items-center gap-x-3">
         <span className="text-xs uppercase tracking-wider text-muted font-bold">{label}</span>
         <span className="font-semibold">{value}</span>
@@ -35,7 +35,7 @@ function EditRow({ label, value, children }: { label: string; value: string; chi
 
 function Opt({ href, on, children }: { href: string; on: boolean; children: React.ReactNode }) {
   return (
-    <Link href={`/resultats?${href}`} aria-current={on ? "true" : undefined} className={`px-3 py-2.5 border text-sm font-semibold ${on ? "border-red bg-[#1d1213]" : "border-line hover:border-white/40"}`}>
+    <Link href={`/resultats?${href}`} aria-current={on ? "true" : undefined} className={`px-4 py-2.5 border rounded-full text-sm font-semibold ${on ? "border-red bg-red-soft" : "border-line hover:border-text/30"}`}>
       {on && <span aria-hidden>✓ </span>}
       {children}
     </Link>
@@ -130,11 +130,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
     <div className="mt-12 grid lg:grid-cols-[340px_1fr] gap-8 items-start">
       <aside id="reponses" aria-label="Tes réponses" className="grid gap-2 lg:sticky lg:top-20 order-2 lg:order-none scroll-mt-24">
         <h2 className="display text-xl mb-2">Tes réponses</h2>
-        <form action="/resultats" method="get" className="bg-panel border border-line px-4 py-3 flex flex-wrap items-end gap-2">
+        <form action="/resultats" method="get" className="bg-panel rounded-3xl px-4 py-3 flex flex-wrap items-end gap-2">
           {[...toParams(answers).entries()].filter(([k]) => k !== "budget").map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
           <label className="grid gap-1 flex-1">
             <span className="text-xs uppercase tracking-wider text-muted font-bold">Budget maximum (€)</span>
-            <input name="budget" type="number" min={50} defaultValue={answers.budget} className="bg-panel-2 border border-line px-3 py-2 font-bold tabular-nums w-full" />
+            <input name="budget" type="number" min={50} defaultValue={answers.budget} className="bg-page border border-line rounded-xl px-3 py-2 font-bold tabular-nums w-full" />
           </label>
           <button className="btn btn-ghost min-h-[42px] px-4 text-sm">Mettre à jour</button>
         </form>
@@ -291,7 +291,7 @@ function VerifyOfferCard({ v }: { v: VerifyCard }) {
   const thumbs = thumbnails();
   const capacity = v.config.storage_gb === 0 ? "Capacité à choisir chez le vendeur (prix de départ affiché)" : storageLabel(v.config.storage_gb);
   return (
-    <li className="bg-panel border border-line hover:border-white/30 transition-colors flex flex-col">
+    <li className="bg-panel rounded-3xl hover:border-text/30 transition-colors flex flex-col">
       <div className="grid grid-cols-[104px_1fr] gap-4 p-4">
         <Thumb media={thumbs.get(v.model.id) ?? null} alt={v.model.name} form={v.model.form_factor} size={104} />
         <div className="min-w-0">
@@ -354,7 +354,7 @@ const FUNNEL_LABELS: [keyof Funnel, string][] = [
 
 function FunnelDetails({ f }: { f: Funnel }) {
   return (
-    <details className="bg-panel border border-line">
+    <details className="bg-panel rounded-3xl">
       <summary className="cursor-pointer px-4 py-3 min-h-[48px] font-semibold">Comment ces résultats ont été établis ({f.total} offres relevées)</summary>
       <ul className="px-4 pb-4 grid sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">
         {FUNNEL_LABELS.filter(([k]) => f[k] > 0).map(([k, l]) => (
@@ -420,7 +420,7 @@ function ElsewhereSection({ answers }: { answers: Answers }) {
       {models.length > 0 && (
         <ul className="grid md:grid-cols-2 gap-4">
           {models.map((m) => (
-            <li key={m.id} className="bg-panel border border-line p-4 grid grid-cols-[88px_1fr] gap-4">
+            <li key={m.id} className="bg-panel rounded-3xl p-4 grid grid-cols-[88px_1fr] gap-4">
               <Thumb media={thumbs.get(m.id) ?? null} alt={m.name} form={m.form_factor} size={88} />
               <div className="min-w-0">
                 <h3 className="font-extrabold text-lg leading-tight"><Link href={`/telephone/${m.id}`} className="hover:text-red">{m.name}</Link></h3>

@@ -11,9 +11,9 @@ export function Gauge({ value, label, detail, from, to }: { value: number; label
   const pct = Math.round(value * 100);
   return (
     <div className="mt-2">
-      <div className="relative h-2.5 bg-panel-2 overflow-hidden" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={label} aria-valuetext={detail}>
+      <div className="relative h-2.5 bg-panel-2 rounded-full overflow-hidden" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={label} aria-valuetext={detail}>
         <div className="absolute inset-y-0 left-0 w-full bg-[linear-gradient(90deg,#ff3434,#ffb347_55%,#4ade80)]" style={{ clipPath: `inset(0 ${100 - pct}% 0 0)` }} />
-        {[25, 50, 75].map((t) => <span key={t} aria-hidden className="absolute inset-y-0 w-px bg-ink/60" style={{ left: `${t}%` }} />)}
+        {[25, 50, 75].map((t) => <span key={t} aria-hidden className="absolute inset-y-0 w-px bg-page/80" style={{ left: `${t}%` }} />)}
       </div>
       <p className="flex justify-between text-[10px] text-muted mt-1 tabular-nums"><span>{from}</span><span>{to}</span></p>
       <p className="text-xs mt-0.5">{detail}</p>
@@ -57,7 +57,7 @@ export function KeySpecs({ specs, ram, storages, selected, scales }: { specs: Re
     <section aria-labelledby="essentiel" className="mt-6">
       <h2 id="essentiel" className="text-xs font-extrabold uppercase tracking-wider text-muted">L&apos;essentiel</h2>
       <dl className="mt-2 grid grid-cols-2 gap-3">
-        <div className="bg-panel border border-line p-4 col-span-2">
+        <div className="bg-panel rounded-3xl p-4 col-span-2">
           <dt className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted font-bold"><span aria-hidden className="text-red text-base">⚡</span> Processeur</dt>
           <dd className="font-extrabold text-lg mt-0.5">{chip ?? "Non publié par le fabricant"}</dd>
           {score !== null && (
@@ -66,7 +66,7 @@ export function KeySpecs({ specs, ram, storages, selected, scales }: { specs: Re
               from="Moins puissant" to="Plus puissant" /></dd>
           )}
         </div>
-        <div className="bg-panel border border-line p-4 col-span-2">
+        <div className="bg-panel rounded-3xl p-4 col-span-2">
           <dt className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted font-bold"><span aria-hidden className="text-red text-base">▮</span> Batterie</dt>
           <dd className="font-extrabold text-lg mt-0.5">{mah ? `${mah.toLocaleString("fr-FR")} mAh` : "Non publiée par le fabricant"}{w ? <span className="text-sm font-semibold text-muted"> · charge {w} W</span> : null}</dd>
           {mah !== null && (
@@ -75,12 +75,12 @@ export function KeySpecs({ specs, ram, storages, selected, scales }: { specs: Re
               from={`${scales.battery.min.toLocaleString("fr-FR")} mAh`} to={`${scales.battery.max.toLocaleString("fr-FR")} mAh`} /></dd>
           )}
         </div>
-        <div className="bg-panel border border-line p-4">
+        <div className="bg-panel rounded-3xl p-4">
           <dt className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted font-bold"><span aria-hidden className="text-red text-base">▤</span> Stockage</dt>
           <dd className="font-extrabold text-lg mt-0.5">{selected ? storageLabel(selected) : st.length ? st.map(storageLabel).join(" / ") : "Non publié"}</dd>
           {selected && st.length > 1 && <dd className="text-xs text-muted mt-0.5">Existe aussi en {st.filter((x) => x !== selected).map(storageLabel).join(", ")}</dd>}
         </div>
-        <div className="bg-panel border border-line p-4">
+        <div className="bg-panel rounded-3xl p-4">
           <dt className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted font-bold"><span aria-hidden className="text-red text-base">◫</span> Mémoire vive</dt>
           <dd className="font-extrabold text-lg mt-0.5">{ram ? `${ram} Go` : "Non publiée"}</dd>
         </div>

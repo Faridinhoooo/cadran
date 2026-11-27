@@ -18,7 +18,7 @@ export function DiffTable({ names, rows }: { names: string[]; rows: DiffRow[] })
         <input type="checkbox" checked={onlyDiff} onChange={(e) => setOnlyDiff(e.target.checked)} className="w-5 h-5 accent-[var(--red)]" />
         Afficher seulement les différences
       </label>
-      <div className="overflow-x-auto border border-line bg-panel">
+      <div className="overflow-x-auto bg-panel rounded-3xl">
         <table className="specs w-full text-sm min-w-[560px]">
           <caption className="sr-only">Comparaison des caractéristiques</caption>
           <thead>

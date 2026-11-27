@@ -163,7 +163,7 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
               inputMode="decimal"
               value={s.budget || ""}
               onChange={(e) => set({ budget: Number(e.target.value) })}
-              className="w-28 bg-panel-2 border border-line px-3 py-2 pr-7 font-bold tabular-nums"
+              className="w-28 bg-page border border-line rounded-xl px-3 py-2 pr-7 font-bold tabular-nums"
               aria-label="Budget maximum en euros"
             />
             <span aria-hidden className="absolute right-2.5 top-1/2 -translate-y-1/2 font-bold">€</span>
@@ -315,7 +315,7 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
       )}
 
       {isLast && (
-        <details className="mt-8 bg-panel border border-line">
+        <details className="mt-8 bg-panel rounded-3xl">
           <summary className="cursor-pointer px-5 py-4 font-bold min-h-[52px] flex items-center">Affiner mon choix (facultatif)</summary>
           <div className="px-5 pb-5 grid gap-5">
             <label className="flex items-center gap-3 min-h-[44px]">
@@ -333,7 +333,7 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
                     <button
                       key={b.id}
                       type="button"
-                      className={`px-3 py-2 border text-sm font-semibold min-h-[44px] ${inc ? "border-ok" : exc ? "border-red line-through" : "border-line"}`}
+                      className={`px-4 py-2 border rounded-full text-sm font-semibold min-h-[44px] ${inc ? "border-ok" : exc ? "border-red line-through" : "border-line"}`}
                       onClick={() => {
                         const i = (s.includeBrands ?? []).filter((x) => x !== b.id);
                         const x = (s.excludeBrands ?? []).filter((y) => y !== b.id);
