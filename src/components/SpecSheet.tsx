@@ -50,7 +50,7 @@ function Column({ lines }: { lines: SpecLine[] }) {
   );
 }
 
-export function SpecSheet({ lines, footer }: { lines: SpecLine[]; footer?: React.ReactNode }) {
+export function SpecSheet({ lines, footer, legend = true }: { lines: SpecLine[]; footer?: React.ReactNode; legend?: boolean }) {
   const half = Math.ceil(lines.length / 2);
   return (
     <div className="bg-page border border-line rounded-3xl p-4 sm:p-8">
@@ -59,9 +59,11 @@ export function SpecSheet({ lines, footer }: { lines: SpecLine[]; footer?: React
         <div className="md:pl-8"><Column lines={lines.slice(half)} /></div>
       </div>
       <div className="mt-5 pt-4 border-t border-line flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted">
-        <span><span className="text-ok font-bold" aria-hidden>✓</span> Source officielle</span>
-        <span><span className="text-warn font-bold" aria-hidden>◐</span> Communautaire</span>
-        <span><span className="font-bold" aria-hidden>!</span> À vérifier</span>
+        {legend && <>
+          <span><span className="text-ok font-bold" aria-hidden>✓</span> Source officielle</span>
+          <span><span className="text-warn font-bold" aria-hidden>◐</span> Communautaire</span>
+          <span><span className="font-bold" aria-hidden>!</span> À vérifier</span>
+        </>}
         {footer}
       </div>
     </div>

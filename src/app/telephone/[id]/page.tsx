@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { configsFor, getBrand, getModel, marketFor, mediaFor, specsFor, specMap, supportFor, type OfferRow, type SpecRow } from "@/lib/queries";
 import { isFresh, offerTotal } from "@/lib/engine";
 import { NR, dateFr, dateTimeFr, euros, releaseLabel, sourceLabel, specText, storageLabel } from "@/lib/format";
-import { securityDeadline, securityHeadline, supportStatus, upgradesDeadline } from "@/lib/support";
+import { securityDeadline, upgradesDeadline } from "@/lib/support";
 import { Gallery } from "@/components/Gallery";
 import { ShopLinks, UsedLinks } from "@/components/ShopLinks";
 import { swatches } from "@/lib/colors";
@@ -13,7 +13,7 @@ import { KeySpecs, describe } from "@/components/KeySpecs";
 import { MoreSpecsButton } from "@/components/MoreSpecsButton";
 import { scales } from "@/lib/scales";
 import { SEGMENT_LABELS, segmentOf } from "@/lib/chips";
-import { Crumbs, SecurityLine, SourceBadge } from "@/components/ui";
+import { Crumbs } from "@/components/ui";
 import { SpecSheet, type SpecLine } from "@/components/SpecSheet";
 import { CompareToggle, CompareTray } from "@/components/CompareTray";
 import { MARKET_WINDOW_DAYS } from "@/lib/market";
@@ -163,7 +163,6 @@ export default async function Page({ params, searchParams }: Params) {
   if (!m) notFound();
   const today = new Date();
   const brand = getBrand(m.brand_id)!;
-  const parent = brand.parent_id ? getBrand(brand.parent_id) : null;
   const specRows = specsFor(id);
   const specs = specMap(specRows);
   const measured = specMap(specRows, "mesure");
@@ -222,6 +221,24 @@ export default async function Page({ params, searchParams }: Params) {
     ...(m.release_date ? [{ label: "Sortie", value: rel.date, level: m.release_level ?? "editorial", url: null }] : []),
     ...(support?.os_launch ? [{ label: "Système au lancement", value: support.os_launch, level: support.level ?? "communautaire", url: support.source_url ?? null }] : []),
     ...specValues.filter((x) => x.r.kind).map((x) => ({ label: x.label, value: String(x.r.value), level: x.r.level ?? "editorial", url: x.r.url, measured: x.r.kind === "mesure" })),
+  ];
+
+  const followLines: SpecLine[] = [
+    {
+      label: "Mises à jour Android / iOS",
+      value: upg.state === "inconnue" ? "Fin non annoncée" : upg.state === "periode_terminee" ? "Terminées"
+        : `${upg.precision === "mois" ? "Jusqu'en" : "Jusqu'au"} ${upg.dateLabel}`,
+      level: upg.state === "inconnue" ? null : support?.level ?? "communautaire", url: support?.source_url ?? null,
+    },
+    {
+      label: "Correctifs de sécurité",
+      value: sec.state === "inconnue" ? "Fin non annoncée" : sec.state === "periode_terminee" ? "Terminés"
+        : `${sec.precision === "mois" ? "Jusqu'en" : "Jusqu'au"} ${sec.dateLabel}`,
+      level: sec.state === "inconnue" ? null : support?.level ?? "communautaire", url: support?.source_url ?? null,
+    },
+    { label: "Sortie", value: m.release_date ? rel.date : "Non communiquée", level: m.release_date ? m.release_level ?? "editorial" : null, url: null },
+    { label: "Vendu en France", value: m.fr_status === "confirme" ? "Oui" : "À vérifier", level: null, url: null },
+    { label: "Origine de la marque", value: brand.origin_country ?? NR, level: null, url: brand.source_url ?? null },
   ];
 
   return (
@@ -366,88 +383,20 @@ export default async function Page({ params, searchParams }: Params) {
             />
           </section>
 
-          <dl className="grid sm:grid-cols-3 gap-3 mt-8">
-            <div className="bg-panel rounded-3xl p-4">
-              <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Correctifs de sécurité</dt>
-              <dd className="font-bold mt-1 text-sm"><SecurityLine d={sec} /></dd>
-              <dd className="mt-2"><SupportPill s={supportStatus(support)} /></dd>
-            </div>
-            <div className="bg-panel rounded-3xl p-4">
-              <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Sortie</dt>
-              <dd className="font-bold mt-1">{m.release_date ? rel.date : "Date de lancement en France inconnue"}</dd>
-              {!m.release_date && m.release_source?.match(/https?:\/\/\S+/) && (
-                <dd className="text-xs text-muted mt-0.5">
-                  Non publiée sur la <a href={m.release_source.match(/https?:\/\/\S+/)![0]} className="underline" target="_blank" rel="noopener noreferrer">page consultée</a>
-                </dd>
-              )}
-              {rel.note && <dd className="text-xs text-muted mt-0.5">{m.release_level === "officiel" && m.brand_id === "google" ? "Première vente aux États-Unis ; date française à vérifier" : "Date mondiale ; date française à vérifier"}</dd>}
-              <dd className="text-xs mt-1">{m.fr_status === "confirme" ? <span className="text-ok">✓ Vendu en France</span> : <span className="text-muted">Vente en France à vérifier</span>}</dd>
-              {m.release_date && <dd className="mt-2"><SourceBadge level={m.release_level} compact /></dd>}
-            </div>
-            <div className="bg-panel rounded-3xl p-4">
-              <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Origine de la marque</dt>
-              <dd className="font-bold mt-1">{brand.origin_country ?? NR}</dd>
-              <dd className="text-xs text-muted mt-0.5">
-                Pays de fondation · {brand.owner_group}{parent ? ` (groupe ${parent.name})` : ""}
-                {brand.source_url && <> · <a href={brand.source_url} className="underline" target="_blank" rel="noopener noreferrer">Wikipédia</a></>}
-              </dd>
-            </div>
-          </dl>
-
-      <section className="mt-8 bg-panel rounded-3xl p-6 sm:p-8" aria-labelledby="maj">
-        <h2 id="maj" className="display text-2xl sm:text-3xl">Jusqu&apos;à quand ce téléphone sera-t-il mis à jour&nbsp;?</h2>
-        <div className="mt-3"><SupportPill s={supportStatus(support)} big /></div>
-        <p className="text-sm text-muted mt-2">Calculé aujourd&apos;hui, {dateFr(today.toISOString().slice(0, 10))}. Acheter neuf, reconditionné ou d&apos;occasion ne remet pas ce suivi à zéro.</p>
-        <div className="grid md:grid-cols-2 gap-6 mt-6">
-          <div>
-            <h3 className="font-extrabold text-xl">Mises à niveau du système</h3>
-            <p className="text-sm text-muted mt-1">Ce sont les nouvelles versions d&apos;Android ou d&apos;iOS. Elles peuvent apporter des fonctions et faire évoluer l&apos;interface.</p>
-            <dl className="mt-3 text-sm grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5">
-              <dt className="text-muted">Au lancement</dt><dd>{support?.os_launch ?? NR}</dd>
-              <dt className="text-muted">Dernière version vérifiée</dt><dd>{support?.os_latest_verified ?? NR}</dd>
-              <dt className="text-muted">Engagement</dt><dd>{support?.upgrade_commitment ?? "Aucun engagement chiffré trouvé"}</dd>
-              <dt className="text-muted">Échéance</dt>
-              <dd className="font-bold">
-                {upg.state === "inconnue" ? "Date de fin non annoncée"
-                  : upg.state === "periode_terminee" ? "Période garantie terminée"
-                  : `${upg.precision === "mois" ? "Jusqu'en" : "Jusqu'au"} ${upg.dateLabel} · encore ${upg.remainingLabel}`}
-              </dd>
-            </dl>
-          </div>
-          <div>
-            <h3 className="font-extrabold text-xl">Correctifs de sécurité</h3>
-            <p className="text-sm text-muted mt-1">Ils corrigent des failles qui pourraient exposer ton téléphone ou tes données. Ils peuvent continuer après la dernière grande mise à niveau du système.</p>
-            <p className="mt-3 text-lg font-extrabold">{securityHeadline(sec)}</p>
-            <dl className="mt-2 text-sm grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5">
-              <dt className="text-muted">Durée annoncée</dt><dd>{support?.security_years ? `${support.security_years} ans` : NR}</dd>
-              <dt className="text-muted">Fréquence</dt><dd>{support?.security_frequency ?? "Non publiée"}</dd>
-              <dt className="text-muted">Précision</dt><dd>{sec.precision === "mois" ? "Mois connu (aucun jour précis publié)" : sec.precision === "jour" ? "Date au jour près" : "—"}</dd>
-            </dl>
-            {sec.state === "inconnue" && <p className="text-sm text-muted mt-2">Une estimation fondée sur l&apos;historique ne constitue pas une garantie : aucune date n&apos;est affichée.</p>}
-          </div>
-        </div>
-        <p className="text-xs text-muted mt-6 flex flex-wrap items-center gap-2">
-          Source des échéances : {support?.source_url ? <a href={support.source_url} className="underline" target="_blank" rel="noopener noreferrer">{support.source_name}</a> : "aucune"}
-          {support?.policy_url && <> · politique officielle : <a href={support.policy_url} className="underline" target="_blank" rel="noopener noreferrer">{new URL(support.policy_url).hostname}</a></>}
-          {support?.checked_at && <> · vérifié le {dateFr(support.checked_at)}</>}
-        </p>
-      </section>
+          <section aria-labelledby="suivi" className="mt-10">
+            <h2 id="suivi" className="display text-2xl sm:text-3xl mb-4">Mises à jour et origine</h2>
+            <SpecSheet
+              lines={followLines}
+              legend={false}
+              footer={support?.source_url ? (
+                <span>Source : <a href={support.source_url} className="underline underline-offset-2 hover:text-text" target="_blank" rel="noopener noreferrer">{support.source_name}</a>{support.checked_at && <>, vérifiée le {dateFr(support.checked_at)}</>}</span>
+              ) : <span>Aucune source publiée pour le suivi de ce modèle.</span>}
+            />
+          </section>
 
         </div>
       </details>
       <CompareTray />
     </div>
-  );
-}
-
-function SupportPill({ s, big = false }: { s: ReturnType<typeof supportStatus>; big?: boolean }) {
-  const cls = s.kind === "officiel" ? "text-ok border-ok/50" : s.kind === "absence_verifiee" ? "text-text border-text/25" : "text-warn border-warn/50";
-  const icon = s.kind === "officiel" ? "✓" : s.kind === "absence_verifiee" ? "○" : "?";
-  return (
-    <span title={s.help} className={`inline-flex items-center gap-1.5 border px-2 py-1 font-bold ${big ? "text-sm" : "text-[11px] uppercase tracking-wider"} ${cls}`}>
-      <span aria-hidden>{icon}</span>
-      {s.label}
-      {big && <span className="font-normal text-muted normal-case tracking-normal">— {s.help}</span>}
-    </span>
   );
 }
