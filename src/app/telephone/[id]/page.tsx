@@ -9,6 +9,7 @@ import { Gallery } from "@/components/Gallery";
 import { ShopLinks } from "@/components/ShopLinks";
 import { swatches } from "@/lib/colors";
 import { cameraLayout } from "@/lib/camera-layout";
+import { SEGMENT_LABELS, segmentOf } from "@/lib/chips";
 import { Crumbs, SecurityLine, SourceBadge, SourceLegend } from "@/components/ui";
 import { CompareToggle, CompareTray } from "@/components/CompareTray";
 import { MARKET_WINDOW_DAYS } from "@/lib/market";
@@ -231,6 +232,15 @@ export default async function Page({ params, searchParams }: Params) {
         <div>
           <p className="text-sm text-muted uppercase tracking-wider">{m.brand_name}{m.series_name ? ` · ${m.series_name}` : ""}</p>
           <h1 className="display text-4xl sm:text-6xl mt-1">{m.name}</h1>
+          {(() => {
+            const seg = segmentOf(specs);
+            return seg ? (
+              <p className={`mt-2 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2 py-1 border ${seg === "haut" ? "border-red text-red" : seg === "milieu" ? "border-warn/70 text-warn" : "border-white/25 text-muted"}`}
+                title="D'après l'indice PickJust de puissance de la puce">
+                <span aria-hidden>{seg === "haut" ? "▲▲▲" : seg === "milieu" ? "▲▲" : "▲"}</span>{SEGMENT_LABELS[seg]}
+              </p>
+            ) : null;
+          })()}
 
           {configs.length > 0 && (
             <div className="mt-5">

@@ -481,7 +481,8 @@ export function xiaomiSpecsUrl(shopUrl: string): string {
 
 /** Adresses candidates mi.com/fr pour un modèle sans offre (identifiant du site, puis sans « -5g »). */
 export function xiaomiSlugCandidates(modelId: string): string[] {
-  const slugs = [modelId, modelId.replace(/-5g$/, "")];
+  // Variantes d'adresse observées sur mi.com/fr : « redmi-14c » publié sous « redmi-14-c ».
+  const slugs = [modelId, modelId.replace(/-5g$/, ""), modelId.replace(/-(\d+)c$/, "-$1-c")];
   return [...new Set(slugs)].map((s) => `https://www.mi.com/fr/product/${s}/specs/`);
 }
 

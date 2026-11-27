@@ -105,3 +105,21 @@ describe("Liens de recherche neutres", () => {
     for (const l of links) expect(l.url).not.toMatch(/utm_|aff|tag=|campid/i);
   });
 });
+
+describe("Puces : noms normalisés, indice et gamme", () => {
+  it("les libellés variés des fabricants désignent la bonne puce", async () => {
+    const { normalizeChip, chipScore, segmentOf, tierFromScore } = await import("../src/lib/chips");
+    expect(normalizeChip("Chipset MediaTek Dimensity 7050")).toBe("Dimensity 7050");
+    expect(normalizeChip("Snapdragon 8 génération 2")).toBe("Snapdragon 8 Gen 2");
+    expect(normalizeChip("Snapdragon 7+ 3e gén.")).toBe("Snapdragon 7+ Gen 3");
+    expect(normalizeChip("MediaTek Dimensity 9 500")).toBe("Dimensity 9500");
+    expect(normalizeChip("Puissant")).toBeNull();
+    const scores = { "Snapdragon 6s Gen 4": 33, "Helio G85": 15, "Snapdragon 8 Elite": 92 };
+    expect(chipScore("Snapdragon 6s Gen 4", scores)).toBe(33);
+    expect(segmentOf({ chip_score: 15 })).toBe("entree");
+    expect(segmentOf({ chip_score: 33 })).toBe("milieu");
+    expect(segmentOf({ chip_score: 92 })).toBe("haut");
+    expect(segmentOf({})).toBeNull();
+    expect(tierFromScore(92)).toBe(5);
+  });
+});

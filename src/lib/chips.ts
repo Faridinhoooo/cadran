@@ -43,3 +43,16 @@ export function chipScore(raw: unknown, scores: ChipScores): number | null {
 export function tierFromScore(score: number): number {
   return score >= 85 ? 5 : score >= 65 ? 4 : score >= 45 ? 3 : score >= 28 ? 2 : 1;
 }
+
+export type Segment = "entree" | "milieu" | "haut";
+export const SEGMENT_LABELS: Record<Segment, string> = { entree: "Entrée de gamme", milieu: "Milieu de gamme", haut: "Haut de gamme" };
+
+/**
+ * Gamme d'un téléphone d'après l'indice de puissance de sa puce : entrée (< 28), milieu (28 à 64), haut (65 et plus).
+ * Null si la puce n'est pas classée.
+ */
+export function segmentOf(specs: Record<string, unknown>): Segment | null {
+  const sc = typeof specs.chip_score === "number" ? specs.chip_score : null;
+  if (sc === null) return null;
+  return sc >= 65 ? "haut" : sc >= 28 ? "milieu" : "entree";
+}

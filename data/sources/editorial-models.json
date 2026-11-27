@@ -1,5 +1,5 @@
 {
- "_about": "Liste éditoriale des modèles pour les marques non couvertes par endoflife.date. Format : [nom, gamme, date de sortie mondiale AAAA-MM, facteur de forme]. Toutes les dates sont MONDIALES et la commercialisation en France reste à vérifier (fr_status = a_verifier) sauf mention contraire. Aucun prix ni politique de suivi n'est déduit de cette liste.",
+ "_about": "Liste éditoriale des modèles pour les marques non couvertes par endoflife.date. Format : [nom, gamme, date de sortie mondiale AAAA-MM, facteur de forme]. Toutes les dates sont MONDIALES et la commercialisation en France reste à vérifier (fr_status = a_verifier) sauf mention contraire. Aucun prix ni politique de suivi n'est déduit de cette liste. Une date null signifie : modèle présent sur le site officiel français du fabricant, date de lancement non publiée (affichée « inconnue »).",
  "source_name": "Liste éditoriale (annonces constructeurs) — à revérifier",
  "brands": {
   "xiaomi": [
@@ -79,6 +79,18 @@
     "Xiaomi 15T Pro",
     "Xiaomi T",
     "2025-09",
+    "classique"
+   ],
+   [
+    "Xiaomi 17",
+    "Xiaomi (série numérotée)",
+    null,
+    "classique"
+   ],
+   [
+    "Xiaomi 17 Ultra",
+    "Xiaomi Ultra",
+    null,
     "classique"
    ]
   ],
@@ -760,6 +772,24 @@
     "Phone",
     "2025-07",
     "classique"
+   ],
+   [
+    "Nothing Phone (4a)",
+    "Phone",
+    null,
+    "classique"
+   ],
+   [
+    "Nothing Phone (4a) Pro",
+    "Phone",
+    null,
+    "classique"
+   ],
+   [
+    "Nothing Phone (4b)",
+    "Phone",
+    null,
+    "classique"
    ]
   ],
   "cmf": [
@@ -805,6 +835,18 @@
     "Sony Xperia 1 VII",
     "Xperia 1",
     "2025-06",
+    "classique"
+   ],
+   [
+    "Sony Xperia 5 V",
+    "Xperia 5",
+    "2023-09",
+    "classique"
+   ],
+   [
+    "Sony Xperia 10 VII",
+    "Xperia 10",
+    "2025-09",
     "classique"
    ]
   ],
@@ -1025,5 +1067,12 @@
   "vivo : présence commerciale en France à confirmer (retrait partiel d'Europe en 2024).",
   "Huawei : modèles sans services Google ; commercialisation française limitée à confirmer.",
   "Variantes régionales (Chine, Inde, États-Unis) volontairement exclues."
- ]
+ ],
+ "added_2026_11_27": {
+  "sources": [
+   "https://www.mi.com/fr/sitemap/ (xiaomi-17, xiaomi-17-ultra)",
+   "https://fr.nothing.tech/sitemap/products/1.xml (phone-4a, phone-4a-pro, phone-4b)",
+   "https://endoflife.date/api/sony-xperia.json (Xperia 5 V, Xperia 10 VII)"
+  ]
+ }
 }

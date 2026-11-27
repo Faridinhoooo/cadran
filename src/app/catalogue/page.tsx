@@ -4,6 +4,7 @@ import { brandAliases, brands, catalogSummaries, seriesList } from "@/lib/querie
 import { searchModels } from "@/lib/search";
 import { euros } from "@/lib/format";
 import { shopLinks } from "@/lib/shop-links";
+import { SEGMENT_LABELS, segmentOf } from "@/lib/chips";
 import { deadline, type Deadline } from "@/lib/support";
 import { Crumbs, PhotoFrame } from "@/components/ui";
 import { CompareToggle, CompareTray } from "@/components/CompareTray";
@@ -30,6 +31,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
   if (sp.gamme) list = list.filter((m) => m.series_id === sp.gamme);
   if (sp.os === "ios" || sp.os === "android") list = list.filter((m) => m.os === sp.os);
   if (sp.forme) list = list.filter((m) => m.form_factor === sp.forme);
+  if (sp.segment === "entree" || sp.segment === "milieu" || sp.segment === "haut") list = list.filter((m) => segmentOf(m.specs) === sp.segment);
   if (sp.annee) list = list.filter((m) => m.release_date?.startsWith(sp.annee!));
   if (sp.offre === "1") list = list.filter((m) => m.minNew !== null || m.minRefurb !== null);
   if (sp.fr === "1") list = list.filter((m) => m.fr_status === "confirme");
@@ -69,7 +71,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
       <h1 className="display text-4xl sm:text-6xl">Catalogue</h1>
       <p className="text-muted mt-2 max-w-3xl">Les smartphones vendus en France depuis 2023, avec leurs caractéristiques et la durée de leurs mises à jour. Un prix n&apos;est affiché que s&apos;il est fiable : en vente, en stock, relevé il y a moins de 7 jours, pour une capacité précise. Coche « Avec une offre vérifiée » pour ne voir que ceux-là.</p>
 
-      <form action="/catalogue" method="get" className="mt-6 grid gap-3 md:grid-cols-[1fr_auto_auto_auto_auto] items-end bg-panel border border-line p-4" role="search">
+      <form action="/catalogue" method="get" className="mt-6 grid gap-3 md:grid-cols-[1fr_auto_auto_auto_auto_auto] items-end bg-panel border border-line p-4" role="search">
         {sp.marque && <input type="hidden" name="marque" value={sp.marque} />}
         {sp.gamme && <input type="hidden" name="gamme" value={sp.gamme} />}
         <label className="grid gap-1">
@@ -89,11 +91,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
           </select>
         </label>
         <label className="grid gap-1">
+          <span className="text-sm font-semibold">Gamme</span>
+          <select name="segment" defaultValue={sp.segment ?? ""} className="bg-panel-2 border border-line px-3 py-3">
+            <option value="">Toutes</option><option value="entree">Entrée de gamme</option><option value="milieu">Milieu de gamme</option><option value="haut">Haut de gamme</option>
+          </select>
+        </label>
+        <label className="grid gap-1">
           <span className="text-sm font-semibold">Prix max (€)</span>
           <input name="max" type="number" min={0} defaultValue={sp.max} className="bg-panel-2 border border-line px-3 py-3 w-32" />
         </label>
         <button className="btn btn-primary">Filtrer</button>
-        <div className="md:col-span-5 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        <div className="md:col-span-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
           <label className="flex items-center gap-2 min-h-[40px]"><input type="checkbox" name="offre" value="1" defaultChecked={sp.offre === "1"} className="w-5 h-5 accent-[var(--red)]" /> Avec une offre vérifiée</label>
           <label className="flex items-center gap-2 min-h-[40px]"><input type="checkbox" name="fr" value="1" defaultChecked={sp.fr === "1"} className="w-5 h-5 accent-[var(--red)]" /> Vente en France confirmée</label>
           <label className="flex items-center gap-2">Année
@@ -154,6 +162,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
                         <Link href={`/telephone/${m.id}`} className="after:absolute after:inset-0 group-hover:text-red focus-visible:outline-none">{m.name}</Link>
                       </h3>
                       <p className="text-xs text-muted mt-1">{shortRelease(m.release_date)}</p>
+                      {(() => {
+                        const seg = segmentOf(m.specs);
+                        return seg ? (
+                          <p className={`mt-2 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 border ${seg === "haut" ? "border-red text-red" : seg === "milieu" ? "border-warn/70 text-warn" : "border-white/25 text-muted"}`}>
+                            <span aria-hidden>{seg === "haut" ? "▲▲▲" : seg === "milieu" ? "▲▲" : "▲"}</span>{SEGMENT_LABELS[seg]}
+                          </p>
+                        ) : null;
+                      })()}
                     </div>
                     <div className="min-h-[52px]">
                       {best.length ? (
