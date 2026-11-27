@@ -13,7 +13,8 @@ import { KeySpecs, describe } from "@/components/KeySpecs";
 import { MoreSpecsButton } from "@/components/MoreSpecsButton";
 import { scales } from "@/lib/scales";
 import { SEGMENT_LABELS, segmentOf } from "@/lib/chips";
-import { Crumbs, SecurityLine, SourceBadge, SourceLegend } from "@/components/ui";
+import { Crumbs, SecurityLine, SourceBadge } from "@/components/ui";
+import { SpecSheet, type SpecLine } from "@/components/SpecSheet";
 import { CompareToggle, CompareTray } from "@/components/CompareTray";
 import { MARKET_WINDOW_DAYS } from "@/lib/market";
 import { siteConfig } from "@/lib/site-config";
@@ -213,6 +214,16 @@ export default async function Page({ params, searchParams }: Params) {
     return r ? { value: specText(key, specs[key]), kind: "annonce", level: r.level, url: r.source_url, checked: r.checked_at } : none;
   };
 
+  const specValues = GROUPS.flatMap((g) => g.keys).map(([k, label]) => ({ label, r: row(k) }));
+  const hiddenSpecs = specValues.filter((x) => !x.r.kind).length;
+  const specLines: SpecLine[] = [
+    { label: "Marque", value: m.brand_name, level: null, url: null },
+    ...(m.series_name ? [{ label: "Gamme", value: m.series_name, level: null, url: null }] : []),
+    ...(m.release_date ? [{ label: "Sortie", value: rel.date, level: m.release_level ?? "editorial", url: null }] : []),
+    ...(support?.os_launch ? [{ label: "Système au lancement", value: support.os_launch, level: support.level ?? "communautaire", url: support.source_url ?? null }] : []),
+    ...specValues.filter((x) => x.r.kind).map((x) => ({ label: x.label, value: String(x.r.value), level: x.r.level ?? "editorial", url: x.r.url, measured: x.r.kind === "mesure" })),
+  ];
+
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 pb-28">
       <script
@@ -332,12 +343,30 @@ export default async function Page({ params, searchParams }: Params) {
         <summary className="list-none [&::-webkit-details-marker]:hidden cursor-pointer bg-panel rounded-3xl px-5 py-4 flex items-center justify-between gap-4 min-h-[60px] hover:border-text/30">
           <span>
             <span className="display text-xl sm:text-2xl">Toutes les caractéristiques</span>
-            <span className="block text-sm text-muted">Mises à jour, écran, photo, connectivité, dimensions, sources</span>
+            <span className="block text-sm text-muted">Écran, photo, batterie, dimensions, mises à jour</span>
           </span>
           <span aria-hidden className="text-red text-2xl group-open:rotate-180 transition-transform">▾</span>
         </summary>
         <div className="pt-6">
-          <dl className="grid sm:grid-cols-3 gap-3">
+          <section aria-labelledby="carac">
+            <h2 id="carac" className="display text-2xl sm:text-3xl mb-4">Caractéristiques</h2>
+            <SpecSheet
+              lines={specLines}
+              footer={<>
+                {hiddenSpecs > 0 && <span>{hiddenSpecs} non publiée{hiddenSpecs > 1 ? "s" : ""} par le fabricant</span>}
+                {officialSources.length > 0 && (
+                  <span>
+                    Pages officielles :{" "}
+                    {officialSources.map((o, i) => (
+                      <span key={o.url}>{i > 0 && ", "}<a href={o.url} className="underline underline-offset-2 hover:text-text" target="_blank" rel="noopener noreferrer">{o.name}</a></span>
+                    ))}
+                  </span>
+                )}
+              </>}
+            />
+          </section>
+
+          <dl className="grid sm:grid-cols-3 gap-3 mt-8">
             <div className="bg-panel rounded-3xl p-4">
               <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Correctifs de sécurité</dt>
               <dd className="font-bold mt-1 text-sm"><SecurityLine d={sec} /></dd>
@@ -404,50 +433,6 @@ export default async function Page({ params, searchParams }: Params) {
         </p>
       </section>
 
-      <section className="mt-12" aria-labelledby="carac">
-        <h2 id="carac" className="display text-3xl">Caractéristiques détaillées</h2>
-        <p className="text-sm text-muted mt-1">
-          Valeurs annoncées par le fabricant, sauf mention « Mesuré » (test indépendant). Chaque ligne indique la fiabilité de sa source.
-        </p>
-        <div className="mt-3"><SourceLegend /></div>
-        {officialSources.length > 0 && (
-          <p className="text-xs text-muted mt-2">
-            Pages officielles relevées :{" "}
-            {officialSources.map((o, i) => (
-              <span key={o.url}>{i > 0 && " · "}<a href={o.url} className="underline" target="_blank" rel="noopener noreferrer">{o.name}</a> le {dateFr(o.checked)}</span>
-            ))}
-          </p>
-        )}
-        <div className="grid md:grid-cols-2 gap-6 mt-4">
-          {GROUPS.map((g) => (
-            <div key={g.title} className="bg-panel rounded-3xl">
-              <h3 className="font-extrabold px-3 pt-3">{g.title}</h3>
-              <table className="specs w-full text-sm">
-                <tbody>
-                  {g.keys.map(([k, label]) => {
-                    const r = row(k);
-                    return (
-                      <tr key={k}>
-                        <th scope="row" className="text-muted font-normal w-[38%]">{label}</th>
-                        <td className={r.kind ? "" : "text-muted"}>
-                          {r.value}
-                          {r.kind === "mesure" && <span className="tag ml-2">Mesuré</span>}
-                        </td>
-                        <td className="text-right w-[1%]">
-                          {r.kind && (r.url ? (
-                            <a href={r.url} target="_blank" rel="noopener noreferrer" aria-label={`Source de « ${label} »`}><SourceBadge level={r.level} compact iconOnMobile /></a>
-                          ) : <SourceBadge level={r.level} compact iconOnMobile />)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ))}
-        </div>
-        <p className="text-xs text-muted mt-3">Pays d&apos;assemblage : non affiché, faute de source propre à ce modèle. Il ne se déduit pas de la nationalité de la marque.</p>
-      </section>
         </div>
       </details>
       <CompareTray />
