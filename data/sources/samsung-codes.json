@@ -1,0 +1,18 @@
+{
+  "_about": "Codes de base Samsung (SM-…) des modèles sans fiche Icecat. Ils servent seulement à INTERROGER Open Icecat : une fiche n'est retenue que si le titre renvoyé par Icecat nomme bien le modèle. Les suffixes de coloris et de marché (ZKAEUB, ZAEEUB…) sont essayés automatiquement.",
+  "codes": {
+    "samsung-galaxy-a05": "SM-A055F", "samsung-galaxy-a05s": "SM-A057G", "samsung-galaxy-a06": "SM-A065F", "samsung-galaxy-a06-5g": "SM-A066B",
+    "samsung-galaxy-a07": "SM-A075F", "samsung-galaxy-a07-5g": "SM-A076B", "samsung-galaxy-a14": "SM-A145R", "samsung-galaxy-a14-5g": "SM-A146P",
+    "samsung-galaxy-a15": "SM-A155F", "samsung-galaxy-a15-5g": "SM-A156B", "samsung-galaxy-a16": "SM-A165F", "samsung-galaxy-a16-5g": "SM-A166B",
+    "samsung-galaxy-a17": "SM-A175F", "samsung-galaxy-a24": "SM-A245F", "samsung-galaxy-a25-5g": "SM-A256B", "samsung-galaxy-a26-5g": "SM-A266B",
+    "samsung-galaxy-a34-5g": "SM-A346B", "samsung-galaxy-a35-5g": "SM-A356B", "samsung-galaxy-a36-5g": "SM-A366B", "samsung-galaxy-a37-5g": "SM-A376B",
+    "samsung-galaxy-a54-5g": "SM-A546B", "samsung-galaxy-a55-5g": "SM-A556B", "samsung-galaxy-a56-5g": "SM-A566B", "samsung-galaxy-a57-5g": "SM-A576B",
+    "samsung-galaxy-s23": "SM-S911B", "samsung-galaxy-s23-plus": "SM-S916B", "samsung-galaxy-s23-ultra": "SM-S918B", "samsung-galaxy-s23-fe": "SM-S711B",
+    "samsung-galaxy-s24": "SM-S921B", "samsung-galaxy-s24-plus": "SM-S926B", "samsung-galaxy-s24-ultra": "SM-S928B", "samsung-galaxy-s24-fe": "SM-S721B",
+    "samsung-galaxy-s25-plus": "SM-S936B", "samsung-galaxy-s25-ultra": "SM-S938B", "samsung-galaxy-s25-fe": "SM-S731B",
+    "samsung-galaxy-xcover7": "SM-G556B", "samsung-galaxy-xcover7-pro": "SM-G766B",
+    "samsung-galaxy-z-flip5": "SM-F731B", "samsung-galaxy-z-flip6": "SM-F741B", "samsung-galaxy-z-flip7": "SM-F766B", "samsung-galaxy-z-flip7-fe": "SM-F761B",
+    "samsung-galaxy-z-fold5": "SM-F946B", "samsung-galaxy-z-fold6": "SM-F956B", "samsung-galaxy-z-fold7": "SM-F966B"
+  },
+  "suffixes": ["ZKAEUB", "ZKEEUB", "ZAAEUB", "ZAEEUB", "ZBAEUB", "ZBEEUB", "ZWAEUB", "ZWEEUB", "ZVAEUB", "ZVEEUB", "ZGAEUB", "ZGEEUB", "ZSAEUB", "ZSEEUB", "LBAEUB", "DBAEUB", "ZKDEUB", "ZKGEUB"]
+}

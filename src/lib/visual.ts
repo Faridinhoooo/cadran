@@ -9,10 +9,11 @@ export interface VisualMedia {
   thumb_url: string | null;
   quality?: string | null;
   kind?: string;
+  view?: string | null;
 }
 
 export type Visual =
-  | { type: "photo"; src: string; fallback: string }
+  | { type: "photo"; src: string; fallback: string; cover?: boolean }
   | { type: "illustration"; src: string };
 
 export function illustrationFor(form: string | null | undefined): string {
@@ -21,10 +22,13 @@ export function illustrationFor(form: string | null | undefined): string {
   return "/illustrations/smartphone.svg";
 }
 
-/** Miniature (catalogue, résultats, comparateur) : uniquement un visuel détouré, sinon l'illustration. */
+/** Miniature (catalogue, résultats, comparateur) : un visuel officiel détouré autorisé, sinon l'illustration indicative. */
 export function cardVisual(media: VisualMedia[] | VisualMedia | null | undefined, form: string | null | undefined): Visual {
   const list = Array.isArray(media) ? media : media ? [media] : [];
-  const clean = list.find((m) => (m.kind ?? "photo") === "photo" && m.quality === "detoure");
   const fallback = illustrationFor(form);
-  return clean ? { type: "photo", src: clean.thumb_url ?? clean.url, fallback } : { type: "illustration", src: fallback };
+  const clean = list.find((m) => (m.kind ?? "photo") === "photo" && m.quality === "detoure");
+  if (clean) return { type: "photo", src: clean.thumb_url ?? clean.url, fallback };
+  // Les photos libres (prises en main, en magasin…) restent dans la galerie de la fiche : sur les cartes, elles
+  // rompraient l'homogénéité du catalogue. Option conservée pour une photo libre de qualité studio (cover).
+  return { type: "illustration", src: fallback };
 }

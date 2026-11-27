@@ -41,7 +41,7 @@ export function PhoneVisual({ visual, alt, className = "", caption = true }: { v
         loading="lazy"
         decoding="async"
         onError={() => setBroken(true)}
-        className={`absolute inset-0 w-full h-full object-contain ${showIllustration ? (caption ? "px-[8%] pt-[7%] pb-[24%]" : "p-[8%]") : "p-[6%] mix-blend-multiply"}`}
+        className={`absolute inset-0 w-full h-full ${showIllustration ? `object-contain ${caption ? "px-[8%] pt-[7%] pb-[24%]" : "p-[8%]"}` : visual.type === "photo" && visual.cover ? "object-cover" : "object-contain p-[6%] mix-blend-multiply"}`}
       />
       {showIllustration && caption && (
         <span className="absolute bottom-1 inset-x-0 text-center text-[9px] leading-none font-semibold text-ink/55">Illustration indicative</span>

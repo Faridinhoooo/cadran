@@ -9,6 +9,9 @@ import { Gallery } from "@/components/Gallery";
 import { ShopLinks } from "@/components/ShopLinks";
 import { swatches } from "@/lib/colors";
 import { cameraLayout } from "@/lib/camera-layout";
+import { KeySpecs, describe } from "@/components/KeySpecs";
+import { MoreSpecsButton } from "@/components/MoreSpecsButton";
+import { scales } from "@/lib/scales";
 import { SEGMENT_LABELS, segmentOf } from "@/lib/chips";
 import { Crumbs, SecurityLine, SourceBadge, SourceLegend } from "@/components/ui";
 import { CompareToggle, CompareTray } from "@/components/CompareTray";
@@ -242,6 +245,17 @@ export default async function Page({ params, searchParams }: Params) {
             ) : null;
           })()}
 
+          <p className="mt-4 text-[0.98rem] leading-relaxed text-text/90 max-w-2xl">
+            {describe({
+              name: m.name, brand: m.brand_name, form: m.form_factor, segment: segmentOf(specs),
+              releaseLabel: m.release_date ? rel.date : null, specs,
+              storages: configs.map((c) => c.storage_gb), ram: sel?.ram_gb ?? (typeof specs.ram_gb === "number" ? specs.ram_gb : null),
+            })}
+          </p>
+
+          <KeySpecs specs={specs} ram={sel?.ram_gb ?? (typeof specs.ram_gb === "number" ? specs.ram_gb : null)}
+            storages={configs.map((c) => c.storage_gb)} selected={sel?.storage_gb || null} scales={scales()} />
+
           {configs.length > 0 && (
             <div className="mt-5">
               <p className="text-sm font-semibold mb-2" id="cap">Capacité</p>
@@ -272,34 +286,10 @@ export default async function Page({ params, searchParams }: Params) {
           </div>
           <p className="text-xs text-muted mt-1.5">Coût total livraison comprise{sel ? `, pour ${storageLabel(sel.storage_gb)}` : ""}. <a href="#prix" className="underline">Détail des offres</a> · <a href="#ailleurs" className="underline">Comparer ailleurs</a></p>
 
-          <dl className="mt-5 grid sm:grid-cols-3 gap-3">
-            <div className="bg-panel border border-line p-4">
-              <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Correctifs de sécurité</dt>
-              <dd className="font-bold mt-1 text-sm"><SecurityLine d={sec} /></dd>
-              <dd className="mt-2"><SupportPill s={supportStatus(support)} /></dd>
-            </div>
-            <div className="bg-panel border border-line p-4">
-              <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Sortie</dt>
-              <dd className="font-bold mt-1">{m.release_date ? rel.date : "Date de lancement en France inconnue"}</dd>
-              {!m.release_date && m.release_source?.match(/https?:\/\/\S+/) && (
-                <dd className="text-xs text-muted mt-0.5">
-                  Non publiée sur la <a href={m.release_source.match(/https?:\/\/\S+/)![0]} className="underline" target="_blank" rel="noopener noreferrer">page consultée</a>
-                </dd>
-              )}
-              {rel.note && <dd className="text-xs text-muted mt-0.5">{m.release_level === "officiel" && m.brand_id === "google" ? "Première vente aux États-Unis ; date française à vérifier" : "Date mondiale ; date française à vérifier"}</dd>}
-              <dd className="text-xs mt-1">{m.fr_status === "confirme" ? <span className="text-ok">✓ Vendu en France</span> : <span className="text-muted">Vente en France à vérifier</span>}</dd>
-              {m.release_date && <dd className="mt-2"><SourceBadge level={m.release_level} compact /></dd>}
-            </div>
-            <div className="bg-panel border border-line p-4">
-              <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Origine de la marque</dt>
-              <dd className="font-bold mt-1">{brand.origin_country ?? NR}</dd>
-              <dd className="text-xs text-muted mt-0.5">
-                Pays de fondation · {brand.owner_group}{parent ? ` (groupe ${parent.name})` : ""}
-                {brand.source_url && <> · <a href={brand.source_url} className="underline" target="_blank" rel="noopener noreferrer">Wikipédia</a></>}
-              </dd>
-            </div>
-          </dl>
-          <div className="mt-5"><CompareToggle id={id} name={m.name} /></div>
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <MoreSpecsButton target="tout">Toutes les caractéristiques ↓</MoreSpecsButton>
+            <CompareToggle id={id} name={m.name} />
+          </div>
         </div>
       </div>
 
@@ -335,7 +325,44 @@ export default async function Page({ params, searchParams }: Params) {
         </div>
       </section>
 
-      <section className="mt-12 bg-panel border border-line cut p-6 sm:p-8" aria-labelledby="maj">
+      <details id="tout" className="group mt-12 scroll-mt-20">
+        <summary className="list-none [&::-webkit-details-marker]:hidden cursor-pointer bg-panel border border-line px-5 py-4 flex items-center justify-between gap-4 min-h-[60px] hover:border-white/30">
+          <span>
+            <span className="display text-xl sm:text-2xl">Toutes les caractéristiques</span>
+            <span className="block text-sm text-muted">Mises à jour, écran, photo, connectivité, dimensions, sources</span>
+          </span>
+          <span aria-hidden className="text-red text-2xl group-open:rotate-180 transition-transform">▾</span>
+        </summary>
+        <div className="pt-6">
+          <dl className="grid sm:grid-cols-3 gap-3">
+            <div className="bg-panel border border-line p-4">
+              <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Correctifs de sécurité</dt>
+              <dd className="font-bold mt-1 text-sm"><SecurityLine d={sec} /></dd>
+              <dd className="mt-2"><SupportPill s={supportStatus(support)} /></dd>
+            </div>
+            <div className="bg-panel border border-line p-4">
+              <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Sortie</dt>
+              <dd className="font-bold mt-1">{m.release_date ? rel.date : "Date de lancement en France inconnue"}</dd>
+              {!m.release_date && m.release_source?.match(/https?:\/\/\S+/) && (
+                <dd className="text-xs text-muted mt-0.5">
+                  Non publiée sur la <a href={m.release_source.match(/https?:\/\/\S+/)![0]} className="underline" target="_blank" rel="noopener noreferrer">page consultée</a>
+                </dd>
+              )}
+              {rel.note && <dd className="text-xs text-muted mt-0.5">{m.release_level === "officiel" && m.brand_id === "google" ? "Première vente aux États-Unis ; date française à vérifier" : "Date mondiale ; date française à vérifier"}</dd>}
+              <dd className="text-xs mt-1">{m.fr_status === "confirme" ? <span className="text-ok">✓ Vendu en France</span> : <span className="text-muted">Vente en France à vérifier</span>}</dd>
+              {m.release_date && <dd className="mt-2"><SourceBadge level={m.release_level} compact /></dd>}
+            </div>
+            <div className="bg-panel border border-line p-4">
+              <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Origine de la marque</dt>
+              <dd className="font-bold mt-1">{brand.origin_country ?? NR}</dd>
+              <dd className="text-xs text-muted mt-0.5">
+                Pays de fondation · {brand.owner_group}{parent ? ` (groupe ${parent.name})` : ""}
+                {brand.source_url && <> · <a href={brand.source_url} className="underline" target="_blank" rel="noopener noreferrer">Wikipédia</a></>}
+              </dd>
+            </div>
+          </dl>
+
+      <section className="mt-8 bg-panel border border-line cut p-6 sm:p-8" aria-labelledby="maj">
         <h2 id="maj" className="display text-2xl sm:text-3xl">Jusqu&apos;à quand ce téléphone sera-t-il mis à jour&nbsp;?</h2>
         <div className="mt-3"><SupportPill s={supportStatus(support)} big /></div>
         <p className="text-sm text-muted mt-2">Calculé aujourd&apos;hui, {dateFr(today.toISOString().slice(0, 10))}. Acheter neuf, reconditionné ou d&apos;occasion ne remet pas ce suivi à zéro.</p>
@@ -375,7 +402,7 @@ export default async function Page({ params, searchParams }: Params) {
       </section>
 
       <section className="mt-12" aria-labelledby="carac">
-        <h2 id="carac" className="display text-3xl">Caractéristiques principales</h2>
+        <h2 id="carac" className="display text-3xl">Caractéristiques détaillées</h2>
         <p className="text-sm text-muted mt-1">
           Valeurs annoncées par le fabricant, sauf mention « Mesuré » (test indépendant). Chaque ligne indique la fiabilité de sa source.
         </p>
@@ -418,6 +445,8 @@ export default async function Page({ params, searchParams }: Params) {
         </div>
         <p className="text-xs text-muted mt-3">Pays d&apos;assemblage : non affiché, faute de source propre à ce modèle. Il ne se déduit pas de la nationalité de la marque.</p>
       </section>
+        </div>
+      </details>
       <CompareTray />
     </div>
   );

@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+import { normalize } from "../src/lib/text";
 /**
  * Open Icecat — fiches produit fournies par les fabricants (catalogue ouvert, réutilisation autorisée).
  *
@@ -77,7 +80,7 @@ export function mapIcecat(p: IcecatProduct) {
     storageGb: storage ? Number(storage[1]) * (/T/i.test(storage[2]) ? 1024 : 1) : null,
     securityEnd: sec && EN_MONTHS[sec[2].toLowerCase()] ? `${sec[3]}-${String(EN_MONTHS[sec[2].toLowerCase()]).padStart(2, "0")}-${sec[1].padStart(2, "0")}` : null,
     gtins: p.GeneralInfo.GTIN ?? [],
-    image: p.Image?.Pic500x500 ?? p.Image?.HighPic ?? null,
+    image: p.Image?.Pic500x500 || p.Image?.HighPic || p.Image?.LowPic || null,
   };
 }
 
@@ -119,17 +122,12 @@ export async function importIcecat(db: DatabaseSync, stats: Stats) {
 
   const filled = new Set<string>();
   const reasons = new Map<string, number>();
-  for (const [key, t] of targets) {
-    const r = await fetchIcecat(t.lookup);
-    await new Promise((res) => setTimeout(res, 250));
-    if (!r.ok) {
-      reasons.set(r.reason, (reasons.get(r.reason) ?? 0) + 1);
-      continue;
-    }
+  const apply = (key: string, t: { modelId: string; storageGb: number; lookup: IcecatLookup }, product: IcecatProduct) => {
+    const r = { product };
     const m = mapIcecat(r.product);
     if (m.storageGb !== null && t.storageGb > 0 && m.storageGb !== t.storageGb) {
       stats.notes.push(`écart de capacité ${key} : Icecat ${m.storageGb} Go, offre ${t.storageGb} Go — fiche ignorée`);
-      continue;
+      return;
     }
     const src = `https://icecat.biz/fr/p/${r.product.GeneralInfo.Brand.toLowerCase()}/${r.product.GeneralInfo.BrandPartCode.toLowerCase()}/${r.product.GeneralInfo.IcecatId}.html`;
     for (const g of m.gtins)
@@ -138,7 +136,7 @@ export async function importIcecat(db: DatabaseSync, stats: Stats) {
     if ("mpn" in t.lookup)
       db.prepare(`INSERT INTO product_ids (scheme, value, model_id, storage_gb, source, checked_at) VALUES ('mpn', ?, ?, ?, 'Open Icecat', ?)
         ON CONFLICT(scheme, value) DO UPDATE SET checked_at=excluded.checked_at`).run(t.lookup.mpn, t.modelId, m.storageGb ?? t.storageGb, now());
-    if (filled.has(t.modelId)) continue;
+    if (filled.has(t.modelId)) return;
     filled.add(t.modelId);
     // Complète uniquement : une valeur relevée sur la page du constructeur n'est jamais remplacée.
     for (const [k, v] of Object.entries(m.specs)) {
@@ -160,7 +158,53 @@ export async function importIcecat(db: DatabaseSync, stats: Stats) {
         ON CONFLICT(model_id, url) DO UPDATE SET checked_at=excluded.checked_at`).run(t.modelId, m.image, m.image, r.product.GeneralInfo.Brand, src, now());
       stats.added++;
     }
+  };
+
+  for (const [key, t] of targets) {
+    let r: Awaited<ReturnType<typeof fetchIcecat>>;
+    try {
+      r = await fetchIcecat(t.lookup);
+    } catch {
+      continue;
+    }
+    await new Promise((res) => setTimeout(res, 250));
+    if (!r.ok) {
+      reasons.set(r.reason, (reasons.get(r.reason) ?? 0) + 1);
+      continue;
+    }
+    apply(key, t, r.product);
   }
-  stats.notes.push(`${targets.size} codes interrogés, ${filled.size} modèles enrichis`);
+
+  // Modèles Samsung sans offre en cours : codes de base (data/sources/samsung-codes.json) + suffixes de coloris/marché.
+  // Une fiche n'est retenue que si le titre Icecat nomme le modèle (ou reprend son code de base).
+  const codes = JSON.parse(fs.readFileSync(path.join(process.cwd(), "data", "sources", "samsung-codes.json"), "utf8")) as { codes: Record<string, string>; suffixes: string[] };
+  let probed = 0;
+  for (const [modelId, base] of Object.entries(codes.codes)) {
+    if (filled.has(modelId)) continue;
+    const model = db.prepare("SELECT name FROM models WHERE id=?").get(modelId) as { name: string } | undefined;
+    if (!model) continue;
+    if (db.prepare("SELECT 1 FROM media WHERE model_id=? AND provider='Icecat'").get(modelId)) continue;
+    probed++;
+    const want = normalize(model.name.replace(/^Samsung\s+/i, "").replace(/\+/g, " plus"));
+    for (const sfx of codes.suffixes) {
+      let r: Awaited<ReturnType<typeof fetchIcecat>>;
+      try {
+        r = await fetchIcecat({ mpn: base + sfx, brand: "Samsung" });
+      } catch {
+        continue;
+      }
+      await new Promise((res) => setTimeout(res, 150));
+      if (!r.ok) continue;
+      const title = normalize(r.product.GeneralInfo.Title.replace(/\+/g, " plus"));
+      const compact = (x: string) => x.replace(/\s+/g, "");
+      if (!compact(title).includes(compact(want)) && !compact(title).includes(compact(normalize(base)))) {
+        stats.notes.push(`titre Icecat sans rapport pour ${modelId} (${base + sfx}) : ignoré`);
+        break;
+      }
+      apply(base + sfx, { modelId, storageGb: 0, lookup: { mpn: base + sfx, brand: "Samsung" } }, r.product);
+      break;
+    }
+  }
+  stats.notes.push(`${targets.size} codes interrogés, ${probed} modèles Samsung recherchés par code, ${filled.size} modèles enrichis`);
   for (const [reason, count] of reasons) stats.notes.push(`${count} × ${reason}`);
 }

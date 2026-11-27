@@ -1,6 +1,7 @@
 import "server-only";
 import { getDb } from "./db";
 import { excludedBrands, excludedSql, isExcludedBrand } from "./brand-policy";
+import { cardVisual } from "./visual";
 import { catalogPolicy, pricedModelSql, publishedModelSql, reliableOfferSql } from "./catalog-policy";
 import fs from "node:fs";
 import path from "node:path";
@@ -128,10 +129,17 @@ export function mediaFor(id: string): MediaRow[] {
   return rows<MediaRow>(`SELECT * FROM media WHERE model_id=? ORDER BY CASE view WHEN 'face' THEN 0 WHEN 'dos' THEN 1 WHEN 'profil' THEN 2 ELSE 3 END, id`, id);
 }
 
+/** Visuel de vignette par modèle : détouré autorisé d'abord, puis une photo libre utilisable en miniature, sinon la première. */
 export function thumbnails(): Map<string, MediaRow> {
+  const all = new Map<string, MediaRow[]>();
+  for (const r of rows<MediaRow>(`SELECT * FROM media WHERE kind='photo' ORDER BY CASE quality WHEN 'detoure' THEN 0 ELSE 1 END, CASE view WHEN 'face' THEN 0 WHEN 'dos' THEN 1 WHEN 'autre' THEN 2 ELSE 3 END, id`))
+    all.set(r.model_id, [...(all.get(r.model_id) ?? []), r]);
   const m = new Map<string, MediaRow>();
-  for (const r of rows<MediaRow>(`SELECT * FROM media WHERE kind='photo' ORDER BY CASE view WHEN 'face' THEN 0 WHEN 'dos' THEN 1 WHEN 'autre' THEN 2 ELSE 3 END, id`))
-    if (!m.has(r.model_id)) m.set(r.model_id, r);
+  for (const [id, list] of all) {
+    const v = cardVisual(list, null);
+    const pick = v.type === "photo" ? list.find((x) => (x.thumb_url ?? x.url) === v.src) : undefined;
+    m.set(id, pick ?? list[0]);
+  }
   return m;
 }
 
