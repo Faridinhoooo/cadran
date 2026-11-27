@@ -18,10 +18,10 @@ export function searchQuery(brandName: string, modelName: string, storageGb?: nu
 export function shopLinks(brandName: string, modelName: string, storageGb?: number | null): ShopLink[] {
   const q = encodeURIComponent(searchQuery(brandName, modelName, storageGb));
   return [
-    { id: "google", label: "Google Shopping", hint: "Neuf, toutes enseignes", url: `https://www.google.com/search?udm=28&q=${q}` },
-    { id: "idealo", label: "idealo", hint: "Comparateur de prix", url: `https://www.idealo.fr/prechcat.html?q=${q}` },
-    { id: "backmarket", label: "Back Market", hint: "Reconditionné", url: `https://www.backmarket.fr/fr-fr/search?q=${q}` },
-    { id: "ebay", label: "eBay", hint: "Occasion et neuf", url: `https://www.ebay.fr/sch/i.html?_nkw=${q}` },
+    { id: "google", label: "Rechercher sur Google Shopping", hint: "Neuf, toutes enseignes", url: `https://www.google.com/search?udm=28&q=${q}` },
+    { id: "idealo", label: "Rechercher sur idealo", hint: "Comparateur de prix", url: `https://www.idealo.fr/prechcat.html?q=${q}` },
+    { id: "backmarket", label: "Rechercher sur Back Market", hint: "Reconditionné", url: `https://www.backmarket.fr/fr-fr/search?q=${q}` },
+    { id: "ebay", label: "Rechercher sur eBay", hint: "Occasion et neuf", url: `https://www.ebay.fr/sch/i.html?_nkw=${q}` },
   ];
 }
 
@@ -30,8 +30,8 @@ export function usedLinks(brandName: string, modelName: string, storageGb?: numb
   const q = encodeURIComponent(searchQuery(brandName, modelName, storageGb));
   const max = maxPrice ? Math.floor(maxPrice) : null;
   return [
-    { id: "backmarket", label: "Back Market", hint: "Reconditionné par des pros, garanti 12 mois", url: `https://www.backmarket.fr/fr-fr/search?q=${q}` },
-    { id: "ebay", label: "eBay", hint: max ? `Occasion, jusqu'à ${max} €` : "Occasion, vendeurs notés", url: `https://www.ebay.fr/sch/i.html?_nkw=${q}&LH_ItemCondition=3000${max ? `&_udhi=${max}` : ""}` },
-    { id: "leboncoin", label: "Leboncoin", hint: max ? `Entre particuliers, jusqu'à ${max} €` : "Entre particuliers, partout en France", url: `https://www.leboncoin.fr/recherche?category=17&text=${q}${max ? `&price=0-${max}` : ""}` },
+    { id: "backmarket", label: "Rechercher sur Back Market", hint: "Reconditionné par des pros, garanti 12 mois", url: `https://www.backmarket.fr/fr-fr/search?q=${q}` },
+    { id: "ebay", label: "Rechercher sur eBay", hint: max ? `Occasion, jusqu'à ${max} €` : "Occasion, vendeurs notés", url: `https://www.ebay.fr/sch/i.html?_nkw=${q}&LH_ItemCondition=3000${max ? `&_udhi=${max}` : ""}` },
+    { id: "leboncoin", label: "Rechercher sur Leboncoin", hint: max ? `Entre particuliers, jusqu'à ${max} €` : "Entre particuliers, partout en France", url: `https://www.leboncoin.fr/recherche?category=17&text=${q}${max ? `&price=0-${max}` : ""}` },
   ];
 }

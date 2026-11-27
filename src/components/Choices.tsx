@@ -10,6 +10,7 @@ import { ShopLinks } from "@/components/ShopLinks";
 import { usedLinks } from "@/lib/shop-links";
 import type { MediaRow } from "@/lib/queries";
 import { explainChoices } from "@/lib/explain";
+import { toParams } from "@/lib/answers";
 import { PriceTag } from "@/components/PriceTag";
 
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
@@ -75,6 +76,18 @@ function profileNotes(c: Choice, answers: Answers, s: Scales, today: Date): stri
   return out;
 }
 
+/** Lien vers la fiche, sur la configuration recommandée (capacité et état). */
+export function ficheHref(c: Choice): string {
+  const q = new URLSearchParams({ ...(c.config.storage_gb ? { go: String(c.config.storage_gb) } : {}), etat: c.offer.condition });
+  return `/telephone/${c.model.id}?${q}`;
+}
+
+/** Comparateur pré-rempli : variantes recommandées dans l'ordre du classement, avec le contexte (budget, priorité…). */
+export function compareHref(choices: Choice[], answers: Answers): string {
+  const ids = choices.map((c) => [c.model.id, c.config.storage_gb, c.offer.condition].join(":")).join(",");
+  return `/comparer?ids=${ids}&${toParams(answers)}`;
+}
+
 /** Aucun iPhone vérifié dans le budget alors que la personne hésite : renvoi vers l'occasion, filtré sur le budget. */
 function UsedIphoneOption({ budget, models }: { budget: number; models: string[] }) {
   return (
@@ -108,9 +121,16 @@ export function ChoicesSection({ choices, answers, scales, thumbs, today, usedIp
   return (
     <section aria-labelledby="choix" className="grid gap-5">
       <div>
-        <h2 id="choix" className="display text-2xl sm:text-4xl">
-          {choices.length > 1 ? <>Nos <span className="text-red">{choices.length} choix</span> pour toi</> : <>Notre choix pour toi</>}
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 id="choix" className="display text-2xl sm:text-4xl">
+            {choices.length > 1 ? <>Nos <span className="text-red">{choices.length} choix</span> pour toi</> : <>Notre choix pour toi</>}
+          </h2>
+          {choices.length > 1 ? (
+            <Link href={compareHref(choices, answers)} className="btn btn-primary min-h-[44px] text-sm">Comparer mes {choices.length} choix</Link>
+          ) : choices.length === 1 ? (
+            <Link href={ficheHref(choices[0])} className="btn btn-primary min-h-[44px] text-sm">Voir sa fiche</Link>
+          ) : null}
+        </div>
         <div className="mt-2"><ProfileSummary answers={answers} /></div>
         {ex.shared && <p className="mt-2 text-sm"><span className="font-semibold">Point commun :</span> {ex.shared}</p>}
       </div>
@@ -122,6 +142,8 @@ export function ChoicesSection({ choices, answers, scales, thumbs, today, usedIp
           const score = num(sp.chip_score);
           const ram = c.config.ram_gb ?? num(sp.ram_gb);
           const mah = num(sp.battery_mah);
+          // Titre, « Voir la fiche » et lien vendeur mènent à la même configuration (capacité et état).
+          const href = ficheHref(c);
           return (
             <li key={c.model.id} className={`relative border cut flex flex-col ${i === 0 ? "border-red border-2 bg-page shadow-[0_24px_60px_-28px_rgba(224,34,44,0.45)]" : "bg-panel border-transparent"}`}>
               {i === 0 && (
@@ -132,14 +154,17 @@ export function ChoicesSection({ choices, answers, scales, thumbs, today, usedIp
                   {i === 0 ? "N°1" : `N°${i + 1}`}
                   {c.diversity && <span className="ml-2 align-middle tag text-[10px] text-text">Option {c.diversity === "ios" ? "iPhone" : "Android"}</span>}
                 </span>
-                <span className="text-xs text-muted">{CONDITION_LABELS[c.offer.condition]} · {c.offer.seller}</span>
+                <span className="text-xs text-muted">Vendu par {c.offer.seller}</span>
               </div>
               <div className={`p-4 grid ${i === 0 ? "grid-cols-[112px_1fr]" : "grid-cols-[88px_1fr]"} gap-4 items-center`}>
                 <Thumb media={thumbs.get(c.model.id) ?? null} alt={c.model.name} form={c.model.form_factor} size={i === 0 ? 112 : 88} />
                 <div className="min-w-0">
                   <h3 className={`font-extrabold leading-tight ${i === 0 ? "text-2xl" : "text-xl"}`}>
-                    <Link href={`/telephone/${c.model.id}${c.config.storage_gb ? `?go=${c.config.storage_gb}` : ""}`} className="hover:text-red">{c.model.name}</Link>
+                    <Link href={href} className="hover:text-red">{c.model.name}</Link>
                   </h3>
+                  <p className="text-sm text-muted mt-0.5">
+                    {c.config.storage_gb ? storageLabel(c.config.storage_gb) : "Capacité à vérifier"} · {CONDITION_LABELS[c.offer.condition]}
+                  </p>
                   <div className="mt-1"><PriceTag offer={c.offer} budget={answers.budget} size={i === 0 ? "xl" : "lg"} /></div>
                 </div>
               </div>
@@ -153,61 +178,64 @@ export function ChoicesSection({ choices, answers, scales, thumbs, today, usedIp
                 )}
                 <p className={`font-semibold leading-snug ${i === 0 ? "text-[1.05rem]" : ""}`}>{ex.items[i].lead}</p>
                 {ex.items[i].versus && <p className="text-sm leading-snug">{ex.items[i].versus}</p>}
+                {ex.items[i].tradeoff && <p className="text-sm leading-snug"><span className="font-semibold">Compromis :</span> {ex.items[i].tradeoff}</p>}
                 {ex.items[i].limit && <p className="text-xs text-muted leading-snug">{ex.items[i].limit}</p>}
               </div>
 
-              <dl className="px-4 grid gap-3 text-sm">
-                <div>
-                  <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Processeur</dt>
-                  <dd className="font-semibold">{chip ?? "Non publié"}</dd>
-                  {score !== null && (
-                    <Gauge value={position(score, scales.chip)} label="Puissance du processeur"
-                      detail={`Indice ${score}/100${tier ? ` (${CHIP_LEVELS[tier]})` : ""} : plus puissant que ${percentileBelow(score, scales.chip.values)} % des smartphones du catalogue.`}
-                      from="Moins puissant" to="Plus puissant" />
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Mémoire vive</dt>
-                    <dd className="font-semibold">{ram ? `${ram} Go` : "Non publiée"}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Stockage</dt>
-                    <dd className="font-semibold">{c.config.storage_gb ? storageLabel(c.config.storage_gb) : "Selon l'offre"}</dd>
-                  </div>
-                </div>
-                <div>
-                  <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Batterie</dt>
-                  <dd className="font-semibold">{mah ? `${mah.toLocaleString("fr-FR")} mAh` : "Non publiée"}</dd>
-                  {mah !== null && (
-                    <Gauge value={position(mah, scales.battery)} label="Capacité de la batterie"
-                      detail={`Plus grande que ${percentileBelow(mah, scales.battery.values)} % des smartphones du catalogue.`}
-                      from={`${scales.battery.min.toLocaleString("fr-FR")} mAh`} to={`${scales.battery.max.toLocaleString("fr-FR")} mAh`} />
-                  )}
-                </div>
-              </dl>
-
-              {(() => {
-                const notes = profileNotes(c, answers, scales, today);
-                return notes.length ? (
-                  <div className="m-4 mb-0 border-l-2 border-red pl-3">
-                    <p className="text-xs font-extrabold uppercase tracking-wider text-red">Pour ton profil</p>
-                    <ul className="mt-1.5 grid gap-1 text-sm">
-                      {notes.map((r) => <li key={r}>• {r}</li>)}
-                    </ul>
-                  </div>
-                ) : null;
-              })()}
-
-              <div className="p-4 mt-auto grid gap-3">
-                <div className="flex flex-wrap gap-2">
-                  <a href={c.offer.url} target="_blank" rel="noopener noreferrer" className={`btn ${i === 0 ? "btn-primary" : "btn-ghost"} min-h-[44px] text-sm`}>
-                    {c.total !== null ? "Voir l'offre" : "Vérifier le prix"}<span className="sr-only"> chez {c.offer.seller}, nouvel onglet</span>
-                  </a>
-                  <Link href={`/telephone/${c.model.id}`} className="btn btn-ghost min-h-[44px] text-sm">Fiche</Link>
-                </div>
-                <ShopLinks compact title="Comparer" brand={c.model.brand_name} name={c.model.name} storageGb={c.config.storage_gb || null} />
+              <div className="px-4 mt-auto flex flex-wrap gap-2">
+                <a href={c.offer.url} target="_blank" rel="noopener noreferrer" className={`btn ${i === 0 ? "btn-primary" : "btn-ghost"} min-h-[44px] text-sm`}>
+                  {c.total !== null ? `Voir l'offre chez ${c.offer.seller}` : `Vérifier chez ${c.offer.seller}`}<span className="sr-only"> ({storageLabel(c.config.storage_gb)}, nouvel onglet)</span>
+                </a>
+                <Link href={href} className="btn btn-ghost min-h-[44px] text-sm">Voir la fiche</Link>
               </div>
+
+              <details className="group m-4 mb-4 border-t border-line pt-3">
+                <summary className="cursor-pointer list-none min-h-[44px] flex items-center justify-between text-sm font-semibold">
+                  Voir les détails <span aria-hidden className="text-red group-open:rotate-180 transition-transform">▾</span>
+                </summary>
+                {(() => {
+                  const notes = profileNotes(c, answers, scales, today);
+                  return notes.length ? (
+                    <div className="mt-2 border-l-2 border-red pl-3">
+                      <p className="text-xs font-extrabold uppercase tracking-wider text-red">Pour ton profil</p>
+                      <ul className="mt-1.5 grid gap-1 text-sm">
+                        {notes.map((r) => <li key={r}>• {r}</li>)}
+                      </ul>
+                    </div>
+                  ) : null;
+                })()}
+                <dl className="mt-3 grid gap-3 text-sm">
+                  <div>
+                    <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Processeur</dt>
+                    <dd className="font-semibold">{chip ?? "Non publié"}</dd>
+                    {score !== null && (
+                      <Gauge value={position(score, scales.chip)} label="Puissance du processeur"
+                        detail={`Indice ${score}/100${tier ? ` (${CHIP_LEVELS[tier]})` : ""} : plus puissant que ${percentileBelow(score, scales.chip.values)} % des smartphones du catalogue.`}
+                        from="Moins puissant" to="Plus puissant" />
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Mémoire vive</dt>
+                      <dd className="font-semibold">{ram ? `${ram} Go` : "Non publiée"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Stockage</dt>
+                      <dd className="font-semibold">{c.config.storage_gb ? storageLabel(c.config.storage_gb) : "Selon l'offre"}</dd>
+                    </div>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] uppercase tracking-wider text-muted font-bold">Batterie (capacité annoncée)</dt>
+                    <dd className="font-semibold">{mah ? `${mah.toLocaleString("fr-FR")} mAh` : "Non publiée"}</dd>
+                    {mah !== null && (
+                      <Gauge value={position(mah, scales.battery)} label="Capacité de la batterie"
+                        detail={`Plus grande que ${percentileBelow(mah, scales.battery.values)} % des smartphones du catalogue.`}
+                        from={`${scales.battery.min.toLocaleString("fr-FR")} mAh`} to={`${scales.battery.max.toLocaleString("fr-FR")} mAh`} />
+                    )}
+                  </div>
+                </dl>
+                <div className="mt-3"><ShopLinks compact title="Ailleurs" brand={c.model.brand_name} name={c.model.name} storageGb={c.config.storage_gb || null} /></div>
+              </details>
             </li>
           );
         })}

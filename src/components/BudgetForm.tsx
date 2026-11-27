@@ -1,3 +1,5 @@
+import { budgetInput } from "@/lib/money";
+
 // Formulaire GET : fonctionne sans JavaScript. Le budget est transmis au questionnaire.
 export function BudgetForm({ defaultValue, id = "budget" }: { defaultValue?: number; id?: string }) {
   return (
@@ -10,13 +12,13 @@ export function BudgetForm({ defaultValue, id = "budget" }: { defaultValue?: num
           <input
             id={id}
             name="budget"
-            type="number"
+            type="text"
             inputMode="decimal"
-            min={50}
-            max={5000}
-            step={1}
+            autoComplete="off"
             required
-            defaultValue={defaultValue}
+            pattern="\s*\d[\d\s]*([.,]\d{1,2})?\s*€?\s*"
+            title="Un montant en euros, par exemple 327,50"
+            defaultValue={defaultValue ? budgetInput(defaultValue) : undefined}
             placeholder="400"
             aria-describedby={`${id}-aide`}
             className="w-full h-[60px] bg-transparent text-ink text-2xl font-semibold pl-6 pr-12 outline-none placeholder:text-ink/35 tabular-nums"
@@ -28,7 +30,7 @@ export function BudgetForm({ defaultValue, id = "budget" }: { defaultValue?: num
         </button>
       </div>
       <p id={`${id}-aide`} className="text-sm text-muted mt-2">
-        Coût total maximum, livraison et frais obligatoires compris. Ce n&apos;est pas un montant à dépenser.
+        Montant exact au centime près (ex. 327,50), entre 50 € et 5 000 €. Coût total maximum, livraison et frais obligatoires compris.
       </p>
     </form>
   );

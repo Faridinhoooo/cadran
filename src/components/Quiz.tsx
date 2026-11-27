@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Answers, Condition, OsChoice, Priority, SizePref, Usage } from "@/lib/engine";
 import { toParams } from "@/lib/answers";
+import { budgetInput, parseBudget } from "@/lib/money";
 
 const KEY = "pickjust-questionnaire-v3";
 
@@ -53,8 +54,15 @@ type State = Answers & { step: number };
 /** Parcours rapide : 3 questions après le budget. */
 const QUICK = ["etat", "priorites", "os"] as const;
 /** Affiner (facultatif) : une question sautée vaut « Sans préférence ». */
-const REFINE = ["taille", "stockage", "usage", "annees"] as const;
-const STEPS = [...QUICK, ...REFINE];
+type RefineStep = "stockage" | "taille" | "usage" | "annees" | "seconde";
+const REFINE_DEFAULT: RefineStep[] = ["stockage", "taille", "usage", "annees", "seconde"];
+/** La précision la plus utile au profil vient en premier. */
+const REFINE_FIRST: Partial<Record<Priority, RefineStep>> = { longevite: "annees", une_main: "taille", jeux: "usage", autonomie: "usage", photo: "stockage", prix: "stockage" };
+function refineOrder(p: Priority | undefined): RefineStep[] {
+  const first = p ? REFINE_FIRST[p] : undefined;
+  return first ? [first, ...REFINE_DEFAULT.filter((x) => x !== first)] : REFINE_DEFAULT;
+}
+const frBudget = budgetInput;
 
 function Tick({ on, text }: { on: boolean; text?: string }) {
   return (
@@ -64,7 +72,7 @@ function Tick({ on, text }: { on: boolean; text?: string }) {
   );
 }
 
-export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget?: number }; brands: { id: string; name: string }[] }) {
+export function Quiz({ initial, brands, budgetRaw }: { initial: Partial<Answers> & { budget?: number }; brands: { id: string; name: string }[]; budgetRaw?: string }) {
   const router = useRouter();
   const [s, setS] = useState<State>(() => ({
     budget: initial.budget ?? 0,
@@ -80,6 +88,8 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
     size: initial.size ?? null,
     step: 0,
   }));
+  const [budgetText, setBudgetText] = useState(() => budgetRaw ?? frBudget(initial.budget ?? 0));
+  const budgetCheck = parseBudget(budgetText);
   const heading = useRef<HTMLHeadingElement>(null);
   const loaded = useRef(false);
 
@@ -87,7 +97,10 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
   useEffect(() => {
     try {
       const saved = JSON.parse(sessionStorage.getItem(KEY) ?? "null") as State | null;
-      if (saved && !initial.conditions) setS((cur) => ({ ...saved, budget: initial.budget ?? saved.budget, step: cur.step }));
+      if (saved && !initial.conditions) {
+        setS((cur) => ({ ...saved, budget: initial.budget ?? saved.budget, step: cur.step }));
+        if (!initial.budget && saved.budget) setBudgetText(frBudget(saved.budget));
+      }
     } catch {}
     loaded.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -99,6 +112,8 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
     } catch {}
   }, [s]);
 
+  const STEPS = [...QUICK, ...refineOrder(s.priorities[0])];
+  const REFINE = STEPS.slice(QUICK.length);
   const step = Math.min(s.step, STEPS.length - 1);
   const current = STEPS[step];
   const refining = step >= QUICK.length;
@@ -119,6 +134,7 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
     s.minStorage ? `${s.minStorage} Go minimum` : null,
     s.usage ? `usage ${s.usage === "leger" ? "léger" : s.usage}` : null,
     s.keepYears ? `${s.keepYears} an${s.keepYears > 1 ? "s" : ""}` : null,
+    s.priorities[1] ? `seconde priorité : ${PRIORITIES.find((p) => p.id === s.priorities[1])?.label.replace(/\.$/, "").toLowerCase()}` : null,
   ].filter(Boolean) as string[];
 
   function toggleCondition(c: Condition) {
@@ -128,17 +144,20 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
     set({ conditions: next });
   }
 
-  function togglePriority(p: Priority) {
-    let next = [...s.priorities];
-    if (next.includes(p)) next = next.filter((x) => x !== p);
-    else if (next.length < 2) next.push(p);
-    else next = [next[0], p];
-    set({ priorities: next });
+  /** Priorité principale : un seul choix ; la seconde se précise dans « Affiner ». */
+  function setMain(p: Priority) {
+    set({ priorities: [p, ...s.priorities.slice(1).filter((x) => x !== p)] });
   }
+  function setSecond(p: Priority | null) {
+    set({ priorities: p ? [s.priorities[0], p] : [s.priorities[0]] });
+  }
+  const budgetOk = budgetCheck.ok;
 
   function submit() {
+    if (!budgetCheck.ok) return;
     const { step: _step, ...answers } = s;
     void _step;
+    answers.budget = budgetCheck.value;
     router.push(`/resultats?${toParams(answers as Answers).toString()}`);
   }
 
@@ -155,7 +174,16 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
     usage: "Comment utilises-tu ton téléphone au quotidien ?",
     taille: "Quelle taille d'écran préfères-tu ?",
     stockage: "Combien de photos, vidéos et applis gardes-tu ?",
-    annees: "Combien de temps veux-tu le garder ?",
+    annees: "Combien d'années veux-tu le garder, à partir d'aujourd'hui ?",
+    seconde: "As-tu une seconde priorité ?",
+  };
+  /** Exigence (exclut des modèles) ou préférence (change seulement l'ordre). */
+  const kind: Partial<Record<string, string>> = {
+    stockage: "Exigence : les capacités inférieures sont exclues.",
+    taille: "Préférence : change l'ordre des choix, n'exclut aucun modèle.",
+    usage: "Préférence : change l'ordre des choix, n'exclut aucun modèle.",
+    annees: "Préférence : on compare au suivi de sécurité restant, sans exclure de modèle.",
+    seconde: "Préférence : compte pour un tiers du classement environ.",
   };
 
   return (
@@ -168,13 +196,19 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
           <span className="text-muted">Budget maximum</span>
           <span className="relative">
             <input
-              type="number"
-              min={50}
+              type="text"
               inputMode="decimal"
-              value={s.budget || ""}
-              onChange={(e) => set({ budget: Number(e.target.value) })}
-              className="w-28 bg-page border border-line rounded-xl px-3 py-2 pr-7 font-bold tabular-nums"
+              autoComplete="off"
+              value={budgetText}
+              onChange={(e) => {
+                setBudgetText(e.target.value);
+                const p = parseBudget(e.target.value);
+                set({ budget: p.ok ? p.value : 0 });
+              }}
+              className="w-32 bg-page border border-line rounded-xl px-3 py-2 pr-7 font-bold tabular-nums"
               aria-label="Budget maximum en euros"
+              aria-invalid={!budgetOk}
+              aria-describedby="budget-erreur"
             />
             <span aria-hidden className="absolute right-2.5 top-1/2 -translate-y-1/2 font-bold">€</span>
           </span>
@@ -188,6 +222,7 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
       <h1 ref={heading} tabIndex={-1} className="display text-3xl sm:text-5xl mb-2 outline-none">
         {titles[current]}
       </h1>
+      {refining && kind[current] && <p className="text-sm font-semibold mb-2">{kind[current]}</p>}
 
       {current === "etat" && (
         <>
@@ -223,22 +258,31 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
 
       {current === "priorites" && (
         <>
-          <p className="text-muted mb-6">Choisis ta priorité principale, puis une seconde si tu veux.</p>
-          <div className="grid sm:grid-cols-2 gap-3" role="group" aria-label="Priorités">
-            {PRIORITIES.map((p) => {
-              const idx = s.priorities.indexOf(p.id);
-              return (
-                <button key={p.id} type="button" className="choice cut-sm" aria-pressed={idx >= 0} onClick={() => togglePriority(p.id)}>
-                  <Tick on={idx >= 0} text={String(idx + 1)} />
-                  <span>
-                    <span className="block text-lg font-bold">{p.label}</span>
-                    {idx >= 0 && <span className="block text-sm text-red font-semibold">{idx === 0 ? "Priorité principale" : "Seconde priorité"}</span>}
-                  </span>
-                </button>
-              );
-            })}
+          <p className="text-muted mb-6">Choisis ta priorité principale. Tu pourras en ajouter une seconde en affinant.</p>
+          <div className="grid sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Priorité principale">
+            {PRIORITIES.map((p) => (
+              <button key={p.id} type="button" role="radio" className="choice cut-sm" aria-checked={s.priorities[0] === p.id} onClick={() => setMain(p.id)}>
+                <Tick on={s.priorities[0] === p.id} />
+                <span className="block text-lg font-bold">{p.label}</span>
+              </button>
+            ))}
           </div>
         </>
+      )}
+
+      {current === "seconde" && (
+        <div className="grid sm:grid-cols-2 gap-3 mt-6" role="radiogroup" aria-label="Seconde priorité">
+          <button type="button" role="radio" className="choice cut-sm" aria-checked={!s.priorities[1]} onClick={() => setSecond(null)}>
+            <Tick on={!s.priorities[1]} />
+            <span className="block text-lg font-bold">Sans préférence</span>
+          </button>
+          {PRIORITIES.filter((p) => p.id !== s.priorities[0]).map((p) => (
+            <button key={p.id} type="button" role="radio" className="choice cut-sm" aria-checked={s.priorities[1] === p.id} onClick={() => setSecond(p.id)}>
+              <Tick on={s.priorities[1] === p.id} />
+              <span className="block text-lg font-bold">{p.label}</span>
+            </button>
+          ))}
+        </div>
       )}
 
       {current === "os" && (
@@ -386,32 +430,32 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
         )}
         {current === "os" ? (
           <>
-            <button type="button" className="btn btn-primary" onClick={submit} disabled={!canNext || !s.budget} aria-disabled={!canNext || !s.budget}>
+            <button type="button" className="btn btn-primary" onClick={submit} disabled={!canNext || !budgetOk} aria-disabled={!canNext || !budgetOk}>
               Voir mes choix
             </button>
-            <button type="button" className="btn btn-secondary" onClick={next} disabled={!canNext || !s.budget} aria-disabled={!canNext || !s.budget}>
+            <button type="button" className="btn btn-secondary" onClick={next} disabled={!canNext || !budgetOk} aria-disabled={!canNext || !budgetOk}>
               Affiner mes choix
             </button>
           </>
         ) : refining ? (
           <>
-            <button type="button" className="btn btn-primary" onClick={next} disabled={!s.budget} aria-disabled={!s.budget}>
+            <button type="button" className="btn btn-primary" onClick={next} disabled={!budgetOk} aria-disabled={!budgetOk}>
               {isLast ? "Voir mes choix" : "Suivant"}
             </button>
             {!isLast && (
-              <button type="button" className="btn btn-ghost" onClick={submit} disabled={!s.budget} aria-disabled={!s.budget}>
+              <button type="button" className="btn btn-ghost" onClick={submit} disabled={!budgetOk} aria-disabled={!budgetOk}>
                 Voir mes choix maintenant
               </button>
             )}
           </>
         ) : (
-          <button type="button" className="btn btn-primary" onClick={next} aria-disabled={!canNext || !s.budget} disabled={!canNext || !s.budget}>
+          <button type="button" className="btn btn-primary" onClick={next} aria-disabled={!canNext || !budgetOk} disabled={!canNext || !budgetOk}>
             Suivant
           </button>
         )}
       </div>
       {refining && <p className="text-sm text-muted mt-3">Question facultative : sans réponse, elle compte comme « Sans préférence ».</p>}
-      {!s.budget && <p className="text-sm text-warn mt-3">Indique ton budget maximum en haut de la page.</p>}
+      {!budgetCheck.ok && <p id="budget-erreur" role="alert" className="text-sm text-warn mt-3">{budgetCheck.error}</p>}
     </div>
   );
 }

@@ -1,8 +1,10 @@
 import { frenchDate, frenchMonth } from "./support";
 
-const eur = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 2, minimumFractionDigits: 0 });
+const eur0 = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+const eur2 = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export const euros = (n: number) => eur.format(n);
+/** « 400 € », « 327,50 € » : deux décimales dès qu'il y a des centimes. */
+export const euros = (n: number) => (Math.round(n * 100) % 100 === 0 ? eur0.format(n) : eur2.format(n));
 export const storageLabel = (gb: number) => (gb === 0 ? "Prix de départ" : gb >= 1024 ? `${gb / 1024} To` : `${gb} Go`);
 
 export function dateTimeFr(iso: string): string {

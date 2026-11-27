@@ -31,6 +31,9 @@ export function openDb(file: string = dbPath()): DatabaseSync {
     "ALTER TABLE offers ADD COLUMN first_seen_at TEXT",
     "ALTER TABLE offers ADD COLUMN is_demo INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE media ADD COLUMN quality TEXT", // detoure | photo
+    // Base du prix : devise, et condition éventuelle (reprise, forfait, coupon, nouveau client). null = prix public.
+    "ALTER TABLE offers ADD COLUMN currency TEXT NOT NULL DEFAULT 'EUR'",
+    "ALTER TABLE offers ADD COLUMN price_conditions TEXT",
   ]) {
     try {
       db.exec(sql);

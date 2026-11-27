@@ -457,6 +457,10 @@ export interface OfferInput {
   returnsPolicy: string | null;
   url: string;
   source: string;
+  /** Devise (EUR par défaut). */
+  currency?: string;
+  /** Condition attachée au prix (reprise, forfait, coupon, nouveau client) ; absent = prix public. */
+  priceConditions?: string | null;
   /** Si le modèle n'est pas encore référencé, la boutique française suffit à créer sa fiche. */
   create?: { brand: string; brandName: string; name: string; product: string; os: "ios" | "android" };
 }
@@ -492,15 +496,18 @@ export function saveOffers(db: DatabaseSync, source: string, offers: OfferInput[
     db.prepare("UPDATE models SET fr_status='confirme', fr_source=? WHERE id=?").run(`Vendu par ${o.seller} en France, relevé du ${now().slice(0, 10)} (${o.url})`, o.modelId);
     const exists = db.prepare("SELECT 1 FROM offers WHERE id=?").get(o.id);
     db.prepare(`INSERT INTO offers (id, config_id, condition, seller, platform, price, mandatory_fees, shipping, color, grade, battery_note,
-      warranty, returns_policy, url, available, checked_at, source, is_test, market, stock, shipping_status, shipping_note, capacity_status, first_seen_at, is_demo)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,'FR',?,?,?,?,?,0)
+      warranty, returns_policy, url, available, checked_at, source, is_test, market, stock, shipping_status, shipping_note, capacity_status, first_seen_at, is_demo,
+      currency, price_conditions)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,'FR',?,?,?,?,?,0,?,?)
       ON CONFLICT(id) DO UPDATE SET config_id=excluded.config_id, price=excluded.price, mandatory_fees=excluded.mandatory_fees, shipping=excluded.shipping,
       color=excluded.color, grade=excluded.grade, battery_note=excluded.battery_note, warranty=excluded.warranty,
       returns_policy=excluded.returns_policy, url=excluded.url, available=excluded.available, checked_at=excluded.checked_at,
-      stock=excluded.stock, shipping_status=excluded.shipping_status, shipping_note=excluded.shipping_note, capacity_status=excluded.capacity_status`).run(
+      stock=excluded.stock, shipping_status=excluded.shipping_status, shipping_note=excluded.shipping_note, capacity_status=excluded.capacity_status,
+      currency=excluded.currency, price_conditions=excluded.price_conditions`).run(
       o.id, configId, o.condition, o.seller, o.platform, o.price, o.mandatoryFees, o.shipping, o.color, o.grade, o.batteryNote,
       o.warranty, o.returnsPolicy, o.url, o.stock === "rupture" ? 0 : 1, now(), source,
       o.stock, o.shippingStatus, o.shippingNote, o.capacityStatus ?? "confirmee", now(),
+      o.currency ?? "EUR", o.priceConditions ?? null,
     );
     if (exists) stats.updated++;
     else stats.added++;

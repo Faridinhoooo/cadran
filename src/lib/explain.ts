@@ -16,6 +16,8 @@ export interface ChoiceExplanation {
   versus: string | null;
   /** Limite des données, en une phrase. */
   limit: string | null;
+  /** Compromis principal, s'il est documenté. */
+  tradeoff: string | null;
 }
 
 export interface ChoicesExplanation {
@@ -53,12 +55,17 @@ export function photoFeatures(specs: Record<string, unknown>): Feature[] {
   if (z && z > 1) f.push({ key: `tele${z}`, label: `un téléobjectif ${dec(z)}x` });
   if (specs.ois === true) f.push({ key: "ois", label: "une stabilisation optique" });
   if (typeof specs.cameras === "string" && /ultra grand-angle/i.test(specs.cameras)) f.push({ key: "uw", label: "un ultra grand-angle" });
+  if (video4k60(specs)) f.push({ key: "v60", label: "la vidéo 4K à 60 images par seconde" });
   return f;
 }
+/** Vidéo 4K à 60 i/s annoncée (même donnée que le score photo du moteur). */
+export function video4k60(specs: Record<string, unknown>): boolean {
+  return typeof specs.video === "string" && /4K[^;]*\b60\s*(fps|ips|i\/s|images)/i.test(specs.video);
+}
+const de = (label: string) => label.replace(/^une /, "d'une ").replace(/^un /, "d'un ").replace(/^la /, "de la ");
 const hasKey = (list: Feature[], k: string) => list.some((f) => f.key === k);
 const minus = (a: Feature[], b: Feature[]) => a.filter((f) => !hasKey(b, f.key));
-/** « une stabilisation optique » → « d'une stabilisation optique » */
-const de = (label: string) => label.replace(/^une /, "d'une ").replace(/^un /, "d'un ");
+
 
 const tier = (c: Choice) => num(c.model.specs.chip_tier);
 const chipName = (c: Choice) => (typeof c.model.specs.chip === "string" ? c.model.specs.chip : "sa puce");
@@ -214,6 +221,11 @@ function firstVersusSecond(p0: Priority, a: Choice, b: Choice, answers: Answers,
   const priceBit = d >= 1 ? `Il coûte ${eur(d)} de moins que ${le(b.model.name)} ${basis(a, b)}.` : d <= -1 ? `Il coûte ${eur(-d)} de plus que ${le(b.model.name)} ${basis(a, b)}.` : null;
   const bits: string[] = [];
   const tied = tiedOnPriority(p0, a, b, today);
+  // Ce qui l'a réellement placé devant : la plus grande contribution au score (mêmes poids que le classement).
+  const dPrio = (a.parts?.priorities ?? 0) - (b.parts?.priorities ?? 0);
+  const dBudget = (a.parts?.budget ?? 0) - (b.parts?.budget ?? 0);
+  const dProfile = (a.parts?.profile ?? 0) - (b.parts?.profile ?? 0);
+  const decisive = dProfile > 0.02 && dProfile >= dBudget && dProfile >= dPrio ? "profil" : dBudget > 0.02 && dBudget > dPrio ? "budget" : "priorite";
 
   if (p0 === "photo") {
     const fa = photoFeatures(a.model.specs), fb = photoFeatures(b.model.specs);
@@ -222,7 +234,9 @@ function firstVersusSecond(p0: Priority, a: Choice, b: Choice, answers: Answers,
     else bits.push("Nos données ne permettent pas de départager leur qualité photo.");
     const ta = tier(a), tb = tier(b);
     if (!extra.length && ta !== null && tb !== null && ta > tb)
-      bits.push(`Il passe devant grâce à sa puce ${chipName(a)}, d'une gamme au-dessus (niveau ${ta}/5 contre ${tb}/5), que notre classement photo prend en compte pour le traitement des images.`);
+      bits.push(decisive === "priorite"
+        ? `Il passe devant grâce à sa puce ${chipName(a)}, d'une gamme au-dessus (niveau ${ta}/5 contre ${tb}/5), que notre classement photo prend en compte pour le traitement des images.`
+        : `Sa puce ${chipName(a)} est d'une gamme au-dessus (niveau ${ta}/5 contre ${tb}/5).`);
   } else if (p0 === "longevite") {
     const e = securityEdge(a, b, today);
     if (e) bits.push(`Face ${le(b.model.name).replace(/^le /, "au ").replace(/^l'/, "à l'")} : ${e}.`);
@@ -231,11 +245,6 @@ function firstVersusSecond(p0: Priority, a: Choice, b: Choice, answers: Answers,
     bits.push(`À égalité avec ${le(b.model.name)} sur ce critère selon nos données.`);
   }
 
-  // Ce qui l'a réellement placé devant : la plus grande contribution au score (mêmes poids que le classement).
-  const dPrio = (a.parts?.priorities ?? 0) - (b.parts?.priorities ?? 0);
-  const dBudget = (a.parts?.budget ?? 0) - (b.parts?.budget ?? 0);
-  const dProfile = (a.parts?.profile ?? 0) - (b.parts?.profile ?? 0);
-  const decisive = dProfile > 0.02 && dProfile >= dBudget && dProfile >= dPrio ? "profil" : dBudget > 0.02 && dBudget > dPrio ? "budget" : "priorite";
   if (decisive === "profil") {
     const e = answers.keepYears ? securityEdge(a, b, today) : null;
     if (e) bits.push(`Pour le garder ${answers.keepYears} an${answers.keepYears! > 1 ? "s" : ""}, il passe devant ${le(b.model.name)} grâce à ${e}.`);
@@ -244,7 +253,7 @@ function firstVersusSecond(p0: Priority, a: Choice, b: Choice, answers: Answers,
   }
   if (priceBit) bits.push(priceBit);
   // Un N°1 plus cher qu'un N°2 équivalent : c'est le bonus « proche du plafond » du classement qui l'a placé devant.
-  if (decisive === "budget" && d <= -1) bits.push("Notre classement favorise un modèle proche de ton plafond, en général d'une gamme supérieure.");
+  if (decisive === "budget" && d <= -1) bits.push("C'est surtout ce prix plus proche de ton plafond qui le place devant : notre classement favorise un modèle proche du budget, en général d'une gamme supérieure.");
   return bits.join(" ");
 }
 
@@ -292,6 +301,28 @@ function laterAlt(p0: Priority, c: Choice, first: Choice, prev: Choice, i: numbe
   return bits.join(" ");
 }
 
+/** Compromis principal documenté (jamais une donnée inconnue présentée comme un défaut technique). */
+function tradeoff(p0: Priority, c: Choice, answers: Answers, today: Date): string | null {
+  const s = c.model.specs;
+  const second = answers.priorities[1];
+  if (second && c.norms && c.norms[second] === null) return `le critère « ${PRIORITY_LABELS_SHORT[second]} » n'a pas pu être évalué faute de donnée publiée.`;
+  if (second && c.norms && (c.norms[second] ?? 1) < 0.5) return `moins bien placé que d'autres pour ${PRIORITY_LABELS_SHORT[second]}.`;
+  const d = sec(c, today);
+  if (p0 !== "longevite" && d.state === "inconnue" && !d.announcedYears) return "aucune durée de correctifs de sécurité publiée par le fabricant.";
+  if (p0 !== "longevite" && (d.state === "periode_terminee" || d.state === "support_termine")) return "sa période de correctifs de sécurité est terminée.";
+  const g = num(s.weight_g);
+  if (p0 !== "une_main" && g !== null && g >= 215) return `plutôt lourd (${dec(g)} g).`;
+  const w = num(s.width_mm);
+  if (p0 !== "une_main" && w !== null && w >= 77.5) return `large en main (${dec(w)} mm).`;
+  const ram = c.config.ram_gb ?? num(s.ram_gb);
+  if ((p0 === "jeux" || answers.usage === "intensif") && ram !== null && ram < 8) return `${dec(ram)} Go de mémoire vive seulement.`;
+  return null;
+}
+
+const PRIORITY_LABELS_SHORT: Record<Priority, string> = {
+  photo: "la photo", autonomie: "l'autonomie", jeux: "les jeux", une_main: "l'usage à une main", longevite: "la durée de suivi", prix: "le prix",
+};
+
 // ───────── Point d'entrée ─────────
 
 export function explainChoices(choices: Choice[], answers: Answers, today: Date): ChoicesExplanation {
@@ -300,12 +331,16 @@ export function explainChoices(choices: Choice[], answers: Answers, today: Date)
   let shared: string | null = null;
   let sharedKeys: string[] = [];
 
+  let sharedIds: string[] = [];
   if (n >= 2 && p0 === "photo") {
-    const lists = choices.map((c) => photoFeatures(c.model.specs));
-    const common = lists[0].filter((f) => lists.every((l) => hasKey(l, f.key)));
+    const withData = choices.filter((c) => photoFeatures(c.model.specs).length);
+    const lists = withData.map((c) => photoFeatures(c.model.specs));
+    const common = withData.length >= 2 ? lists[0].filter((f) => lists.every((l) => hasKey(l, f.key))) : [];
     if (common.length) {
-      shared = `${n === 2 ? "Les deux" : `Les ${n}`} disposent ${joinFr(common.map((f) => de(f.label)))} (caractéristiques annoncées).`;
+      const who = withData.length === n ? (n === 2 ? "Les deux" : `Les ${n}`) : cap(joinFr(withData.map((c) => le(c.model.name))));
+      shared = `${who} disposent ${joinFr(common.map((f) => de(f.label)))} (caractéristiques annoncées).`;
       sharedKeys = common.map((f) => f.key);
+      sharedIds = withData.map((c) => c.model.id);
     }
   }
   if (n >= 2 && p0 === "longevite") {
@@ -317,16 +352,19 @@ export function explainChoices(choices: Choice[], answers: Answers, today: Date)
 
   const items = choices.map((c, i): ChoiceExplanation => {
     const fact = priorityFact(p0, c, today);
-    let limit: string | null = fact ? null : NO_DATA[p0] || null;
+    // Donnée absente : la phrase principale le dit déjà, pas de répétition en « limite ».
+    let limit: string | null = null;
     if (p0 === "autonomie" && fact && num(c.model.measured.autonomy_h) === null)
       limit = "Aucune mesure d'autonomie indépendante : une grande batterie ne garantit pas une meilleure tenue.";
     if (p0 === "longevite" && answers.keepYears) limit = keepYearsVerdict(answers.keepYears, sec(c, today)).text;
 
     // Phrase principale : on n'y répète pas ce qui est déjà dit une fois pour tous.
     let lead = fact ?? NO_DATA[p0];
-    if (p0 === "photo" && fact && sharedKeys.length) {
+    if (p0 === "photo" && fact && sharedKeys.length && sharedIds.includes(c.model.id)) {
       const own = photoFeatures(c.model.specs).filter((f) => !sharedKeys.includes(f.key));
-      lead = own.length
+      // Le N°1 : ce qui le distingue est dit dans la comparaison au N°2, pas deux fois.
+      lead = i === 0 && n >= 2 ? ""
+        : own.length
         ? `En plus, il offre ${joinFr(own.map((f) => f.label))} (caractéristiques annoncées).`
         : i > 0 && tiedOnPriority("photo", c, choices[0], today) ? "Pour la photo, même équipement annoncé que le N°1." : "";
     }
@@ -343,7 +381,7 @@ export function explainChoices(choices: Choice[], answers: Answers, today: Date)
       lead = m ? m[1] : versus ?? "";
       versus = m ? m[2] : null;
     }
-    return { lead, versus, limit };
+    return { lead, versus, limit, tradeoff: tradeoff(p0, c, answers, today) };
   });
   return { shared, items };
 }

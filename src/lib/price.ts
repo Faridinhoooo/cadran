@@ -3,6 +3,7 @@
 //  - frais inconnus : prix affiché « hors frais · livraison à vérifier » (+ marge de frais tolérée sous un plafond) ;
 //  - prix « à partir de » : jamais un coût total, capacité à vérifier.
 import { offerTotal, shownPrice, type OfferLite } from "./engine";
+import { addEuros, withinCents } from "./money";
 
 export type PriceKind = "total" | "hors_frais" | "depart";
 
@@ -22,12 +23,12 @@ export interface PriceStatus {
 
 type PriceInput = Pick<OfferLite, "price" | "mandatory_fees" | "shipping"> & { capacity_status?: string };
 
-export const eur = (n: number) => `${Number.isInteger(n) ? n : n.toFixed(2).replace(".", ",")} €`;
+export const eur = (n: number) => `${Math.round(n * 100) % 100 === 0 ? Math.round(n) : n.toFixed(2).replace(".", ",")} €`;
 
 export function priceStatus(o: PriceInput, budget?: number | null): PriceStatus {
   const total = offerTotal(o);
   if (total !== null) {
-    const within = budget ? total <= budget : null;
+    const within = budget ? withinCents(total, budget) : null;
     return {
       amount: total, kind: "total", label: o.shipping === 0 ? "frais inclus · livraison gratuite" : "frais inclus",
       withinBudget: within, headroom: null,
@@ -36,7 +37,7 @@ export function priceStatus(o: PriceInput, budget?: number | null): PriceStatus 
   }
   const amount = shownPrice(o);
   const start = o.capacity_status === "prix_de_depart";
-  const headroom = budget ? Math.round((budget - amount) * 100) / 100 : null;
+  const headroom = budget ? addEuros(budget, -amount) : null;
   return {
     amount, kind: start ? "depart" : "hors_frais",
     label: start ? "prix « à partir de » · capacité à vérifier" : "hors frais · livraison à vérifier",

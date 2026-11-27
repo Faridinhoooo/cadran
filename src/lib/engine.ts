@@ -6,6 +6,7 @@
 // 3. L'explication est générée à partir des mêmes métriques que le classement.
 
 import { securityDeadline, keepYearsVerdict, type SupportRow, type Deadline } from "./support";
+import { addEuros, withinCents } from "./money";
 
 export const OFFER_MAX_AGE_DAYS = 7;
 
@@ -69,6 +70,13 @@ export interface OfferLite {
   capacity_status?: string;
   variant_check?: string | null;
   is_demo?: number | boolean;
+  /** Devise du prix relevé (EUR attendu). */
+  currency?: string;
+  /**
+   * Condition attachée au prix (« avec reprise », « avec forfait », « coupon », « nouveau client »). null = prix public
+   * accessible à tous : seule cette base est comparée et recommandée, les conditions du visiteur étant inconnues.
+   */
+  price_conditions?: string | null;
 }
 
 export interface ConfigLite {
@@ -147,12 +155,13 @@ export function offerTotal(o: Pick<OfferLite, "price" | "mandatory_fees" | "ship
   // Un prix « à partir de » n'est le coût d'aucune variante précise : jamais un coût total confirmé.
   if (o.capacity_status === "prix_de_depart") return null;
   if (o.mandatory_fees === null || o.shipping === null) return null;
-  return Math.round((o.price + o.mandatory_fees + o.shipping) * 100) / 100;
+  return addEuros(o.price, o.mandatory_fees, o.shipping);
 }
 
 /** Offre active : disponible, en stock (ou stock non publié mais en vente), récente, réelle, variante cohérente. */
 export function isFresh(o: Pick<OfferLite, "available" | "checked_at"> & Partial<OfferLite>, today: Date): boolean {
   if (!o.available || o.stock === "rupture" || o.is_demo || o.variant_check === "ecart") return false;
+  if ((o.currency && o.currency !== "EUR") || o.price_conditions) return false;
   const age = (today.getTime() - new Date(o.checked_at).getTime()) / 864e5;
   return age >= -1 && age <= OFFER_MAX_AGE_DAYS;
 }
@@ -160,7 +169,7 @@ export function isFresh(o: Pick<OfferLite, "available" | "checked_at"> & Partial
 /** « Disponible dans ton budget » : offre réelle, disponible, récente, coût total connu ≤ budget. */
 export function availableWithinBudget(o: OfferLite, budget: number, today: Date): boolean {
   const t = offerTotal(o);
-  return isFresh(o, today) && t !== null && t <= budget;
+  return isFresh(o, today) && t !== null && withinCents(t, budget);
 }
 
 // ───────────── Contraintes ─────────────
@@ -184,7 +193,7 @@ export function admissibleEntries(answers: Answers, models: CandidateModel[], to
         if (!skip.has("etat") && !answers.conditions.includes(offer.condition)) continue;
         const total = offerTotal(offer);
         if (total === null) continue;
-        if (!skip.has("budget") && total > answers.budget) continue;
+        if (!skip.has("budget") && !withinCents(total, answers.budget)) continue;
         out.push({ model, config, offer, total });
       }
     }
@@ -206,7 +215,10 @@ export function rawMetric(p: Priority, e: Entry, answers: Answers, today: Date):
       const cams = typeof s.cameras === "string" ? s.cameras : null;
       if (zoom === null && ois === undefined && cams === null) return null;
       const zoomScore = zoom === null ? 0 : zoom >= 5 ? 1 : zoom >= 3 ? 0.8 : zoom >= 2 ? 0.5 : 0;
-      return zoomScore * 0.4 + (ois === true ? 0.25 : 0) + (cams && /ultra grand-angle/i.test(cams) ? 0.15 : 0) + ((num(s.chip_tier) ?? 0) / 5) * 0.2;
+      // Équipement annoncé : zoom optique, stabilisation, ultra grand-angle, vidéo 4K à 60 i/s, puis gamme de la puce
+      // (traitement d'image). Jamais les mégapixels. Les mêmes éléments sont cités dans l'explication (explain.ts).
+      const v60 = typeof s.video === "string" && /4K[^;]*\b60\s*(fps|ips|i\/s|images)/i.test(s.video);
+      return zoomScore * 0.4 + (ois === true ? 0.25 : 0) + (cams && /ultra grand-angle/i.test(cams) ? 0.15 : 0) + (v60 ? 0.1 : 0) + ((num(s.chip_tier) ?? 0) / 5) * 0.1;
     }
     case "autonomie": {
       const measured = num(e.model.measured.autonomy_h);
@@ -474,8 +486,12 @@ function advantagesOver(alt: Entry, first: Entry, altNorms: Partial<Record<Prior
 
 // ───────────── Offres à vérifier (frais inconnus) ─────────────
 
-export function shownPrice(o: Pick<OfferLite, "price" | "mandatory_fees">): number {
-  return Math.round((o.price + (o.mandatory_fees ?? 0)) * 100) / 100;
+/**
+ * Minimum déjà connu : prix + tous les frais connus (frais obligatoires, livraison). Une livraison gratuite confirmée
+ * compte 0 € ; une livraison inconnue n'est jamais supposée gratuite, elle reste « à vérifier ».
+ */
+export function shownPrice(o: Pick<OfferLite, "price" | "mandatory_fees"> & { shipping?: number | null }): number {
+  return addEuros(o.price, o.mandatory_fees ?? 0, o.shipping ?? 0);
 }
 
 /** Comme admissibleEntries, mais sans exiger un coût total connu (le budget s'applique au coût total s'il est connu). */
@@ -495,7 +511,7 @@ function admissibleEntriesRaw(answers: Answers, models: CandidateModel[], today:
         if (!isFresh(offer, today)) continue;
         if (!skip.has("etat") && !answers.conditions.includes(offer.condition)) continue;
         const total = offerTotal(offer);
-        if (total !== null && !skip.has("budget") && total > answers.budget) continue;
+        if (total !== null && !skip.has("budget") && !withinCents(total, answers.budget)) continue;
         out.push({ model, config, offer, total: total ?? shownPrice(offer) });
       }
     }
@@ -509,7 +525,7 @@ function admissibleEntriesRaw(answers: Answers, models: CandidateModel[], today:
  */
 export function verifyEntries(answers: Answers, models: CandidateModel[], today: Date, ignore: Constraint[] = []): Entry[] {
   return admissibleEntriesRaw(answers, models, today, ignore).filter(
-    (e) => offerTotal(e.offer) === null && (ignore.includes("budget") || shownPrice(e.offer) <= answers.budget),
+    (e) => offerTotal(e.offer) === null && (ignore.includes("budget") || withinCents(shownPrice(e.offer), answers.budget)),
   );
 }
 
@@ -570,7 +586,7 @@ function toVerifyCards(answers: Answers, models: CandidateModel[], today: Date):
   }
   return list.map((e, i) => ({
     model: e.model, config: e.config, offer: e.offer, shownPrice: shownPrice(e.offer),
-    headroom: Math.round((answers.budget - shownPrice(e.offer)) * 100) / 100,
+    headroom: addEuros(answers.budget, -shownPrice(e.offer)),
     toCheck: [
       ...(e.offer.shipping === null || e.offer.mandatory_fees === null ? (["livraison"] as const) : []),
       ...(e.offer.capacity_status === "prix_de_depart" ? (["capacite"] as const) : []),
@@ -597,9 +613,9 @@ export function offerFunnel(answers: Answers, models: CandidateModel[], today: D
         if ((answers.includeBrands?.length && !answers.includeBrands.includes(m.brand_id)) || answers.excludeBrands?.includes(m.brand_id)) { f.marques++; continue; }
         const t = offerTotal(o);
         if (t !== null) {
-          if (t <= answers.budget) f.confirmee++;
+          if (withinCents(t, answers.budget)) f.confirmee++;
           else f.hors_budget++;
-        } else if (shownPrice(o) <= answers.budget) f.a_verifier++;
+        } else if (withinCents(shownPrice(o), answers.budget)) f.a_verifier++;
         else f.hors_budget++;
       }
   return f;

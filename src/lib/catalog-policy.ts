@@ -28,6 +28,7 @@ export function reliableOfferSql(p: CatalogPolicy, now = new Date()): string {
   return [
     "o.available=1", "o.is_test=0", "o.is_demo=0", "o.stock<>'rupture'",
     "COALESCE(o.variant_check,'')<>'ecart'",
+    "COALESCE(o.currency,'EUR')='EUR'", "o.price_conditions IS NULL",
     `o.checked_at >= '${cutoff}'`,
     p.acceptStartingPrices ? "1=1" : "o.capacity_status='confirmee'",
   ].join(" AND ");

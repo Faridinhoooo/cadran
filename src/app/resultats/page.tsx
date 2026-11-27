@@ -9,6 +9,7 @@ import { GUIDE_BUDGETS } from "@/lib/budget-guide";
 import { SecurityLine, Thumb, BudgetGauge } from "@/components/ui";
 import { ShopLinks } from "@/components/ShopLinks";
 import { ChoicesSection } from "@/components/Choices";
+import { budgetInput } from "@/lib/money";
 import { PriceTag } from "@/components/PriceTag";
 import { scales } from "@/lib/scales";
 import { shopLinks } from "@/lib/shop-links";
@@ -105,7 +106,7 @@ function PickCard({ p, rank, today, answers }: { p: Recommendation; rank: number
 export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
   const answers = parseAnswers(sp);
-  if (!answers) redirect("/trouver");
+  if (!answers) redirect(`/trouver${sp.budget ? `?budget=${encodeURIComponent(String(sp.budget))}` : ""}`);
   const today = new Date();
   const models = candidates();
   const result = recommend(answers, models, today);
@@ -135,7 +136,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
           {[...toParams(answers).entries()].filter(([k]) => k !== "budget").map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
           <label className="grid gap-1 flex-1">
             <span className="text-xs uppercase tracking-wider text-muted font-bold">Budget maximum (€)</span>
-            <input name="budget" type="number" min={50} defaultValue={answers.budget} className="bg-page border border-line rounded-xl px-3 py-2 font-bold tabular-nums w-full" />
+            <input name="budget" type="text" inputMode="decimal" autoComplete="off" required defaultValue={budgetInput(answers.budget)} className="bg-page border border-line rounded-xl px-3 py-2 font-bold tabular-nums w-full" />
           </label>
           <button className="btn btn-ghost min-h-[42px] px-4 text-sm">Mettre à jour</button>
         </form>
