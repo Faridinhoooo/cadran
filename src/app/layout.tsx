@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   applicationName: "PickJust",
   formatDetection: { telephone: false },
   title: { default: "PickJust — le bon smartphone pour ton budget", template: "%s · PickJust" },
-  description: "Entre ton budget, réponds à 7 questions rapides et découvre quel smartphone acheter, dans quel état et pourquoi.",
+  description: "Entre ton budget, réponds à 3 questions rapides et découvre quel smartphone acheter, dans quel état et pourquoi.",
 };
 
 export const viewport: Viewport = { themeColor: "#ffffff", width: "device-width", initialScale: 1 };

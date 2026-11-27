@@ -27,7 +27,7 @@ export default async function OpengraphImage() {
           </span>
         </div>
         <div style={{ display: "flex", fontSize: 28, color: "#5d5d66", letterSpacing: 0 }}>
-          Prix relevés chez les vendeurs · frais inclus · 3 choix expliqués
+          Prix relevés chez les vendeurs · 3 choix expliqués
         </div>
       </div>
     ),

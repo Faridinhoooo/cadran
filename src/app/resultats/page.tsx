@@ -9,6 +9,7 @@ import { GUIDE_BUDGETS } from "@/lib/budget-guide";
 import { SecurityLine, Thumb, BudgetGauge } from "@/components/ui";
 import { ShopLinks } from "@/components/ShopLinks";
 import { ChoicesSection } from "@/components/Choices";
+import { PriceTag } from "@/components/PriceTag";
 import { scales } from "@/lib/scales";
 import { shopLinks } from "@/lib/shop-links";
 import { keepYearsVerdict } from "@/lib/support";
@@ -48,7 +49,7 @@ function PickCard({ p, rank, today, answers }: { p: Recommendation; rank: number
   const first = rank === 0;
   return (
     <article className={`bg-panel border ${first ? "border-red" : "border-line"} cut p-5 sm:p-7`} aria-labelledby={`pick-${rank}`}>
-      <p className="tag mb-4">{first ? <span className="text-red">Premier choix</span> : `Alternative ${rank}`}</p>
+      <p className="tag mb-4"><span className="text-ok">✓ Frais inclus</span></p>
       <div className="grid sm:grid-cols-[auto_1fr] gap-5 sm:gap-7">
         <Thumb media={thumbs.get(p.model.id) ?? null} alt={p.model.name} form={p.model.form_factor} size={first ? 168 : 120} />
         <div>
@@ -72,7 +73,7 @@ function PickCard({ p, rank, today, answers }: { p: Recommendation; rank: number
       </div>
 
       <section className="mt-6" aria-label="Explication">
-        <h3 className="display text-lg sm:text-xl text-red">{first ? "Pourquoi ce modèle pour toi ?" : "Ce qu'il apporte en plus"}</h3>
+        <h3 className="display text-lg sm:text-xl text-red">{first ? "Pourquoi ce modèle pour toi ?" : "Ce qu'il apporte par rapport à l'offre précédente"}</h3>
         {!first && (
           <ul className="flex flex-wrap gap-2 mt-2">
             {p.advantages.map((a) => <li key={a} className="tag">+ {a}</li>)}
@@ -161,19 +162,21 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
           <Opt href={q({ os: "android" })} on={answers.os === "android"}>Android</Opt>
           <Opt href={q({ os: "any" })} on={answers.os === "any"}>Les deux</Opt>
         </EditRow>
-        <EditRow label="Usage" value={answers.usage === "leger" ? "Léger" : answers.usage === "moyen" ? "Moyen" : answers.usage === "intensif" ? "Intensif" : "Non précisé"}>
+        <EditRow label="Usage" value={answers.usage === "leger" ? "Léger" : answers.usage === "moyen" ? "Moyen" : answers.usage === "intensif" ? "Intensif" : "Sans préférence"}>
+          <Opt href={q({ usage: null })} on={!answers.usage}>Sans préférence</Opt>
           {(["leger", "moyen", "intensif"] as const).map((u) => <Opt key={u} href={q({ usage: u })} on={answers.usage === u}>{u === "leger" ? "Léger" : u === "moyen" ? "Moyen" : "Intensif"}</Opt>)}
         </EditRow>
-        <EditRow label="Taille d'écran" value={answers.size === "compact" ? "Compact" : answers.size === "standard" ? "Standard" : answers.size === "grand" ? "Grand écran" : "Peu importe"}>
+        <EditRow label="Taille d'écran" value={answers.size === "compact" ? "Compact" : answers.size === "standard" ? "Standard" : answers.size === "grand" ? "Grand écran" : "Sans préférence"}>
           {([["compact", "Compact"], ["standard", "Standard"], ["grand", "Grand écran"]] as const).map(([z, l]) => <Opt key={z} href={q({ size: z })} on={answers.size === z}>{l}</Opt>)}
-          <Opt href={q({ size: null })} on={!answers.size}>Peu importe</Opt>
+          <Opt href={q({ size: null })} on={!answers.size}>Sans préférence</Opt>
         </EditRow>
-        <EditRow label="Le garder" value={answers.keepYears ? `${answers.keepYears} ans` : "Non précisé"}>
+        <EditRow label="Le garder" value={answers.keepYears ? `${answers.keepYears} an${answers.keepYears > 1 ? "s" : ""}` : "Sans préférence"}>
+          <Opt href={q({ keepYears: null })} on={!answers.keepYears}>Sans préférence</Opt>
           {[1, 2, 3, 4, 5, 6].map((y) => <Opt key={y} href={q({ keepYears: y })} on={answers.keepYears === y}>{y} an{y > 1 ? "s" : ""}</Opt>)}
         </EditRow>
         <EditRow label="Affiner" value={refine.length ? refine.join(" · ") : "Aucun critère"}>
           <span className="w-full text-sm text-muted">Stockage minimum</span>
-          {[null, 128, 256, 512].map((g) => <Opt key={String(g)} href={q({ minStorage: g })} on={(answers.minStorage ?? null) === g}>{g ? storageLabel(g) : "Peu importe"}</Opt>)}
+          {[null, 128, 256, 512].map((g) => <Opt key={String(g)} href={q({ minStorage: g })} on={(answers.minStorage ?? null) === g}>{g ? storageLabel(g) : "Sans préférence"}</Opt>)}
           <span className="w-full text-sm text-muted mt-2">eSIM</span>
           <Opt href={q({ esim: true })} on={!!answers.esim}>Indispensable</Opt>
           <Opt href={q({ esim: false })} on={!answers.esim}>Peu importe</Opt>
@@ -303,24 +306,12 @@ function VerifyOfferCard({ v }: { v: VerifyCard }) {
           <p className="text-sm text-muted mt-1">
             {capacity} · {CONDITION_LABELS[v.offer.condition]} · {v.offer.seller}
           </p>
-          <p className="mt-2 leading-tight">
-            <span className="text-2xl font-extrabold tabular-nums">{euros(v.shownPrice)}</span>
-            <span className="block text-sm font-semibold mt-0.5">
-              {v.toCheck.includes("livraison") ? (
-                <>hors frais · <span className="text-warn">Livraison à vérifier</span></>
-              ) : (
-                <>livraison gratuite annoncée · <span className="text-warn">prix « à partir de »</span></>
-              )}
-            </span>
-          </p>
+          <div className="mt-2"><PriceTag offer={v.offer} budget={v.shownPrice + v.headroom} size="lg" /></div>
           <BudgetGauge price={v.shownPrice} budget={v.shownPrice + v.headroom} confirmed={false} />
         </div>
       </div>
       <div className="px-4 pb-4 flex flex-col gap-2 text-sm flex-1">
         <p>{v.why}</p>
-        {v.toCheck.includes("livraison") && (
-          <p className="text-muted">Reste dans ton budget si les frais ne dépassent pas {euros(v.headroom)}.</p>
-        )}
         {v.toCheck.includes("capacite") && (
           <p className="text-muted">Prix « à partir de » publié sans capacité : vérifie la capacité correspondant à ce prix chez le vendeur.</p>
         )}

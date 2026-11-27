@@ -280,7 +280,10 @@ export function profileFit(e: Entry, answers: Answers, today: Date): { fit: numb
   }
   if (answers.keepYears && !answers.priorities.includes("longevite")) {
     const d = securityDeadline(e.model.support, today);
-    parts.duree = d.monthsLeft === null ? 0.5 : clamp01(d.monthsLeft / (answers.keepYears * 12));
+    // Échéance connue : part couverte. Durée seule annoncée (sans date de départ) couvrant la durée souhaitée :
+    // crédit modéré (0,75), jamais celui d'une échéance confirmée. Rien de publié : neutre (0,5).
+    parts.duree = d.monthsLeft !== null ? clamp01(d.monthsLeft / (answers.keepYears * 12))
+      : d.announcedYears && d.announcedYears >= answers.keepYears ? 0.75 : 0.5;
   }
   const vals = Object.values(parts);
   return { fit: vals.length ? vals.reduce((x, y) => x + y, 0) / vals.length : 0.5, parts };
@@ -289,6 +292,16 @@ export function profileFit(e: Entry, answers: Answers, today: Date): { fit: numb
 /** Part du budget exploitée, ramenée entre 0 (≤ 45 % du budget) et 1 (≥ 95 %). */
 export function budgetUse(total: number, budget: number): number {
   return clamp01((total / budget - 0.45) / 0.5);
+}
+
+/** Contributions au score, pour expliquer ce qui départage deux modèles. */
+export interface ScoreParts {
+  /** Priorités choisies (pondérées). */
+  priorities: number;
+  /** Bonus « exploite bien le budget ». */
+  budget: number;
+  /** Taille, intensité d'usage, durée de conservation. */
+  profile: number;
 }
 
 export function rank(answers: Answers, entries: Entry[], today: Date) {
@@ -300,21 +313,23 @@ export function rank(answers: Answers, entries: Entry[], today: Date) {
   for (const e of entries) minByModel.set(e.model.id, Math.min(minByModel.get(e.model.id) ?? Infinity, e.total));
   let scored = entries.map((e, i) => {
     const n: Partial<Record<Priority, number | null>> = {};
+    const parts: ScoreParts = { priorities: 0, budget: 0, profile: 0 };
     let score = 0;
     prios.forEach((p, k) => {
       n[p] = norms[k][i];
       score += weights[k] * (norms[k][i] ?? 0);
     });
+    parts.priorities = score;
     // Budget : sauf si la priorité est le prix, un budget plus élevé signale une attente de gamme supérieure.
     // Un modèle qui exploite bien le budget (≥ 85 %) passe devant un modèle bien moins cher et un peu meilleur
     // sur un seul critère. Un modèle à moins de 45 % du budget ne reçoit pas ce bonus.
     // Calculé sur le prix le plus bas du modèle : le bonus ne pousse jamais une capacité plus chère du même téléphone.
-    if (prios[0] !== "prix") score += 0.45 * budgetUse(minByModel.get(e.model.id) ?? e.total, answers.budget);
+    if (prios[0] !== "prix") score += parts.budget = 0.45 * budgetUse(minByModel.get(e.model.id) ?? e.total, answers.budget);
     // Profil (taille, intensité d'usage, durée) : critère complémentaire, moins fort que les priorités.
-    if (answers.size || answers.usage || answers.keepYears) score += 0.35 * profileFit(e, answers, today).fit;
+    if (answers.size || answers.usage || answers.keepYears) score += parts.profile = 0.35 * profileFit(e, answers, today).fit;
     // Départage léger : à valeur égale, la moins chère passe devant.
     score += 0.02 * (1 - e.total / answers.budget);
-    return { e, score, norms: n };
+    return { e, score, norms: n, parts };
   });
 
   if (prios[0] === "prix") {
@@ -604,6 +619,9 @@ export interface Choice {
   diversity?: "ios" | "android";
   /** L'offre est dans un état non coché (reconditionné ou occasion), proposée pour avoir un iPhone ou un Android. */
   otherCondition?: boolean;
+  /** Détail du score de classement (mêmes critères que le tri). */
+  parts?: ScoreParts;
+  norms?: Partial<Record<Priority, number | null>>;
 }
 
 /**
@@ -619,7 +637,7 @@ export function topChoices(answers: Answers, models: CandidateModel[], today: Da
   const pick = (x: (typeof ranked)[number], i: number, extra: Partial<Choice> = {}): Choice => ({
     model: x.e.model, config: x.e.config, offer: x.e.offer,
     total: offerTotal(x.e.offer), shown: shownPrice(x.e.offer),
-    why: whyOneLiner(x.e, answers, i, today), ...extra,
+    why: whyOneLiner(x.e, answers, i, today), parts: x.parts, norms: x.norms, ...extra,
   });
   const out = ranked.slice(0, count).map((x, i) => pick(x, i));
 

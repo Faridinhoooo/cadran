@@ -148,7 +148,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
           <ul className="grid grid-cols-1 min-[480px]:grid-cols-2 xl:grid-cols-3 gap-4">
             {shown.map((m) => {
               const sec = deadline(m.security_end, m.security_end_precision, !!m.security_end_confirmed, today);
-              const best = [m.minNew !== null ? { l: "Neuf", p: m.minNew } : null, m.minRefurb !== null ? { l: "Reconditionné", p: m.minRefurb } : null].filter(Boolean) as { l: string; p: number }[];
+              const best = [m.minNew !== null ? { l: "Neuf", p: m.minNew, k: m.newKind } : null, m.minRefurb !== null ? { l: "Reconditionné", p: m.minRefurb, k: m.refurbKind } : null].filter(Boolean) as { l: string; p: number; k: string | null }[];
               return (
                 <li key={m.id} className="card-link group relative bg-page border border-line rounded-3xl overflow-hidden flex flex-col">
                   <PhotoFrame media={m.thumb} alt={m.name} form={m.form_factor} className="aspect-[4/3]" />
@@ -176,7 +176,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
                         best.map((b) => (
                           <p key={b.l} className="flex items-baseline justify-between gap-2">
                             <span className="text-xs text-muted">{b.l} dès</span>
-                            <span className="text-lg font-extrabold tabular-nums">{euros(b.p)}</span>
+                            <span className="text-right">
+                              <span className="text-lg font-extrabold tabular-nums">{euros(b.p)}</span>
+                              <span className={`block text-[11px] font-semibold ${b.k === "total" ? "text-ok" : "text-warn"}`}>{b.k === "total" ? "frais inclus" : b.k === "depart" ? "prix de départ" : "hors frais · livraison à vérifier"}</span>
+                            </span>
                           </p>
                         ))
                       ) : m.priceNote ? (

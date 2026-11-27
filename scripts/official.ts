@@ -486,6 +486,45 @@ export function xiaomiSlugCandidates(modelId: string): string[] {
   return [...new Set(slugs)].map((s) => `https://www.mi.com/fr/product/${s}/specs/`);
 }
 
+/**
+ * Durée de suivi annoncée sur une page produit Xiaomi France (« 6 ans de mises à jour de sécurité »).
+ * Seule la durée est publiée : ni date de départ, ni échéance. null si la page n'en annonce pas.
+ */
+export function parseXiaomiSecurityYears(text: string): number | null {
+  const m = text.replace(/\u00a0/g, " ").match(/(\d{1,2})\s*ans de mises? à jour de sécurité/i);
+  const y = m ? Number(m[1]) : NaN;
+  return y >= 1 && y <= 10 ? y : null;
+}
+
+/** Enregistre (ou retire) la durée annoncée sur la page produit, sans jamais inventer d'échéance. */
+async function importXiaomiSecurityClaim(db: DatabaseSync, modelId: string, specsUrl: string): Promise<boolean | null> {
+  const page = specsUrl.replace(/specs\/?$/, "");
+  let text: string;
+  try {
+    const res = await fetch(page, { headers: { "User-Agent": BROWSER_UA, "Accept-Language": "fr-FR,fr;q=0.9" }, redirect: "follow", signal: AbortSignal.timeout(45_000) });
+    if (!res.ok || res.url.includes("/errors/")) return null;
+    text = flatText(await res.text()).replace(/’/g, "'");
+  } catch {
+    return null;
+  }
+  const years = parseXiaomiSecurityYears(text);
+  const today = new Date().toISOString().slice(0, 10);
+  const SOURCE = "Xiaomi France — page produit (durée annoncée, date de départ non publiée)";
+  if (years) {
+    // Une échéance déjà connue (autre source datée) n'est jamais écrasée par une simple durée.
+    db.prepare(`INSERT INTO support (model_id, security_years, source_name, source_url, checked_at, level)
+        VALUES (?, ?, ?, ?, ?, 'officiel')
+      ON CONFLICT(model_id) DO UPDATE SET security_years=excluded.security_years, source_name=excluded.source_name,
+        source_url=excluded.source_url, checked_at=excluded.checked_at, level='officiel'
+      WHERE support.security_end IS NULL`).run(modelId, years, SOURCE, page, today);
+    return true;
+  }
+  // La page ne l'annonce plus : on retire la durée relevée précédemment sur cette même source.
+  db.prepare(`UPDATE support SET security_years=NULL, level='consulte', source_name='Xiaomi France — aucune durée de suivi publiée sur la page consultée', checked_at=?
+    WHERE model_id=? AND source_name=?`).run(today, modelId, SOURCE);
+  return false;
+}
+
 export async function importXiaomiSpecs(db: DatabaseSync, stats: Stats) {
   // Tous les modèles Xiaomi, REDMI et POCO : d'abord la page liée à une offre de la boutique, sinon l'adresse déduite
   // de l'identifiant du modèle (les pages des modèles retirés de la vente restent souvent en ligne).
@@ -494,6 +533,7 @@ export async function importXiaomiSpecs(db: DatabaseSync, stats: Stats) {
   for (const o of db.prepare(`SELECT DISTINCT c.model_id, o.url FROM offers o JOIN configs c ON c.id=o.config_id WHERE o.source='xiaomi-fr' AND o.is_test=0`).all() as { model_id: string; url: string }[])
     if (!shop.has(o.model_id)) shop.set(o.model_id, xiaomiSpecsUrl(o.url));
   let found = 0;
+  let claims = 0;
   const missing: string[] = [];
   for (const m of models) {
     const urls = [...new Set([shop.get(m.id), ...xiaomiSlugCandidates(m.id)].filter((u): u is string => !!u))];
@@ -516,10 +556,11 @@ export async function importXiaomiSpecs(db: DatabaseSync, stats: Stats) {
       if (configs.length) upsertSpec(db, m.id, "ram_gb", Math.min(...configs.map((c) => c.ram)), "Xiaomi France — caractéristiques (mi.com/fr)", url, stats);
       done = true;
       found++;
+      if (await importXiaomiSecurityClaim(db, m.id, url)) claims++;
       break;
     }
     if (!done) missing.push(m.id);
     await new Promise((r) => setTimeout(r, 300));
   }
-  stats.notes.push(`${found}/${models.length} modèles lus sur mi.com/fr` + (missing.length ? ` ; page officielle introuvable : ${missing.join(", ")}` : ""));
+  stats.notes.push(`${found}/${models.length} modèles lus sur mi.com/fr, ${claims} avec une durée de mises à jour de sécurité annoncée` + (missing.length ? ` ; page officielle introuvable : ${missing.join(", ")}` : ""));
 }

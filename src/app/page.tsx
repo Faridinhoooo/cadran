@@ -21,7 +21,9 @@ export default function Home() {
   const showcase = SHOWCASE.map((b, i) => {
     const floor = i ? SHOWCASE[i - 1] : 0;
     const band = all.filter((m) => lowest(m) <= b && lowest(m) > floor).sort((x, y) => lowest(y) - lowest(x));
-    return { budget: b, floor, count: all.filter((m) => lowest(m) <= b).length, inBand: band.length, picks: band.slice(0, 3) };
+    const under = all.filter((m) => lowest(m) <= b);
+    const withTotal = under.filter((m) => [[m.minNew, m.newKind], [m.minRefurb, m.refurbKind]].some(([p, k]) => k === "total" && (p as number) <= b)).length;
+    return { budget: b, floor, count: under.length, withTotal, inBand: band.length, picks: band.slice(0, 3) };
   });
 
   const count = new Map<string, number>();
@@ -44,7 +46,7 @@ export default function Home() {
               <span className="text-red">Au juste prix.</span>
             </h1>
             <p className="text-lg sm:text-xl text-muted mt-6 max-w-xl leading-relaxed">
-              Donne ton budget, réponds à 7 questions rapides : PickJust te propose 3 téléphones, avec des prix relevés chez les vendeurs et la raison de chaque choix.
+              Donne ton budget, réponds à 3 questions rapides : PickJust te propose 3 téléphones, avec des prix relevés chez les vendeurs et la raison de chaque choix.
             </p>
             <div className="mt-9">
               <BudgetForm />
@@ -68,8 +70,8 @@ export default function Home() {
         <dl className="grid grid-cols-2 lg:grid-cols-4 gap-y-10 gap-x-6 text-center">
           {[
             [String(totals.published), "smartphones référencés"],
-            [String(totals.priced), "avec un prix vérifié aujourd'hui"],
-            [String(totals.offers), "offres relevées chez les vendeurs"],
+            [String(totals.priced), "modèles avec un prix récent (moins de 7 jours)"],
+            [String(totals.recentOffers), "offres récentes relevées chez les vendeurs"],
             ["0 €", "payé par un vendeur pour être classé"],
           ].map(([v, l]) => (
             <div key={l} className="flex flex-col-reverse">
@@ -91,7 +93,7 @@ export default function Home() {
         <div className="text-center max-w-2xl mx-auto">
           <p className="eyebrow">Guides</p>
           <h2 id="budgets" className="display text-4xl sm:text-6xl mt-3">Les meilleurs par budget</h2>
-          <p className="text-muted text-lg mt-4">Les modèles qui entrent vraiment dans ton plafond, frais compris.</p>
+          <p className="text-muted text-lg mt-4">Les modèles dont le prix relevé entre dans ton plafond : frais inclus quand le vendeur les publie, sinon signalés « hors frais ».</p>
         </div>
         <ul className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mt-12">
           {showcase.map((s) => (
@@ -99,7 +101,7 @@ export default function Home() {
               <Link href={`/meilleurs-smartphones/${s.budget}`} className="card-link group flex flex-col h-full bg-panel rounded-[28px] overflow-hidden">
                 <div className="px-6 pt-7 text-center">
                   <p className="display text-3xl sm:text-4xl">Jusqu&apos;à {euros(s.budget)}</p>
-                  <p className="text-sm text-muted mt-2 tabular-nums">{s.count} modèle{s.count > 1 ? "s" : ""} au total</p>
+                  <p className="text-sm text-muted mt-2 tabular-nums">{s.count} modèle{s.count > 1 ? "s" : ""}{s.count > 0 && (s.withTotal === 0 ? " · frais à vérifier" : s.withTotal === s.count ? " · frais inclus" : `, dont ${s.withTotal} frais inclus`)}</p>
                 </div>
                 <div className="grid grid-cols-3 gap-2 px-5 mt-6">
                   {s.picks.length ? s.picks.map((m) => (
@@ -128,7 +130,7 @@ export default function Home() {
           <ol className="grid md:grid-cols-3 gap-10 md:gap-8 mt-14">
             {[
               ["01", "Ton budget", "Le plafond inclut la livraison et les frais obligatoires. Une offre à 395 € avec 10 € de frais dépasse un budget de 400 €."],
-              ["02", "7 questions rapides", "L'état, tes priorités, ton usage, la taille d'écran, le stockage, la durée et le système. Tu peux revenir en arrière sans rien perdre."],
+              ["02", "3 questions rapides", "L'état, ta priorité et iPhone ou Android. Tu peux ensuite affiner : taille d'écran, stockage, usage et durée de conservation."],
               ["03", "3 choix expliqués", "Processeur, mémoire, stockage et batterie, des jauges pour comparer, et pourquoi chaque téléphone est fait pour toi."],
             ].map(([n, t, d]) => (
               <li key={n} className="border-t border-white/15 pt-6">

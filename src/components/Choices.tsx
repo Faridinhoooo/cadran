@@ -9,6 +9,8 @@ import { Thumb } from "@/components/ui";
 import { ShopLinks } from "@/components/ShopLinks";
 import { usedLinks } from "@/lib/shop-links";
 import type { MediaRow } from "@/lib/queries";
+import { explainChoices } from "@/lib/explain";
+import { PriceTag } from "@/components/PriceTag";
 
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
 const dec = (v: number) => String(v).replace(".", ",");
@@ -48,14 +50,10 @@ function Gauge({ value, label, detail, from, to }: { value: number; label: strin
   );
 }
 
-function reasons(c: Choice, answers: Answers, s: Scales, today: Date): string[] {
+/** Compléments liés au profil précisé (usage, taille, stockage, durée) : seulement ce que la personne a demandé. */
+function profileNotes(c: Choice, answers: Answers, s: Scales, today: Date): string[] {
   const sp = c.model.specs;
   const out: string[] = [];
-  if (c.diversity) {
-    const sys = c.diversity === "ios" ? "iPhone" : "Android";
-    out.push(`Tu hésites entre iPhone et Android : voici le meilleur ${sys} dans ton budget${c.otherCondition ? `, en ${c.offer.condition === "occasion" ? "occasion" : "reconditionné"} (un état que tu n'avais pas coché)` : ""}.`);
-  }
-  out.push(c.why);
   const mah = num(sp.battery_mah), score = num(sp.chip_score), inch = num(sp.screen_in);
   if (answers.usage === "intensif" && (score !== null || mah !== null)) {
     const bits = [score !== null ? `une puce plus puissante que ${percentileBelow(score, s.chip.values)} % des modèles` : null, mah !== null && !answers.priorities.includes("autonomie") ? `une batterie de ${mah.toLocaleString("fr-FR")} mAh (plus grande que ${percentileBelow(mah, s.battery.values)} % des modèles)` : null].filter(Boolean);
@@ -68,14 +66,13 @@ function reasons(c: Choice, answers: Answers, s: Scales, today: Date): string[] 
     out.push(ok ? `Écran de ${dec(inch)}″ : la taille ${answers.size === "compact" ? "compacte" : answers.size === "grand" ? "grand écran" : "standard"} que tu cherches.`
       : `Écran de ${dec(inch)}″ : un peu hors de la taille souhaitée, mais c'est le meilleur compromis pour le reste.`);
   }
-  if (answers.minStorage && c.config.storage_gb >= answers.minStorage) out.push(`${storageLabel(c.config.storage_gb)} de stockage : de quoi garder tes photos et applis.`);
-  if (answers.keepYears) {
-    const v = keepYearsVerdict(answers.keepYears, securityDeadline(c.model.support, today));
-    out.push(v.text);
+  if (answers.minStorage && c.config.storage_gb >= answers.minStorage) out.push(`${storageLabel(c.config.storage_gb)} de stockage, pour ton minimum de ${storageLabel(answers.minStorage)}.`);
+  if (answers.keepYears && answers.priorities[0] !== "longevite") out.push(keepYearsVerdict(answers.keepYears, securityDeadline(c.model.support, today)).text);
+  if (c.total !== null) {
+    const left = Math.round((answers.budget - c.total) * 100) / 100;
+    if (left > 0) out.push(`${euros(left)} sous ton budget, frais inclus.`);
   }
-  const left = Math.round((answers.budget - (c.total ?? c.shown)) * 100) / 100;
-  if (left > 0) out.push(`${euros(left)} sous ton budget${c.total === null ? " (avant frais de livraison à vérifier)" : ""}.`);
-  return out.slice(0, 5);
+  return out;
 }
 
 /** Aucun iPhone vérifié dans le budget alors que la personne hésite : renvoi vers l'occasion, filtré sur le budget. */
@@ -107,6 +104,7 @@ function UsedIphoneOption({ budget, models }: { budget: number; models: string[]
 }
 
 export function ChoicesSection({ choices, answers, scales, thumbs, today, usedIphones = [] }: { choices: Choice[]; answers: Answers; scales: Scales; thumbs: Map<string, MediaRow>; today: Date; usedIphones?: string[] }) {
+  const ex = explainChoices(choices, answers, today);
   return (
     <section aria-labelledby="choix" className="grid gap-5">
       <div>
@@ -114,6 +112,7 @@ export function ChoicesSection({ choices, answers, scales, thumbs, today, usedIp
           {choices.length > 1 ? <>Nos <span className="text-red">{choices.length} choix</span> pour toi</> : <>Notre choix pour toi</>}
         </h2>
         <div className="mt-2"><ProfileSummary answers={answers} /></div>
+        {ex.shared && <p className="mt-2 text-sm"><span className="font-semibold">Point commun :</span> {ex.shared}</p>}
       </div>
       <ol className="grid gap-5 lg:grid-cols-[1.2fr_1fr_1fr] items-stretch">
         {choices.map((c, i) => {
@@ -141,11 +140,20 @@ export function ChoicesSection({ choices, answers, scales, thumbs, today, usedIp
                   <h3 className={`font-extrabold leading-tight ${i === 0 ? "text-2xl" : "text-xl"}`}>
                     <Link href={`/telephone/${c.model.id}${c.config.storage_gb ? `?go=${c.config.storage_gb}` : ""}`} className="hover:text-red">{c.model.name}</Link>
                   </h3>
-                  <p className={`mt-1 font-extrabold tabular-nums ${i === 0 ? "text-3xl" : "text-2xl"}`}>{euros(c.total ?? c.shown)}</p>
-                  <p className={`text-xs font-semibold ${c.total !== null ? "text-ok" : "text-warn"}`}>
-                    {c.total !== null ? "✓ Frais inclus, dans ton budget" : "Hors livraison : à vérifier chez le vendeur"}
-                  </p>
+                  <div className="mt-1"><PriceTag offer={c.offer} budget={answers.budget} size={i === 0 ? "xl" : "lg"} /></div>
                 </div>
+              </div>
+
+              <div className="px-4 pb-4 grid gap-1.5" aria-label="Pourquoi ce choix">
+                {c.diversity && (
+                  <p className="text-xs font-semibold text-muted">
+                    Tu hésites entre iPhone et Android : voici le meilleur {c.diversity === "ios" ? "iPhone" : "Android"} dans ton budget
+                    {c.otherCondition ? `, en ${c.offer.condition === "occasion" ? "occasion" : "reconditionné"} (un état que tu n'avais pas coché)` : ""}.
+                  </p>
+                )}
+                <p className={`font-semibold leading-snug ${i === 0 ? "text-[1.05rem]" : ""}`}>{ex.items[i].lead}</p>
+                {ex.items[i].versus && <p className="text-sm leading-snug">{ex.items[i].versus}</p>}
+                {ex.items[i].limit && <p className="text-xs text-muted leading-snug">{ex.items[i].limit}</p>}
               </div>
 
               <dl className="px-4 grid gap-3 text-sm">
@@ -179,12 +187,17 @@ export function ChoicesSection({ choices, answers, scales, thumbs, today, usedIp
                 </div>
               </dl>
 
-              <div className="m-4 mb-0 border-l-2 border-red pl-3">
-                <p className="text-xs font-extrabold uppercase tracking-wider text-red">Pourquoi c&apos;est le téléphone pour toi</p>
-                <ul className="mt-1.5 grid gap-1 text-sm">
-                  {reasons(c, answers, scales, today).map((r) => <li key={r}>• {r}</li>)}
-                </ul>
-              </div>
+              {(() => {
+                const notes = profileNotes(c, answers, scales, today);
+                return notes.length ? (
+                  <div className="m-4 mb-0 border-l-2 border-red pl-3">
+                    <p className="text-xs font-extrabold uppercase tracking-wider text-red">Pour ton profil</p>
+                    <ul className="mt-1.5 grid gap-1 text-sm">
+                      {notes.map((r) => <li key={r}>• {r}</li>)}
+                    </ul>
+                  </div>
+                ) : null;
+              })()}
 
               <div className="p-4 mt-auto grid gap-3">
                 <div className="flex flex-wrap gap-2">

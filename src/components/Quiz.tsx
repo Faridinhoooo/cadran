@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Answers, Condition, OsChoice, Priority, SizePref, Usage } from "@/lib/engine";
 import { toParams } from "@/lib/answers";
 
-const KEY = "pickjust-questionnaire-v2";
+const KEY = "pickjust-questionnaire-v3";
 
 const CONDITIONS: { id: Condition; label: string; help: string }[] = [
   { id: "neuf", label: "Neuf", help: "Jamais utilisé, vendu scellé avec la garantie légale de 2 ans." },
@@ -38,17 +38,23 @@ const SIZES: { id: SizePref | "any"; label: string; help: string }[] = [
   { id: "compact", label: "Compact", help: "Écran de 6,3″ ou moins : se glisse partout, s'utilise à une main." },
   { id: "standard", label: "Standard", help: "Écran de 6,3″ à 6,6″ : le bon compromis." },
   { id: "grand", label: "Grand écran", help: "Écran de 6,7″ ou plus : idéal pour les vidéos et les jeux." },
-  { id: "any", label: "Peu importe", help: "La taille ne compte pas pour moi." },
+  { id: "any", label: "Sans préférence", help: "La taille ne compte pas pour moi." },
 ];
 
 const STORAGE: { gb: number | null; label: string; help: string }[] = [
-  { gb: null, label: "Peu de choses", help: "Quelques applis et photos, le reste dans le cloud. 64 à 128 Go suffisent." },
+  { gb: null, label: "Sans préférence", help: "Aucune capacité minimum imposée." },
   { gb: 128, label: "Un usage courant", help: "Photos, vidéos et applis du quotidien : 128 Go minimum." },
   { gb: 256, label: "Beaucoup de photos et vidéos", help: "Gros jeux, vidéos en 4K, beaucoup de musique hors ligne : 256 Go minimum." },
   { gb: 512, label: "Énormément", help: "Tout garder sur le téléphone, vidéos 4K longues : 512 Go minimum." },
 ];
 
-type State = Answers & { step: number; sizeAnswered?: boolean; storageAnswered?: boolean };
+type State = Answers & { step: number };
+
+/** Parcours rapide : 3 questions après le budget. */
+const QUICK = ["etat", "priorites", "os"] as const;
+/** Affiner (facultatif) : une question sautée vaut « Sans préférence ». */
+const REFINE = ["taille", "stockage", "usage", "annees"] as const;
+const STEPS = [...QUICK, ...REFINE];
 
 function Tick({ on, text }: { on: boolean; text?: string }) {
   return (
@@ -93,23 +99,27 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
     } catch {}
   }, [s]);
 
-  const steps = ["etat", "priorites", "usage", "taille", "stockage", "annees", "os"];
-  const current = steps[s.step];
-  const isLast = s.step === steps.length - 1;
+  const step = Math.min(s.step, STEPS.length - 1);
+  const current = STEPS[step];
+  const refining = step >= QUICK.length;
+  const isLast = step === STEPS.length - 1;
 
   useEffect(() => {
     heading.current?.focus();
-  }, [s.step]);
+  }, [step]);
 
   const set = (patch: Partial<State>) => setS((cur) => ({ ...cur, ...patch }));
   const canNext =
+    refining ||
     (current === "etat" && s.conditions.length > 0) ||
     (current === "priorites" && s.priorities.length > 0) ||
-    (current === "os" && !!s.os) ||
-    (current === "usage" && !!s.usage) ||
-    (current === "taille" && !!s.sizeAnswered) ||
-    (current === "stockage" && !!s.storageAnswered) ||
-    (current === "annees" && !!s.keepYears);
+    (current === "os" && !!s.os);
+  const refined = [
+    s.size ? (s.size === "compact" ? "écran compact" : s.size === "grand" ? "grand écran" : "écran standard") : null,
+    s.minStorage ? `${s.minStorage} Go minimum` : null,
+    s.usage ? `usage ${s.usage === "leger" ? "léger" : s.usage}` : null,
+    s.keepYears ? `${s.keepYears} an${s.keepYears > 1 ? "s" : ""}` : null,
+  ].filter(Boolean) as string[];
 
   function toggleCondition(c: Condition) {
     let next = s.conditions.length === 3 ? [] : [...s.conditions];
@@ -127,15 +137,15 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
   }
 
   function submit() {
-    const { step: _step, sizeAnswered: _a, storageAnswered: _b, ...answers } = s;
-    void _step; void _a; void _b;
+    const { step: _step, ...answers } = s;
+    void _step;
     router.push(`/resultats?${toParams(answers as Answers).toString()}`);
   }
 
   function next() {
     if (!canNext) return;
     if (isLast) submit();
-    else set({ step: s.step + 1 });
+    else set({ step: step + 1 });
   }
 
   const titles: Record<string, string> = {
@@ -152,7 +162,7 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
       <div className="flex flex-wrap items-center gap-3 justify-between mb-6">
         <p className="text-sm font-bold uppercase tracking-wider text-muted">
-          {`Question ${s.step + 1} sur ${steps.length}`}
+          {refining ? `Affiner (facultatif) · ${step - QUICK.length + 1} sur ${REFINE.length}` : `Question ${step + 1} sur ${QUICK.length}`}
         </p>
         <label className="flex items-center gap-2 text-sm">
           <span className="text-muted">Budget maximum</span>
@@ -172,7 +182,7 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
       </div>
 
       <div className="h-1.5 bg-panel-2 mb-8" aria-hidden>
-        <div className="h-full bg-red transition-all" style={{ width: `${((s.step + 1) / steps.length) * 100}%` }} />
+        <div className="h-full bg-red transition-all" style={{ width: `${refining ? ((step - QUICK.length + 1) / REFINE.length) * 100 : ((step + 1) / QUICK.length) * 100}%` }} />
       </div>
 
       <h1 ref={heading} tabIndex={-1} className="display text-3xl sm:text-5xl mb-2 outline-none">
@@ -249,6 +259,13 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
         <>
           <p className="text-muted mb-6">Ça nous aide à choisir la bonne puissance et la bonne batterie.</p>
           <div className="grid gap-3" role="radiogroup" aria-label="Intensité d'usage">
+            <button type="button" role="radio" className="choice cut-sm" aria-checked={!s.usage} onClick={() => set({ usage: null })}>
+              <Tick on={!s.usage} />
+              <span>
+                <span className="block text-lg font-bold">Sans préférence</span>
+                <span className="block text-muted text-sm mt-0.5">On ne tient pas compte de l&apos;intensité d&apos;usage.</span>
+              </span>
+            </button>
             {USAGES.map((u) => (
               <button key={u.id} type="button" role="radio" className="choice cut-sm" aria-checked={s.usage === u.id} onClick={() => set({ usage: u.id })}>
                 <Tick on={s.usage === u.id} />
@@ -265,10 +282,10 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
       {current === "taille" && (
         <div className="grid sm:grid-cols-2 gap-3 mt-6" role="radiogroup" aria-label="Taille d'écran">
           {SIZES.map((z) => {
-            const on = !!s.sizeAnswered && (z.id === "any" ? !s.size : s.size === z.id);
+            const on = z.id === "any" ? !s.size : s.size === z.id;
             return (
               <button key={z.id} type="button" role="radio" className="choice cut-sm" aria-checked={on}
-                onClick={() => set({ size: z.id === "any" ? null : z.id, sizeAnswered: true })}>
+                onClick={() => set({ size: z.id === "any" ? null : z.id })}>
                 <Tick on={on} />
                 <span>
                   <span className="block text-lg font-bold">{z.label}</span>
@@ -285,10 +302,10 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
           <p className="text-muted mb-6">Le stockage ne s&apos;agrandit pas après l&apos;achat sur la plupart des téléphones : mieux vaut prévoir.</p>
           <div className="grid gap-3" role="radiogroup" aria-label="Stockage">
             {STORAGE.map((o) => {
-              const on = !!s.storageAnswered && (s.minStorage ?? null) === o.gb;
+              const on = (s.minStorage ?? null) === o.gb;
               return (
                 <button key={String(o.gb)} type="button" role="radio" className="choice cut-sm" aria-checked={on}
-                  onClick={() => set({ minStorage: o.gb, storageAnswered: true })}>
+                  onClick={() => set({ minStorage: o.gb })}>
                   <Tick on={on} />
                   <span>
                     <span className="block text-lg font-bold">{o.label}</span>
@@ -304,7 +321,10 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
       {current === "annees" && (
         <>
           <p className="text-muted mb-6">On vérifie que le téléphone recevra encore des mises à jour de sécurité pendant toute cette durée. Acheter neuf ou reconditionné ne remet pas ce compteur à zéro.</p>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3" role="radiogroup" aria-label="Nombre d'années">
+          <div className="grid grid-cols-3 sm:grid-cols-7 gap-3" role="radiogroup" aria-label="Nombre d'années">
+            <button type="button" role="radio" aria-checked={!s.keepYears} className="choice cut-sm justify-center items-center col-span-3 sm:col-span-1" onClick={() => set({ keepYears: null })}>
+              <span className="font-bold text-center leading-tight">Sans préférence</span>
+            </button>
             {[1, 2, 3, 4, 5, 6].map((y) => (
               <button key={y} type="button" role="radio" aria-checked={s.keepYears === y} className="choice cut-sm justify-center items-center" onClick={() => set({ keepYears: y })}>
                 <span className="text-xl font-extrabold">{y === 6 ? "6 ans +" : `${y} an${y > 1 ? "s" : ""}`}</span>
@@ -354,16 +374,43 @@ export function Quiz({ initial, brands }: { initial: Partial<Answers> & { budget
         </details>
       )}
 
+      {current === "os" && refined.length > 0 && (
+        <p className="text-sm text-muted mt-6">Tes précisions sont conservées : {refined.join(" · ")}.</p>
+      )}
+
       <div className="flex flex-wrap gap-3 mt-8">
-        {s.step > 0 && (
-          <button type="button" className="btn btn-ghost" onClick={() => set({ step: s.step - 1 })}>
+        {step > 0 && (
+          <button type="button" className="btn btn-ghost" onClick={() => set({ step: step - 1 })}>
             ← Retour
           </button>
         )}
-        <button type="button" className="btn btn-primary" onClick={next} aria-disabled={!canNext || !s.budget} disabled={!canNext || !s.budget}>
-          {isLast ? "Voir mon résultat" : "Suivant"}
-        </button>
+        {current === "os" ? (
+          <>
+            <button type="button" className="btn btn-primary" onClick={submit} disabled={!canNext || !s.budget} aria-disabled={!canNext || !s.budget}>
+              Voir mes choix
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={next} disabled={!canNext || !s.budget} aria-disabled={!canNext || !s.budget}>
+              Affiner mes choix
+            </button>
+          </>
+        ) : refining ? (
+          <>
+            <button type="button" className="btn btn-primary" onClick={next} disabled={!s.budget} aria-disabled={!s.budget}>
+              {isLast ? "Voir mes choix" : "Suivant"}
+            </button>
+            {!isLast && (
+              <button type="button" className="btn btn-ghost" onClick={submit} disabled={!s.budget} aria-disabled={!s.budget}>
+                Voir mes choix maintenant
+              </button>
+            )}
+          </>
+        ) : (
+          <button type="button" className="btn btn-primary" onClick={next} aria-disabled={!canNext || !s.budget} disabled={!canNext || !s.budget}>
+            Suivant
+          </button>
+        )}
       </div>
+      {refining && <p className="text-sm text-muted mt-3">Question facultative : sans réponse, elle compte comme « Sans préférence ».</p>}
       {!s.budget && <p className="text-sm text-warn mt-3">Indique ton budget maximum en haut de la page.</p>}
     </div>
   );

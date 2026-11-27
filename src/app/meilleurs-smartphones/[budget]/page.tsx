@@ -49,7 +49,7 @@ export default async function Page({ params }: Params) {
       </h1>
       <p className="text-muted mt-3 max-w-3xl">
         {g.offers.length
-          ? <>{g.models} modèles et {g.offers.length} offres neuves ou reconditionnées sous {euros(budget)}, dont {g.confirmed} frais inclus et {g.toVerify} dont la livraison reste à vérifier.</>
+          ? <>{g.models} modèles et {g.offers.length} offres neuves ou reconditionnées sous {euros(budget)}, {g.confirmed === 0 ? <>toutes avec une livraison à vérifier (le vendeur ne publie pas ses frais).</> : g.toVerify === 0 ? <>toutes frais inclus.</> : <>dont {g.confirmed} frais inclus et {g.toVerify} dont la livraison reste à vérifier.</>}</>
           : <>Aucune offre récente n&apos;est relevée sous {euros(budget)} pour le moment.</>}{" "}
         Classement calculé à partir des prix relevés {lastSync ? `le ${dateTimeFr(lastSync)}` : "récemment"} ; aucun vendeur ne paie pour y figurer (
         <Link href="/classement" className="underline">méthode</Link>).

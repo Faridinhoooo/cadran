@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { configsFor, getBrand, getModel, marketFor, mediaFor, specsFor, specMap, supportFor, type OfferRow, type SpecRow } from "@/lib/queries";
-import { isFresh, offerTotal } from "@/lib/engine";
+import { isFresh, offerTotal, shownPrice } from "@/lib/engine";
+import { priceStatus } from "@/lib/price";
+import { PriceTag } from "@/components/PriceTag";
 import { NR, dateFr, dateTimeFr, euros, releaseLabel, sourceLabel, specText, storageLabel } from "@/lib/format";
 import { securityDeadline, upgradesDeadline } from "@/lib/support";
 import { Gallery } from "@/components/Gallery";
@@ -123,7 +125,7 @@ function OfferBlock({ title, offers, cond, today }: { title: string; offers: Off
       ) : unknownTotal.length ? (
         <>
           <p className="tag border-warn/60 text-warn self-start">Prix relevé · frais à vérifier</p>
-          <p className="text-2xl font-extrabold tabular-nums">{euros(unknownTotal[0].price)} <span className="text-sm font-semibold">hors frais · <span className="text-warn">livraison à vérifier</span></span></p>
+          <PriceTag offer={unknownTotal[0]} size="lg" />
           <p className="text-sm text-muted">{unknownTotal[0].shipping_note ?? `Les frais de livraison de ${unknownTotal[0].seller} ne sont pas publiés.`}</p>
           <dl className="text-sm grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
             <dt className="text-muted">Vendeur</dt><dd>{unknownTotal[0].seller}{unknownTotal[0].platform ? ` · ${unknownTotal[0].platform}` : ""}</dd>
@@ -186,9 +188,9 @@ export default async function Page({ params, searchParams }: Params) {
   // Tuile de prix : coût total confirmé, sinon prix affiché hors frais, sinon « Prix à actualiser ».
   const tile = (cond: "neuf" | "reconditionne"): [string | null, string | null] => {
     const b = bestBy(offers, cond, today);
-    if (b.best) return [euros(offerTotal(b.best)!), `${b.best.seller} · frais inclus`];
-    const u = [...b.unknownTotal].sort((x, y) => x.price - y.price)[0];
-    if (u) return [`${euros(u.price)}`, `${u.seller} · hors frais, livraison à vérifier`];
+    if (b.best) { const p = priceStatus(b.best); return [euros(p.amount), `${b.best.seller} · ${p.label}`]; }
+    const u = [...b.unknownTotal].sort((x, y) => shownPrice(x) - shownPrice(y))[0];
+    if (u) { const p = priceStatus(u); return [euros(p.amount), `${u.seller} · ${p.label}`]; }
     if (b.stale.length) return [null, "Prix à actualiser"];
     return [null, null];
   };
@@ -232,9 +234,10 @@ export default async function Page({ params, searchParams }: Params) {
     },
     {
       label: "Correctifs de sécurité",
-      value: sec.state === "inconnue" ? "Fin non annoncée" : sec.state === "periode_terminee" ? "Terminés"
+      value: sec.state === "inconnue" ? (sec.announcedYears ? `${String(sec.announcedYears).replace(".", ",")} ans annoncés · date de départ non publiée, temps restant à vérifier` : "Fin non annoncée")
+        : sec.state === "periode_terminee" ? "Terminés"
         : `${sec.precision === "mois" ? "Jusqu'en" : "Jusqu'au"} ${sec.dateLabel}`,
-      level: sec.state === "inconnue" ? null : support?.level ?? "communautaire", url: support?.source_url ?? null,
+      level: sec.state === "inconnue" && !sec.announcedYears ? null : support?.level ?? "communautaire", url: support?.source_url ?? null,
     },
     { label: "Sortie", value: m.release_date ? rel.date : "Non communiquée", level: m.release_date ? m.release_level ?? "editorial" : null, url: null },
     { label: "Vendu en France", value: m.fr_status === "confirme" ? "Oui" : "À vérifier", level: null, url: null },
@@ -312,7 +315,7 @@ export default async function Page({ params, searchParams }: Params) {
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted mt-1.5">Coût total livraison comprise{sel ? `, pour ${storageLabel(sel.storage_gb)}` : ""}. <a href="#prix" className="underline">Détail des offres</a> · <a href="#occasion-liens" className="underline">En occasion</a> · <a href="#ailleurs" className="underline">Comparer ailleurs</a></p>
+          <p className="text-xs text-muted mt-1.5">Prix {sel ? `en ${storageLabel(sel.storage_gb)}` : ""} : « frais inclus » quand le vendeur publie tous ses frais, sinon « hors frais ». <a href="#prix" className="underline">Détail des offres</a> · <a href="#occasion-liens" className="underline">En occasion</a> · <a href="#ailleurs" className="underline">Comparer ailleurs</a></p>
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <MoreSpecsButton target="tout">Toutes les caractéristiques ↓</MoreSpecsButton>

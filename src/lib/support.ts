@@ -33,6 +33,11 @@ export interface Deadline {
   dateLabel: string | null;
   /** « 4 ans et 3 mois », « 12 jours », « environ 6 ans et 9 mois ». */
   remainingLabel: string | null;
+  /**
+   * Durée annoncée par le fabricant (« 6 ans de mises à jour de sécurité ») quand ni la date de départ ni l'échéance
+   * ne sont publiées : on affiche « 6 ans annoncés », jamais un temps restant calculé.
+   */
+  announcedYears?: number | null;
 }
 
 const MONTHS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
@@ -122,7 +127,15 @@ export function deadline(end: string | null, precision: string | null, confirmed
 }
 
 export function securityDeadline(s: SupportRow | null, today: Date): Deadline {
-  return deadline(s?.security_end ?? null, s?.security_end_precision ?? null, !!s?.security_end_confirmed, today);
+  const d = deadline(s?.security_end ?? null, s?.security_end_precision ?? null, !!s?.security_end_confirmed, today);
+  return d.state === "inconnue" && s?.security_years ? { ...d, announcedYears: s.security_years } : d;
+}
+
+const yearsLabel = (y: number) => `${String(y).replace(".", ",")} an${y >= 2 ? "s" : ""}`;
+
+/** « 6 ans annoncés » : durée seule, sans date de départ ni échéance publiées. */
+export function announcedLabel(d: Deadline): string | null {
+  return d.state === "inconnue" && d.announcedYears ? `${yearsLabel(d.announcedYears)} annoncés` : null;
 }
 
 export function upgradesDeadline(s: SupportRow | null, today: Date): Deadline {
@@ -133,7 +146,7 @@ export function upgradesDeadline(s: SupportRow | null, today: Date): Deadline {
 export function securityHeadline(d: Deadline): string {
   switch (d.state) {
     case "inconnue":
-      return "Date de fin non annoncée";
+      return d.announcedYears ? `${yearsLabel(d.announcedYears)} annoncés · temps restant à vérifier` : "Date de fin non annoncée";
     case "periode_terminee":
       return "Période garantie terminée";
     case "support_termine":
@@ -149,6 +162,11 @@ export function securityHeadline(d: Deadline): string {
 
 /** Compare la durée de conservation souhaitée à la garantie restante. */
 export function keepYearsVerdict(years: number, d: Deadline): { ok: boolean | null; text: string } {
+  if (d.state === "inconnue" && d.announcedYears)
+    return {
+      ok: null,
+      text: `${yearsLabel(d.announcedYears)} de correctifs de sécurité annoncés, mais sans date de départ publiée : le temps restant pour tes ${years} ans reste à vérifier.`,
+    };
   if (d.state === "inconnue" || d.monthsLeft === null)
     return { ok: null, text: `Garder ce téléphone ${years} ans avec des correctifs de sécurité ne peut pas être confirmé : aucune date de fin n'est publiée.` };
   const need = years * 12;
@@ -166,6 +184,8 @@ export type SupportKind = "officiel" | "absence_verifiee" | "non_verifie";
 
 /** Trois situations distinctes, jamais confondues à l'affichage. */
 export function supportStatus(s: SupportRow | null): { kind: SupportKind; label: string; help: string } {
+  if (s?.level === "officiel" && !s.security_end && s.security_years)
+    return { kind: "officiel", label: `${yearsLabel(s.security_years)} annoncés par le fabricant`, help: "Durée publiée sur la page officielle, sans date de départ ni échéance : le temps restant reste à vérifier." };
   if (s?.level === "officiel")
     return { kind: "officiel", label: "Engagement officiel vérifié", help: "Échéance calculée à partir d'une page officielle du constructeur, relevée à la date indiquée." };
   if (s?.level === "autorise")

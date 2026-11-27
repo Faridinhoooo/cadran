@@ -2,6 +2,7 @@ import "server-only";
 import { getDb } from "./db";
 import { excludedBrands, excludedSql, isExcludedBrand } from "./brand-policy";
 import { cardVisual } from "./visual";
+import { priceStatus, type PriceKind } from "./price";
 import { catalogPolicy, pricedModelSql, publishedModelSql, reliableOfferSql } from "./catalog-policy";
 import fs from "node:fs";
 import path from "node:path";
@@ -184,8 +185,12 @@ export function candidates(): CandidateModel[] {
 
 export interface ModelSummary extends ModelRow {
   thumb: MediaRow | null;
+  /** Prix le plus bas en neuf / reconditionné (coût total si connu, sinon prix affiché hors frais). */
   minNew: number | null;
   minRefurb: number | null;
+  /** Statut de frais de ces prix : « total » (frais inclus) ou « hors_frais » / « depart ». */
+  newKind: PriceKind | null;
+  refurbKind: PriceKind | null;
   security_end: string | null;
   security_end_precision: string | null;
   security_end_confirmed: number;
@@ -204,13 +209,19 @@ export interface ModelSummary extends ModelRow {
 /** Données légères pour le catalogue (une requête par table, pas par modèle). */
 export function catalogSummaries(): ModelSummary[] {
   const thumbs = thumbnails();
-  const prices = new Map<string, { neuf: number | null; reco: number | null }>();
-  for (const r of rows<{ model_id: string; condition: string; p: number }>(`SELECT c.model_id, o.condition, MIN(o.price) p FROM offers o
-      JOIN configs c ON c.id=o.config_id WHERE ${reliableOfferSql(catalogPolicy())}
-      GROUP BY c.model_id, o.condition`)) {
+  // Prix le plus bas par état, présenté comme partout ailleurs (src/lib/price.ts) : coût total si les frais sont connus,
+  // sinon prix affiché « hors frais ». À montant égal, une offre frais inclus passe devant.
+  type Best = { amount: number; kind: PriceKind };
+  const prices = new Map<string, { neuf: Best | null; reco: Best | null }>();
+  for (const r of rows<{ model_id: string; condition: string; price: number; mandatory_fees: number | null; shipping: number | null; capacity_status: string }>(
+    `SELECT c.model_id, o.condition, o.price, o.mandatory_fees, o.shipping, o.capacity_status FROM offers o
+      JOIN configs c ON c.id=o.config_id WHERE ${reliableOfferSql(catalogPolicy())}`)) {
+    if (r.condition !== "neuf" && r.condition !== "reconditionne") continue;
+    const p = priceStatus(r);
     const e = prices.get(r.model_id) ?? { neuf: null, reco: null };
-    if (r.condition === "neuf") e.neuf = r.p;
-    if (r.condition === "reconditionne") e.reco = r.p;
+    const k = r.condition === "neuf" ? "neuf" : "reco";
+    const cur = e[k];
+    if (!cur || p.amount < cur.amount || (p.amount === cur.amount && p.kind === "total")) e[k] = { amount: p.amount, kind: p.kind };
     prices.set(r.model_id, e);
   }
   const sup = new Map(rows<{ model_id: string; security_end: string | null; security_end_precision: string | null; security_end_confirmed: number; level: string }>(
@@ -248,7 +259,8 @@ export function catalogSummaries(): ModelSummary[] {
   return allModels().map((m) => {
     const s = sup.get(m.id);
     return {
-      ...m, thumb: thumbs.get(m.id) ?? null, minNew: prices.get(m.id)?.neuf ?? null, minRefurb: prices.get(m.id)?.reco ?? null,
+      ...m, thumb: thumbs.get(m.id) ?? null, minNew: prices.get(m.id)?.neuf?.amount ?? null, minRefurb: prices.get(m.id)?.reco?.amount ?? null,
+      newKind: prices.get(m.id)?.neuf?.kind ?? null, refurbKind: prices.get(m.id)?.reco?.kind ?? null,
       security_end: s?.security_end ?? null, security_end_precision: s?.security_end_precision ?? null, security_end_confirmed: s?.security_end_confirmed ?? 0,
       specs: specs.get(m.id) ?? {}, storages: storages.get(m.id) ?? [],
       officialSpecs: official.has(m.id), supportLevel: s?.level ?? null,
@@ -274,7 +286,7 @@ export function coverage() {
   const runs = rows<{ source: string; finished_at: string | null; status: string; added: number; updated: number; notes: string | null }>(`
     SELECT r.source, r.finished_at, r.status, r.added, r.updated, r.notes FROM import_runs r
     WHERE r.id = (SELECT MAX(id) FROM import_runs r2 WHERE r2.source=r.source) ORDER BY r.finished_at DESC`);
-  const totals = row<{ models: number; published: number; priced: number; offers: number; media: number; officialSpecs: number; officialSupport: number; editorialSpecs: number }>(`SELECT
+  const totals = row<{ models: number; published: number; priced: number; offers: number; recentOffers: number; media: number; officialSpecs: number; officialSupport: number; editorialSpecs: number }>(`SELECT
     (SELECT COUNT(DISTINCT model_id) FROM specs WHERE level IN ('officiel','autorise')) officialSpecs,
     (SELECT COUNT(*) FROM support WHERE level IN ('officiel','autorise')) officialSupport,
     (SELECT COUNT(DISTINCT model_id) FROM specs WHERE level='editorial' AND key<>'chip_tier' AND model_id NOT IN (SELECT model_id FROM specs WHERE level IN ('officiel','autorise'))) editorialSpecs,
@@ -282,6 +294,7 @@ export function coverage() {
     (SELECT COUNT(*) FROM models m WHERE is_test=0 AND ${excludedSql("m.brand_id")} AND ${publishedModelSql()}) published,
     (SELECT COUNT(*) FROM models m WHERE is_test=0 AND ${excludedSql("m.brand_id")} AND ${pricedModelSql()}) priced,
     (SELECT COUNT(*) FROM offers WHERE available=1 AND is_test=0) offers,
+    (SELECT COUNT(*) FROM offers o WHERE ${reliableOfferSql(catalogPolicy())}) recentOffers,
     (SELECT COUNT(DISTINCT model_id) FROM media) media`)!;
   return { byBrand, bySeries, byYear, runs, totals };
 }

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { configsFor, getBrand, getModel, mediaFor, specsFor, specMap, supportFor } from "@/lib/queries";
 import { isFresh, offerTotal } from "@/lib/engine";
-import { NR, euros, releaseLabel, specText, storageLabel } from "@/lib/format";
+import { priceStatus, priceText } from "@/lib/price";
+import { NR, releaseLabel, specText, storageLabel } from "@/lib/format";
 import { securityDeadline, securityHeadline } from "@/lib/support";
 import { Thumb } from "@/components/ui";
 import { DiffTable, type DiffRow } from "@/components/DiffTable";
@@ -31,7 +32,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ i
     if (!m) return null;
     const configs = configsFor(id);
     const sel = configs.find((c) => c.storage_gb === go) ?? configs.find((c) => c.offers.some((o) => isFresh(o, today))) ?? configs[0] ?? null;
-    const best = (cond: string) => sel?.offers.filter((o) => o.condition === cond && isFresh(o, today) && offerTotal(o) !== null).sort((a, b) => offerTotal(a)! - offerTotal(b)!)[0] ?? null;
+    // Meilleure offre récente : une offre frais inclus passe devant une offre hors frais, puis la moins chère.
+    const best = (cond: string) => sel?.offers.filter((o) => o.condition === cond && isFresh(o, today))
+      .sort((a, b) => Number(offerTotal(a) === null) - Number(offerTotal(b) === null) || priceStatus(a).amount - priceStatus(b).amount)[0] ?? null;
     return { m, configs, sel, specs: specMap(specsFor(id)), support: supportFor(id), thumb: mediaFor(id)[0] ?? null, brand: getBrand(m.brand_id), neuf: best("neuf"), reco: best("reconditionne") };
   }).filter((x): x is NonNullable<typeof x> => !!x);
 
@@ -50,8 +53,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ i
 
   const rows: DiffRow[] = [
     { group: "Prix et suivi", label: "Capacité choisie", values: items.map((i) => (i.sel ? storageLabel(i.sel.storage_gb) : NR)) },
-    { group: "Prix et suivi", label: "Neuf (coût total)", values: items.map((i) => (i.neuf ? `${euros(offerTotal(i.neuf)!)} · ${i.neuf.seller}` : "Aucune offre vérifiée")) },
-    { group: "Prix et suivi", label: "Reconditionné (coût total)", values: items.map((i) => (i.reco ? `${euros(offerTotal(i.reco)!)} · ${i.reco.seller}` : "Aucune offre vérifiée")) },
+    { group: "Prix et suivi", label: "Neuf", values: items.map((i) => (i.neuf ? `${priceText(i.neuf)} · ${i.neuf.seller}` : "Aucune offre récente")) },
+    { group: "Prix et suivi", label: "Reconditionné", values: items.map((i) => (i.reco ? `${priceText(i.reco)} · ${i.reco.seller}` : "Aucune offre récente")) },
     { group: "Prix et suivi", label: "Sécurité restante", values: items.map((i) => securityHeadline(securityDeadline(i.support, today))) },
     { group: "Prix et suivi", label: "Sortie", values: items.map((i) => { const r = releaseLabel(i.m); return r.note ? `${r.date} (mondiale)` : r.date; }) },
     { group: "Prix et suivi", label: "Origine de la marque", values: items.map((i) => i.brand?.origin_country ?? NR) },

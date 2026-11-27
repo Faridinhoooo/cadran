@@ -918,7 +918,7 @@ export function xiaomiVariantOffers(
     id: `xiaomi-fr:${ctx.tag}:${gb}`, modelId: ctx.modelId, storageGb: gb, capacityStatus: "confirmee", condition: "neuf",
     seller: "Xiaomi", platform: "mi.com/fr", price: item.price, shipping: null, shippingStatus: "inconnue",
     shippingNote: "Frais de livraison non indiqués sur la page produit", mandatoryFees: 0, stock: inStock ? "en_stock" : "rupture",
-    color: item.item_name.replace(/^.*?\s(\S+)\s+\d+\s*GO.*$/i, "$1"), grade: null, batteryNote: null, warranty: null, returnsPolicy: null,
+    color: item.item_name.replace(/\s*\d+\s*GO\s*\+.*$/i, "").split(/\s+/).pop() ?? null, grade: null, batteryNote: null, warranty: null, returnsPolicy: null,
     url: `https://www.mi.com/fr/product/${ctx.tag}/buy/?gid=${item.item_id}`, source: "xiaomi-fr", create: ctx.create,
   }));
 }
